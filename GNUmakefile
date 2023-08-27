@@ -37,7 +37,7 @@ MaslOS.iso: limine kernel
 	mkdir -p iso_root
 	cp kernel/kernel.elf \
 		limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin \
-		kernel/kernel/src/external/toAdd/* \
+		external/* \
 		iso_root/
 	xorriso -as mkisofs -b limine-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \

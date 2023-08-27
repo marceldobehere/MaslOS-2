@@ -104,32 +104,44 @@ $(KERNEL): $(OBJ)
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.asm (nasm) files.
-# %gdt/gdt_asm.o: %gdt/gdt.asm
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	nasm $(NASMFLAGS) $^ -f elf64 -o $@
+%gdt/gdt_asm.o: %gdt/gdt.asm
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	nasm $(NASMFLAGS) $^ -f elf64 -o $@
 
 
-# %interrupts/interrupts.o: %interrupts/interrupts.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
+%interrupts/interrupts.o: %interrupts/interrupts.cpp
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
 	
-# %ahci/ahci.o: %ahci/ahci.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
+%ahci/ahci.o: %ahci/ahci.cpp
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	$(CC) $(CFLAGS2) -c $< -o $@
 
 #$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
 
-# %pit/pit.o: %pit/pit.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
+%pit/pit.o: %pit/pit.cpp
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	$(CC) $(CFLAGS2) -c $< -o $@
+	
+
+	
+kernel/src/WindowStuff/WindowManager/%.o: kernel/src/WindowStuff/WindowManager/%.cpp
+	$(CC) $(CFLAGS2) -O2 -c $< -o $@	
+	
+%/rendering/BasicRenderer.o: %/rendering/BasicRenderer.cpp
+	$(CC) $(CFLAGS2) -O2 -c $< -o $@	
+	
+%/rendering/VirtualRenderer.o: %/rendering/VirtualRenderer.cpp
+	$(CC) $(CFLAGS2) -O1 -c $< -o $@	
 
 
-# %/test/testTask.o: %/test/testTask.cpp
-# 	$(CC) $(CFLAGS2) -c $^ -o $@ -lm
+
+%/test/testTask.o: %/test/testTask.cpp
+	$(CC) $(CFLAGS2) -c $^ -o $@ -lm
 
 
 
@@ -140,6 +152,7 @@ $(KERNEL): $(OBJ)
 # Compilation rules for *.cpp files.
 %.o: %.c
 	$(CC) $(CFLAGS3) -c $^ -o $@
+
 
 
 # Compilation rules for *.c files.
