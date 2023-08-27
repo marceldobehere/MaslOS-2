@@ -1,6 +1,6 @@
 # This is the name that our final kernel executable will have.
 # Change as needed.
-override KERNEL := kernel.elf
+override KERNEL := FINAL_kernel.o
 
 # Convenience macro to reliably declare overridable command variables.
 define DEFAULT_VAR =
@@ -55,19 +55,15 @@ override CFLAGS +=       \
     -MMD                 \
     -I.
     
-CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w
-CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w
+CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w -I ../
+CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w -I ../
 
 #-ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fcommon
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
-    -nostdlib               \
-    -static                 \
-    -Bsymbolic              \
     -m elf_x86_64           \
-    -z max-page-size=0x1000 \
-    -T linker.ld
+    -r         
 
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
@@ -104,17 +100,18 @@ $(KERNEL): $(OBJ)
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.asm (nasm) files.
-# %gdt/gdt_asm.o: %gdt/gdt.asm
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	nasm $(NASMFLAGS) $^ -f elf64 -o $@
+%gdt/gdt_asm.o: %gdt/gdt.asm
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	nasm $(NASMFLAGS) $^ -f elf64 -o $@
 
 
-# %interrupts/interrupts.o: %interrupts/interrupts.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
-	
+interrupts/interrupts.o: interrupts/interrupts.cpp
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
+
+
 # %ahci/ahci.o: %ahci/ahci.cpp
 # 	@ echo !==== COMPILING $^
 # 	@ echo !==== COMPILING $^

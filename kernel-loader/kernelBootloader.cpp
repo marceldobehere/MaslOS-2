@@ -194,7 +194,7 @@ limine_file* getFile(const char* name)
     return NULL;
 }
 
-#include "kernel/src/kernel.h"
+#include "../kernel/kernel.h"
 
 kernelFiles::ImageFile getImage(const char* path)
 {
@@ -202,7 +202,10 @@ kernelFiles::ImageFile getImage(const char* path)
     if (file == NULL)
     {
         e9_printf("> Failed to get Image \"%s\"!", path);
-        done();
+        //done();
+
+        kernelFiles::ImageFile img;
+        return img;
     }
 
     kernelFiles::ImageFile img;
@@ -224,7 +227,10 @@ kernelFiles::ZIPFile getZIP(const char* path)
     if (file == NULL)
     {
         e9_printf("> Failed to get ZIP \"%s\"!", path);
-        done();
+        //done();
+
+        kernelFiles::ZIPFile zip;
+        return zip;
     }
     e9_printf("> ZIP Filename: \"%s\"", path);
     kernelFiles::ZIPFile zip;
