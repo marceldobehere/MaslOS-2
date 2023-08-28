@@ -86,7 +86,7 @@ namespace PIT
         if (tempus++ > roughCount)
         {
             tempus = 0;
-            //RTC::UpdateTimeIfNeeded();
+            RTC::UpdateTimeIfNeeded();
         }
     }
 

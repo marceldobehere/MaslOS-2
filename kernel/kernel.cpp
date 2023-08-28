@@ -5,6 +5,7 @@
 #include "interrupts/panic.h"
 #include "elf/elf.h"
 #include "devices/serial/serial.h"
+#include "devices/pit/pit.h"
 
 
 
@@ -37,17 +38,23 @@ void boot(void* _bootInfo)
     uint8_t* data = bootInfo->testModule->fileData;
     Serial::Writelnf("data: %x", data);
 
-    Elf::LoadedElfFile file = Elf::LoadElf(data);
-    if (!file.works)
-        Panic("FILE NO WORK :(", true);
+    {
+        Elf::LoadedElfFile file = Elf::LoadElf(data);
+        if (!file.works)
+            Panic("FILE NO WORK :(", true);
 
+        ENV_DATA env;
+        env.globalFrameBuffer = GlobalRenderer->framebuffer;
+        env.globalFont = GlobalRenderer->psf1_font;
+
+        Elf::RunElf(file, 0, NULL, &env);
+    }
+
+    // GlobalRenderer->Clear(Colors.bred);
+
+    // PIT::Sleep(1000);
     
-
-    ENV_DATA env;
-    env.globalFrameBuffer = GlobalRenderer->framebuffer;
-    env.globalFont = GlobalRenderer->psf1_font;
-
-    Elf::RunElf(file, 0, NULL, &env);
+    // GlobalRenderer->Clear(Colors.black);
 
     while (true);
 }
