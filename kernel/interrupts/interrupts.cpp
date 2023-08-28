@@ -19,6 +19,8 @@
 
 #include "../kernel.h"
 
+#include "../scheduler/scheduler.h"
+
 
 
 extern "C" void BruhusSafus()
@@ -261,6 +263,8 @@ __attribute__((interrupt)) void PITInt_handler(interrupt_frame* frame)
     AddToStack();
     PIT::Tick();
     PIC_EndMaster();
+
+    Scheduler::SchedulerInterrupt(frame);
 
     // AudioDeviceStuff::play(PIT::FreqAdder);
     // if (osData.serialManager != NULL)

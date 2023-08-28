@@ -208,7 +208,7 @@ void InitBackup(void* heapAddress, size_t pageCount)
     void* pos = heapAddress;
     for (size_t i = 0; i < pageCount; i++)
     {
-        GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage(), true);
+        GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
 
@@ -250,7 +250,7 @@ void InitializeHeap(void* heapAddress, size_t pageCount)
         //uint64_t addr = (uint64_t)GlobalAllocator->RequestPage();
         //GlobalRenderer->Println("Requesting Page: {}", ConvertHexToString(addr), Colors.yellow);
         //GlobalPageTableManager.MapMemory(pos, (void*)addr);
-        GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage(), true);
+        GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
 
@@ -668,7 +668,7 @@ bool ExpandHeap(size_t length)
             Panic("NO MORE RAM!!!!!!!", true);
         }
         
-        GlobalPageTableManager.MapMemory(tHeapEnd, tempAddr, true);
+        GlobalPageTableManager.MapMemory(tHeapEnd, tempAddr);
         tHeapEnd = (void*)((size_t)tHeapEnd + 0x1000);
     }
 

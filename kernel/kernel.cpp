@@ -7,9 +7,9 @@
 #include "devices/serial/serial.h"
 #include "devices/pit/pit.h"
 
-#include <libm/list.h>
-#include <libm/testo.h>
+#include <libm/list/list.h>
 #include "memory/heap.h"
+#include "scheduler/scheduler.h"
 
 
 void boot(void* _bootInfo)
@@ -38,35 +38,16 @@ void boot(void* _bootInfo)
 
     //GlobalRenderer->Clear(Colors.black);
 
-    char* bruh = (char*) _Malloc(100);
-
-    char* bruhus = new char;
-
-    Serial::Writelnf("> MALLOC: %X", TestMalloc());
-
-    List<int>* test = new List<int>(10);
-    //test.Add(1);
-
-    // Serial::Writelnf("test: %x", test[0]);
-    // test.RemoveFirst();
-
-    // Serial::Writelnf("test: %x", test[0]);
-
-
 
     {
-        uint8_t* data = bootInfo->testModule->fileData;
+        uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
         Serial::Writelnf("data: %x", data);
 
         Elf::LoadedElfFile file = Elf::LoadElf(data);
         if (!file.works)
             Panic("FILE NO WORK :(", true);
 
-        ENV_DATA env;
-        env.globalFrameBuffer = GlobalRenderer->framebuffer;
-        env.globalFont = GlobalRenderer->psf1_font;
-
-        Elf::RunElf(file, 0, NULL, &env);
+        Scheduler::AddModule(file, 0, NULL);
     }
 
     //bootInfo->smpData->cpus[1]->goto_address;

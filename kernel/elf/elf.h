@@ -191,6 +191,6 @@ namespace Elf
 
     LoadedElfFile LoadElf(uint8_t* data);
 
-    void RunElf(LoadedElfFile file, int argc, char** argv, ENV_DATA* envData);
+    void RunElfHere(LoadedElfFile file, int argc, char** argv, ENV_DATA* envData);
 
 }

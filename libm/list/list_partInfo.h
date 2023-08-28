@@ -1,5 +1,5 @@
 // #pragma once
-// #include "../list.h"
+// #include "./list.h"
 
 
 // #include "../../kernelStuff/diskStuff/Partition_Interfaces/generic/partitionStructs.h"

@@ -11,6 +11,7 @@
 #include "../IO/IO.h"
 #include "../../osData/MStack/MStackM.h"
 #include "../../memory/heap.h"
+#include "../../scheduler/scheduler.h"
 
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
@@ -100,6 +101,10 @@ void InitKernel(BootInfo* bootInfo)
 //     InitKeyboard();
 //     StepDone();
     
+    PrintMsg("> Initialising Scheduler");
+    Scheduler::InitScheduler();
+    StepDone();
+
     PrintMsg("> Preparing Interrupts");
     PrepareInterrupts();
     PIT::Inited = true;

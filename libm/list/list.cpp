@@ -1,5 +1,5 @@
 #include "list.h"
-#include "./list/list_all.h"
+#include "./list_all.h"
 
 
 template <typename T> void List<T>::Init(uint64_t capacity)

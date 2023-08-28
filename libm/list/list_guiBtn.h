@@ -1,5 +1,5 @@
 // #pragma once
-// #include "../list.h"
+// #include "./list.h"
 
 // #include "../../WindowStuff/SubInstances/guiInstance/guiStuff/components/button/buttonComponent.h"
 

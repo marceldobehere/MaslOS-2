@@ -1,5 +1,5 @@
 // #pragma once
-// #include "../list.h"
+// #include "./list.h"
 
 // #include "../../WindowStuff/Window/window.h"
 

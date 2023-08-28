@@ -1,7 +1,8 @@
 #pragma once
-#include "../list.h"
+#include "./list.h"
 
 #include "./list_basics.h"
+#include "./list_task.h"
 //#include "./list_audio.h"
 //#include "./list_consoleChar.h"
 //#include "./list_fsStructs.h"

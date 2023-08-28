@@ -135,7 +135,7 @@ namespace Elf
         return file;
     }
 
-    void RunElf(LoadedElfFile file, int argc, char** argv, ENV_DATA* envData)
+    void RunElfHere(LoadedElfFile file, int argc, char** argv, ENV_DATA* envData)
     {
         if (file.works)
         {

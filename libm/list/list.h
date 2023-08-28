@@ -1,5 +1,5 @@
 #pragma once
-#include "stubs.h"
+#include "../stubs.h"
 
 
 template <typename T> class Array

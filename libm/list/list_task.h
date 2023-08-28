@@ -1,7 +1,7 @@
-// #pragma once
-// #include "../list.h"
+#pragma once
+#include "./list.h"
 
-// #include "../../tasks/task.h"
+#include "../osTask.h"
 
-// template class Array<Task*>;
-// template class List<Task*>;
+template class Array<osTask*>;
+template class List<osTask*>;

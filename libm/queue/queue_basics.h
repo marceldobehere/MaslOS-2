@@ -1,5 +1,5 @@
 #pragma once
-#include "../queue.h"
+#include "./queue.h"
 
 template class Queue<int>;
 

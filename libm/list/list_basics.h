@@ -1,5 +1,5 @@
 #pragma once
-#include "../list.h"
+#include "./list.h"
 
 template class Array<int>;
 template class List<int>;
