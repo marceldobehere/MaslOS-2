@@ -7,6 +7,9 @@
 #include "devices/serial/serial.h"
 #include "devices/pit/pit.h"
 
+#include <libm/list.h>
+#include <libm/testo.h>
+#include "memory/heap.h"
 
 
 void boot(void* _bootInfo)
@@ -35,10 +38,26 @@ void boot(void* _bootInfo)
 
     //GlobalRenderer->Clear(Colors.black);
 
-    uint8_t* data = bootInfo->testModule->fileData;
-    Serial::Writelnf("data: %x", data);
+    char* bruh = (char*) _Malloc(100);
+
+    char* bruhus = new char;
+
+    Serial::Writelnf("> MALLOC: %X", TestMalloc());
+
+    List<int>* test = new List<int>(10);
+    //test.Add(1);
+
+    // Serial::Writelnf("test: %x", test[0]);
+    // test.RemoveFirst();
+
+    // Serial::Writelnf("test: %x", test[0]);
+
+
 
     {
+        uint8_t* data = bootInfo->testModule->fileData;
+        Serial::Writelnf("data: %x", data);
+
         Elf::LoadedElfFile file = Elf::LoadElf(data);
         if (!file.works)
             Panic("FILE NO WORK :(", true);
@@ -50,11 +69,14 @@ void boot(void* _bootInfo)
         Elf::RunElf(file, 0, NULL, &env);
     }
 
+    //bootInfo->smpData->cpus[1]->goto_address;
+
     // GlobalRenderer->Clear(Colors.bred);
 
     // PIT::Sleep(1000);
     
     // GlobalRenderer->Clear(Colors.black);
+
 
     while (true);
 }
@@ -82,6 +104,8 @@ void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAss
     tempBootInfo.windowButtonZIP = assets->windowButtonZIP;
     tempBootInfo.windowIconsZIP = assets->windowIconsZIP;
 
+    tempBootInfo.testModule = assets->testModule;
+
     tempBootInfo.mMapStart = freeMemStart;
     tempBootInfo.m2MapStart = extraMemStart;
     tempBootInfo.mMapSize = freeMemSize;
@@ -90,7 +114,7 @@ void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAss
     tempBootInfo.kernelSize = kernelSize;
     tempBootInfo.kernelStartV = kernelStartV;
 
-    tempBootInfo.testModule = assets->testModule;
+    tempBootInfo.smpData = smpData;
 
     for (int y = 0; y < 100; y++)
         for (int x = 500; x < 600; x++)

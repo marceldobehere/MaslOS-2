@@ -81,7 +81,8 @@ override CPPFILES  := $(shell find . -type f -name '*.cpp')
 override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ         := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
+override OBJ         := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o)
+override OBJ2         := $(CFILES:.c=.o.kernel) $(CPPFILES:.cpp=.o.kernel) $(ASFILES:.S=.o.kernel) $(NASMFILES:.asm=_asm.o.kernel)
 override HEADER_DEPS := $(CFILES:.c=.d) $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d)
 
 # Default target.
@@ -94,6 +95,7 @@ limine.h:
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
 	$(LD) $(OBJ) $(LDFLAGS) -o $@
+	$(LD) $(OBJ2) $(LDFLAGS) -o $@.kernel
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
@@ -103,6 +105,7 @@ $(KERNEL): $(OBJ)
 # Compilation rules for *.cpp files.
 %.o: %.cpp
 	$(CC) $(CFLAGS2) -c $^ -o $@
+	$(CC) $(CFLAGS2) -c $^ -o $@.kernel -D _KERNEL_SRC
 	
 # Compilation rules for *.cpp files.
 %.o: %.c
@@ -128,6 +131,7 @@ $(KERNEL): $(OBJ)
 .PHONY: clean
 clean:
 	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
+	rm -rf $(KERNEL) $(OBJ2) $(HEADER_DEPS)
 
 .PHONY: distclean
 distclean: clean

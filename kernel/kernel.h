@@ -1,5 +1,7 @@
 #pragma once
 
+#define _KERNEL_SRC
+
 #include "rendering/Framebuffer.h"
 #include "devices/acpi/acpi.h"
 #include "kernelStuff/kernelFiles/kernelFiles.h"

@@ -6,6 +6,7 @@
 #include "../kernelFiles/FileStruct.h"  //kernelFiles::
 #include "../kernelFiles/ZIPStruct.h"
 #include "../../devices/acpi/acpi.h"
+#include "../../kernel.h"
 
 
 struct BootInfo
@@ -33,6 +34,7 @@ struct BootInfo
 	void* kernelStart;
 	uint64_t kernelSize;
 	void* kernelStartV;
+	limineSmpResponse* smpData;
 };
 
 uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);

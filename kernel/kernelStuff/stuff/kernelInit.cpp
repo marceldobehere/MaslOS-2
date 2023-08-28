@@ -10,6 +10,7 @@
 #include "../../interrupts/interrupts.h"
 #include "../IO/IO.h"
 #include "../../osData/MStack/MStackM.h"
+#include "../../memory/heap.h"
 
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
@@ -41,6 +42,9 @@ void InitKernel(BootInfo* bootInfo)
     PrepareMemory(bootInfo);
     StepDone();
 
+    PrintMsg("> Initializing Heap");
+    InitializeHeap((void*)0x0000100000000000, 0x10);
+    StepDone();
 
     PrintMsg("> Initing RTC");
     RTC::InitRTC();
