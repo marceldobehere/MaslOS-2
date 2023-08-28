@@ -1,14 +1,13 @@
 
-#include "BasicRenderer.h"
+#include "basicRenderer.h"
 #include <libm/cstr.h>
 #include <stdint.h>
 #include <libm/rendering/Cols.h>
 //#include "../cStdLib/cstrTools.h"
 //#include "../memory/heap.h"
 
-BasicRenderer *GlobalRenderer;
 
-void BasicRenderer::putChar(char chr, int64_t xoff, int64_t yoff, uint32_t fg, uint32_t bg)
+void TempRenderer::putChar(char chr, int64_t xoff, int64_t yoff, uint32_t fg, uint32_t bg)
 {
     delChar(xoff, yoff, bg);
     uint32_t tcol = color;
@@ -20,13 +19,13 @@ void BasicRenderer::putChar(char chr, int64_t xoff, int64_t yoff, uint32_t fg, u
     color = tcol;
 }
 
-void BasicRenderer::putChar(char chr, int64_t xoff, int64_t yoff)
+void TempRenderer::putChar(char chr, int64_t xoff, int64_t yoff)
 {
     unsigned int *pixPtr = (unsigned int *)framebuffer->BaseAddress;
     char *fontPtr = ((char *)psf1_font->glyphBuffer) + (chr * psf1_font->psf1_Header->charsize);
 
     if (overwrite)
-        BasicRenderer::delChar(xoff, yoff);
+        TempRenderer::delChar(xoff, yoff);
 
     for (int64_t y = yoff; y < yoff + 16; y++)
     {
@@ -42,7 +41,7 @@ void BasicRenderer::putChar(char chr, int64_t xoff, int64_t yoff)
     }
 }
 
-void BasicRenderer::delChar(int64_t xoff, int64_t yoff, uint32_t col)
+void TempRenderer::delChar(int64_t xoff, int64_t yoff, uint32_t col)
 {
     unsigned int *pixPtr = (unsigned int *)framebuffer->BaseAddress;
 
@@ -52,18 +51,18 @@ void BasicRenderer::delChar(int64_t xoff, int64_t yoff, uint32_t col)
                 *(uint32_t*)(pixPtr + x + (y * framebuffer->PixelsPerScanLine)) = col;
 }
 
-void BasicRenderer::delChar(int64_t xoff, int64_t yoff)
+void TempRenderer::delChar(int64_t xoff, int64_t yoff)
 {
-    BasicRenderer::delChar(xoff, yoff, 0x00000000);
+    TempRenderer::delChar(xoff, yoff, 0x00000000);
 }
 
-void BasicRenderer::putStr(const char *chrs, int64_t xoff, int64_t yoff)
+void TempRenderer::putStr(const char *chrs, int64_t xoff, int64_t yoff)
 {
     for (unsigned int x = 0; chrs[x] != 0; x++)
         putChar(chrs[x], xoff + (x * 8), yoff);
 }
 
-void BasicRenderer::putStr(const char *chrs, int64_t xoff, int64_t yoff, uint32_t col)
+void TempRenderer::putStr(const char *chrs, int64_t xoff, int64_t yoff, uint32_t col)
 {
     uint32_t tcol = color;
     color = col;
@@ -72,22 +71,22 @@ void BasicRenderer::putStr(const char *chrs, int64_t xoff, int64_t yoff, uint32_
     color = tcol;
 }
 
-void BasicRenderer::printStr(const char *chrs)
+void TempRenderer::printStr(const char *chrs)
 {
     printStr(chrs, NULL, true);
 }
 
-void BasicRenderer::printStr(const char *chrs, bool allowEscape)
+void TempRenderer::printStr(const char *chrs, bool allowEscape)
 {
     printStr(chrs, NULL, allowEscape);
 }
 
-void BasicRenderer::printStr(const char *chrs, const char *var)
+void TempRenderer::printStr(const char *chrs, const char *var)
 {
     printStr(chrs, var, true);
 }
 
-void BasicRenderer::printStr(const char *chrs, const char *var, bool allowEscape)
+void TempRenderer::printStr(const char *chrs, const char *var, bool allowEscape)
 {
     unsigned int index = 0;
     while (chrs[index] != 0)
@@ -170,89 +169,89 @@ void BasicRenderer::printStr(const char *chrs, const char *var, bool allowEscape
     }
 }
 
-void BasicRenderer::Println()
+void TempRenderer::Println()
 {
-    BasicRenderer::printStr("\n\r");
+    TempRenderer::printStr("\n\r");
 }
 
-void BasicRenderer::Print(char chr)
+void TempRenderer::Print(char chr)
 {
     char temp[] = {chr, 0};
 
-    BasicRenderer::Print((const char *)temp, false);
+    TempRenderer::Print((const char *)temp, false);
 }
 
-void BasicRenderer::Print(const char *chrs)
+void TempRenderer::Print(const char *chrs)
 {
-    BasicRenderer::printStr(chrs);
+    TempRenderer::printStr(chrs);
 }
 
-void BasicRenderer::Print(const char *chrs, bool allowEscape)
+void TempRenderer::Print(const char *chrs, bool allowEscape)
 {
-    BasicRenderer::printStr(chrs, allowEscape);
+    TempRenderer::printStr(chrs, allowEscape);
 }
 
-void BasicRenderer::Println(const char *chrs)
+void TempRenderer::Println(const char *chrs)
 {
-    BasicRenderer::printStr(chrs);
-    BasicRenderer::printStr("\n\r");
+    TempRenderer::printStr(chrs);
+    TempRenderer::printStr("\n\r");
 }
 
-void BasicRenderer::Print(const char *chrs, const char *var)
+void TempRenderer::Print(const char *chrs, const char *var)
 {
-    BasicRenderer::printStr(chrs, var);
+    TempRenderer::printStr(chrs, var);
 }
 
-void BasicRenderer::Println(const char *chrs, const char *var)
+void TempRenderer::Println(const char *chrs, const char *var)
 {
-    BasicRenderer::printStr(chrs, var);
+    TempRenderer::printStr(chrs, var);
 
-    BasicRenderer::printStr("\n\r");
+    TempRenderer::printStr("\n\r");
 }
 
-void BasicRenderer::Print(const char *chrs, uint32_t col)
-{
-    uint64_t tempcol = color;
-    color = col;
-
-    BasicRenderer::printStr(chrs);
-
-    color = tempcol;
-}
-
-void BasicRenderer::Println(const char *chrs, uint32_t col)
+void TempRenderer::Print(const char *chrs, uint32_t col)
 {
     uint64_t tempcol = color;
     color = col;
 
-    BasicRenderer::printStr(chrs);
-    BasicRenderer::printStr("\n\r");
+    TempRenderer::printStr(chrs);
 
     color = tempcol;
 }
 
-void BasicRenderer::Print(const char *chrs, const char *var, uint32_t col)
+void TempRenderer::Println(const char *chrs, uint32_t col)
 {
     uint64_t tempcol = color;
     color = col;
 
-    BasicRenderer::printStr(chrs, var);
+    TempRenderer::printStr(chrs);
+    TempRenderer::printStr("\n\r");
 
     color = tempcol;
 }
 
-void BasicRenderer::Println(const char *chrs, const char *var, uint32_t col)
+void TempRenderer::Print(const char *chrs, const char *var, uint32_t col)
 {
     uint64_t tempcol = color;
     color = col;
 
-    BasicRenderer::printStr(chrs, var);
-    BasicRenderer::printStr("\n\r");
+    TempRenderer::printStr(chrs, var);
 
     color = tempcol;
 }
 
-void BasicRenderer::Clear(uint32_t col, bool resetCursor)
+void TempRenderer::Println(const char *chrs, const char *var, uint32_t col)
+{
+    uint64_t tempcol = color;
+    color = col;
+
+    TempRenderer::printStr(chrs, var);
+    TempRenderer::printStr("\n\r");
+
+    color = tempcol;
+}
+
+void TempRenderer::Clear(uint32_t col, bool resetCursor)
 {
     uint64_t fbBase = (uint64_t)framebuffer->BaseAddress;
     uint64_t pxlsPerScanline = framebuffer->PixelsPerScanLine;
@@ -266,7 +265,7 @@ void BasicRenderer::Clear(uint32_t col, bool resetCursor)
         CursorPosition = {0, 0};
 }
 
-void BasicRenderer::ClearButDont()
+void TempRenderer::ClearButDont()
 {
     uint64_t fbBase = (uint64_t)framebuffer->BaseAddress;
     uint64_t pxlsPerScanline = framebuffer->PixelsPerScanLine;
@@ -277,7 +276,7 @@ void BasicRenderer::ClearButDont()
             *((uint32_t*)(fbBase + 4 * (x + pxlsPerScanline * y))) = *((uint32_t*)(fbBase + 4 * (x + pxlsPerScanline * y)));
 }
 
-void BasicRenderer::Clear(int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t col)
+void TempRenderer::Clear(int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t col)
 {
     uint64_t fbBase = (uint64_t)framebuffer->BaseAddress;
     uint64_t pxlsPerScanline = framebuffer->PixelsPerScanLine;
@@ -297,12 +296,12 @@ void BasicRenderer::Clear(int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32
             *((uint32_t*)(fbBase + 4 * (x + pxlsPerScanline * y))) = col;
 }
 
-void BasicRenderer::Clear(uint32_t col)
+void TempRenderer::Clear(uint32_t col)
 {
-    BasicRenderer::Clear(col, true);
+    TempRenderer::Clear(col, true);
 }
 
-void BasicRenderer::ClearDotted(uint32_t col, bool resetCursor)
+void TempRenderer::ClearDotted(uint32_t col, bool resetCursor)
 {
     uint64_t fbBase = (uint64_t)framebuffer->BaseAddress;
     uint64_t pxlsPerScanline = framebuffer->PixelsPerScanLine;
@@ -316,59 +315,20 @@ void BasicRenderer::ClearDotted(uint32_t col, bool resetCursor)
         CursorPosition = {0, 0};
 }
 
-void BasicRenderer::ClearDotted(uint32_t col)
+void TempRenderer::ClearDotted(uint32_t col)
 {
     ClearDotted(col, true);
 }
 
-void BasicRenderer::Cls()
+void TempRenderer::Cls()
 {
-    BasicRenderer::Clear(0);
-    BasicRenderer::Println("(OLD) Masl OS 2 v0.01", Colors.green);
-    BasicRenderer::Println("-------------------", Colors.green);
-    BasicRenderer::Println();
-}
- 
-
-void GlobDrawImage(kernelFiles::ImageFile* image, int64_t x, int64_t y, int64_t sx, int64_t sy, Framebuffer* framebuffer)
-{
-    x += image->xOff * sx;
-    y += image->yOff * sy;
-
-    uint64_t addr = (uint64_t)framebuffer->BaseAddress;
-    uint64_t mult = framebuffer->PixelsPerScanLine;
-    uint32_t* imgaddr = (uint32_t*)image->imageBuffer;
-    for (int64_t y1 = 0; y1 < image->height; y1++)
-    {
-        for (int64_t x1 = 0; x1 < image->width; x1++)
-        {
-            if (*imgaddr != 0)//((*imgaddr/* | 0xffffff00*/) & (uint32_t)0xff000000 != (uint32_t)0x00000000)
-            {
-                for (int iy = 0; iy < sy; iy++)
-                {
-                    int64_t yp = (y1*sy) + iy + y;
-                    for (int ix = 0; ix < sx; ix++)
-                    {
-                        int64_t xp = (x1*sx) + x + ix;
-                        if (xp >= 0 && yp >= 0 && xp < framebuffer->Width && yp < framebuffer->Height)
-                            *((uint32_t*)(addr + 4* (xp + mult * yp))) = *imgaddr;
-                    }
-                }
-            }
-            
-            imgaddr ++;
-        }
-    }
+    TempRenderer::Clear(0);
+    TempRenderer::Println("(OLD) Masl OS 2 v0.01", Colors.green);
+    TempRenderer::Println("-------------------", Colors.green);
+    TempRenderer::Println();
 }
 
-
-
-void BasicRenderer::DrawImage(kernelFiles::ImageFile* image, int64_t x, int64_t y, int64_t sx, int64_t sy)
-{
-    GlobDrawImage(image, x, y, sx, sy, (Framebuffer*)framebuffer);
-}
-
-BasicRenderer::BasicRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font)
+TempRenderer::TempRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font)
 {
     color = 0xffffffff;
     CursorPosition = {0, 0};

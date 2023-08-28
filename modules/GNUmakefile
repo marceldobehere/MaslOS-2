@@ -1,6 +1,6 @@
 # This is the name that our final kernel executable will have.
 # Change as needed.
-override KERNEL := kernel.elf
+override KERNEL := FINAL_modules.o
 
 # Convenience macro to reliably declare overridable command variables.
 define DEFAULT_VAR =
@@ -55,23 +55,20 @@ override CFLAGS +=       \
     -MMD                 \
     -I.
     
-CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w -I ../
-CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w -I ../
+CFLAGS2 = -fpic -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w -I ../
+CFLAGS3 = -fpic -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w -I ../
 
 #-ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fcommon
 
 # Internal linker flags that should not be changed by the user.
 override LDFLAGS +=         \
-    -nostdlib               \
-    -static                 \
-    -Bsymbolic              \
     -m elf_x86_64           \
-    -z max-page-size=0x1000 \
-    -T linker.ld
+    -pic                    
+    
 
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
-    override LDFLAGS += -no-pie
+    # override LDFLAGS += -no-pie
 endif
 
 # Internal nasm flags that should not be changed by the user.
@@ -86,7 +83,7 @@ override CPPFILES  := $(shell find . -type f -name '*.cpp')
 override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ         := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
+override OBJ         := $(CFILES:.c=.elf) $(CPPFILES:.cpp=.elf) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
 override HEADER_DEPS := $(CFILES:.c=.d) $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d)
 
 # Default target.
@@ -98,14 +95,16 @@ limine.h:
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
-	$(LD) $(OBJ) ../kernel/FINAL_kernel.o ../libm/FINAL_libm.o $(LDFLAGS) -o $@
+#	$(LD) $(OBJ) $(LDFLAGS) -o $@
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
+
 # Compilation rules for *.cpp files.
-%.o: %.cpp
-	$(CC) $(CFLAGS2) -c $^ -o $@
+%.elf: %.cpp
+	$(CC) $(CFLAGS2) -c $^ -o $@.o
+	$(LD) $@.o $(LDFLAGS) -o $@
 	
 # Compilation rules for *.cpp files.
 %.o: %.c

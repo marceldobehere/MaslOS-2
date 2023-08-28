@@ -98,35 +98,6 @@ $(KERNEL): $(OBJ)
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
-# Compilation rules for *.asm (nasm) files.
-%gdt/gdt_asm.o: %gdt/gdt.asm
-	@ echo !==== COMPILING $^
-	@ echo !==== COMPILING $^
-	nasm $(NASMFLAGS) $^ -f elf64 -o $@
-
-
-interrupts/interrupts.o: interrupts/interrupts.cpp
-	@ echo !==== COMPILING $^
-	@ echo !==== COMPILING $^
-	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
-
-
-# %ahci/ahci.o: %ahci/ahci.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
-
-#$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
-
-# %pit/pit.o: %pit/pit.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
-
-
-# %/test/testTask.o: %/test/testTask.cpp
-# 	$(CC) $(CFLAGS2) -c $^ -o $@ -lm
-
 
 
 # Compilation rules for *.cpp files.

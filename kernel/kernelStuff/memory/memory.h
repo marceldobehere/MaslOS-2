@@ -2,7 +2,7 @@
 
 #include "../../rendering/BasicRenderer.h"
 #include "efiMemory.h"
-#include "../../rendering/Cols.h"
+#include <libm/rendering/Cols.h>
 #include "../kernelFiles/FileStruct.h"  //kernelFiles::
 #include "../kernelFiles/ZIPStruct.h"
 #include "../../devices/acpi/acpi.h"
@@ -22,6 +22,7 @@ struct BootInfo
 	kernelFiles::ZIPFile* windowIconsZIP;
 	kernelFiles::ZIPFile* maabZIP;
 	kernelFiles::ZIPFile* otherZIP;
+	kernelFiles::DefaultFile* testModule;
 	//EFI_MEMORY_DESCRIPTOR* mMap;
 	// uint64_t mMapSize;
 	// uint64_t mMapDescSize;

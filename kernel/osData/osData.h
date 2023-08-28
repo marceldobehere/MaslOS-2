@@ -38,9 +38,9 @@ struct OSData
 //     Window* preCrashWindow;
 //     bool showDebugterminal;
     bool NO_INTERRUPTS = false;
-//     // MStack stackArr[1000];
-//     // int64_t stackPointer = 0;
-//     bool drawBackground;
+    // MStack stackArr[1000];
+    // int64_t stackPointer = 0;
+    bool drawBackground;
     bool enableStackTrace;
     int64_t crashCount = 0;
     int maxNonFatalCrashCount = 0;

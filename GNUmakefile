@@ -32,11 +32,13 @@ limine:
 kernel:
 	$(MAKE) -C libm
 	$(MAKE) -C kernel
+	$(MAKE) -C modules
 	$(MAKE) -C kernel-loader
 
 MaslOS2.iso: limine kernel
 	rm -rf iso_root
 	mkdir -p iso_root
+	cp modules/test/test.elf external/test.o
 	cp kernel-loader/kernel.elf \
 		limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin \
 		external/* \
@@ -56,6 +58,7 @@ clean:
 	rm -rf iso_root MaslOS2.iso barebones.hdd
 	$(MAKE) -C libm clean
 	$(MAKE) -C kernel clean
+	$(MAKE) -C modules clean
 	$(MAKE) -C kernel-loader clean
 
 .PHONY: distclean

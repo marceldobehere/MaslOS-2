@@ -5,7 +5,7 @@
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
 #include "../../interrupts/panic.h"
-#include "../../rendering/Cols.h"
+#include <libm/rendering/Cols.h>
 
 void PrintMStackTrace(MStack stack[], int64_t size, BasicRenderer* renderer, uint32_t col)
 {

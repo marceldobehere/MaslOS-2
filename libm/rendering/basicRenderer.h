@@ -1,17 +1,13 @@
 #pragma once
-
-
+#include <stdint.h>
+#include <stddef.h>
 #include <libm/math.h>
-#include "Framebuffer.h"
+#include <libm/rendering/framebuffer.h>
 #include <libm/rendering/S-Font.h>
-#include <stdint.h> 
-#include "../kernelStuff/kernelFiles/ImageStruct.h"
-#include "testoDebug.h"
 
-class BasicRenderer
+class TempRenderer
 {
-    public:
-        
+    public:  
         Point CursorPosition;
         Framebuffer* framebuffer;
         PSF1_FONT* psf1_font;
@@ -51,11 +47,6 @@ class BasicRenderer
         void ClearButDont();
 
         void Cls();
-        void DrawImage(kernelFiles::ImageFile* image, int64_t x, int64_t y, int64_t sx, int64_t sy);
-
-        BasicRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font);
+        
+        TempRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font);
 };
-
-void GlobDrawImage(kernelFiles::ImageFile* image, int64_t x, int64_t y, int64_t sx, int64_t sy, Framebuffer* framebuffer);
-
-extern BasicRenderer* GlobalRenderer;

@@ -31,6 +31,12 @@ static volatile limine_memmap_request memmap_request = {
     .revision = 0
 };
 
+#define LIMINE_SMP_REQUEST { LIMINE_COMMON_MAGIC, 0x95a67b819a1b857e, 0xa0b61b723b6a73e0 }
+static volatile limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0
+};
+
 // #define LIMINE_5_LEVEL_PAGING_REQUEST { LIMINE_COMMON_MAGIC, 0x94469551da9b3192, 0xebe5e86db7382888}
 
 // static volatile limine_5_level_paging_request paging_request = {
@@ -264,6 +270,27 @@ kernelFiles::ZIPFile getZIP(const char* path)
     return zip;
 }
 
+kernelFiles::DefaultFile getKernelFile(const char* path)
+{
+    limine_file* file = getFile(path);
+    if (file == NULL)
+    {
+        e9_printf("> Failed to get File \"%s\"!", path);
+        //done();
+
+        kernelFiles::DefaultFile defFile;
+        return defFile;
+    }
+
+    kernelFiles::DefaultFile defFile;
+
+    defFile.fileData = file->address;
+    defFile.filename = "";
+    defFile.filenameSize = 0;
+    defFile.size = file->size;
+
+    return defFile;
+}
 
 
 
@@ -327,7 +354,7 @@ extern "C" void _start(void) {
 
 
 
-        if (kernel_address_request.response == NULL)
+    if (kernel_address_request.response == NULL)
     {
         e9_printf("Kernel address not passed");
         done();
@@ -444,6 +471,10 @@ extern "C" void _start(void) {
     kernelFiles::ZIPFile zip_5 = getZIP("other.mbzf");
     assets.otherZIP = &zip_5;
 
+    kernelFiles::DefaultFile file_1 = getKernelFile("test.o");
+    assets.testModule = &file_1;
+
+
     e9_printf("> Assets loaded!");
 
     //done();
@@ -463,7 +494,24 @@ extern "C" void _start(void) {
         freeMemSize -= mallocDiff;
     }
 
-    
+    if (smp_request.response == NULL)
+    {
+        e9_printf("SMP infos not passed");
+        done();
+    }
+
+    limine_smp_response *smp_response = smp_request.response;
+    e9_printf("SMP infos feature, revision %d", smp_response->revision);
+    e9_printf("%d CPU(s)", smp_response->cpu_count);
+
+    for (size_t i = 0; i < smp_response->cpu_count; i++) {
+        limine_smp_info *e = smp_response->cpus[i];
+        e9_printf("> CPU %d", i);
+        e9_printf("  > Processor ID: %d", e->processor_id);
+        e9_printf("  > LAPIC ID: %d", e->lapic_id);
+        e9_printf("  > Local GOTO address: %x", e->goto_address);
+        e9_printf("  > Extra Args: %x", e->extra_argument);
+    }
 
 
     e9_printf("> Kernel Start: %x (Size: %d Bytes)", (uint64_t)kernelStart, kernelSize);
@@ -480,7 +528,7 @@ extern "C" void _start(void) {
     //done();
 
     terminal_request.response->write(terminal, "> Completed Boot Init!\n", 23);
-    bootTest(fb, rsdp, &font, &assets, startRAMAddr, freeMemStart, freeMemSize, kernelStart, kernelSize, kernelStartV);
+    bootTest(fb, rsdp, &font, &assets, startRAMAddr, freeMemStart, freeMemSize, kernelStart, kernelSize, kernelStartV, (limineSmpResponse*)smp_response);
     
     //done();
     

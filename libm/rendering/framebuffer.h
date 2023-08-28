@@ -1,12 +1,14 @@
 #pragma once
+
+#include <stdint.h>
 #include <stddef.h>
 
-#include <libm/rendering/framebuffer.h>
-
-struct PointerFramebuffer
+struct Framebuffer
 {
 	void* BaseAddress;
 	size_t BufferSize;
 	unsigned int Width;
 	unsigned int Height;
+	unsigned int PixelsPerScanLine;
 };
+
