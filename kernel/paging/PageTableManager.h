@@ -6,6 +6,20 @@
 #include <stdint.h>
 
 
+// flags
+#define PT_Flag_Present 1
+#define PT_Flag_ReadWrite 2
+#define PT_Flag_UserSuper 4
+#define PT_Flag_WriteThrough 8
+#define PT_Flag_CacheDisabled 16
+#define PT_Flag_Accessed 32
+#define PT_Flag_LargerPages 64
+#define PT_Flag_Custom0 128
+#define PT_Flag_Custom1 256
+#define PT_Flag_Custom2 512
+#define PT_Flag_PAT 1024
+
+
 class PageTableManager
 {
     public:
@@ -23,6 +37,7 @@ class PageTableManager
     PageTable* CreatePageTableContext();
     void SwitchPageTable(PageTable* PML4Address);
     void FreePageTable(PageTable* PML4Address);
+    void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address);
 
 };
 

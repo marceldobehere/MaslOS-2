@@ -105,20 +105,24 @@ __attribute__((interrupt)) void DoubleFault_handler(interrupt_frame* frame)//, u
     SURVIVE_CRASH
 }
 
-__attribute__((interrupt)) void GPFault_handler(interrupt_frame* frame)//, uint64_t error)
+void GPFaultRoutine(interrupt_frame* frame)
 {
     AddToStack();
 
     //HeapCheck(false);
 
-    Panic("General Protection Fault Detected! (ERROR: {})", to_string(frame->base_frame.error_code), false);
+    Panic("General Protection Fault Detected! (ERROR: {})", to_string(frame->error_code), false);
     //Panic("General Protection Fault Detected! {}", to_string(*((uint64_t*)frame)), true);
     RemoveFromStack();
 
     osData.NO_INTERRUPTS = true;
     BruhusSafus();
 
+}
 
+__attribute__((interrupt)) void GPFault_handler(interrupt_frame* frame)//, uint64_t error)
+{
+    GPFaultRoutine(frame);
     //SURVIVE_CRASH
 }   
 
@@ -258,13 +262,17 @@ bool speakA = false;
 
 //#include "../audio/audioDevStuff.h"
 
-__attribute__((interrupt)) void PITInt_handler(interrupt_frame* frame)
-{ 
+#include "../paging/PageTableManager.h"
+
+void TempPitRoutine(interrupt_frame* frame)
+{
+    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+
     AddToStack();
     PIT::Tick();
     PIC_EndMaster();
 
-    Scheduler::SchedulerInterrupt(frame);
+    
 
     // AudioDeviceStuff::play(PIT::FreqAdder);
     // if (osData.serialManager != NULL)
@@ -274,6 +282,13 @@ __attribute__((interrupt)) void PITInt_handler(interrupt_frame* frame)
     // TestSetSpeakerPosition(speakA);
     // speakA = !speakA;
     RemoveFromStack();
+
+    Scheduler::SchedulerInterrupt(frame);
+}
+
+__attribute__((interrupt)) void PITInt_handler(interrupt_frame* frame)
+{ 
+    TempPitRoutine(frame);
 }
 
 __attribute__((interrupt)) void VirtualizationFault_handler(interrupt_frame* frame)
@@ -331,7 +346,40 @@ __attribute__((interrupt)) void InvalidOpCode_handler(interrupt_frame* frame)//,
     SURVIVE_CRASH
 }
 
+/*
+typedef struct 
+{
+    struct 
+    {
+        uint64_t    cr4;
+        uint64_t    cr3;
+        uint64_t    cr2;
+        uint64_t    cr0;
+    } control_registers;
 
+    struct 
+    {
+        uint64_t    rdi;
+        uint64_t    rsi;
+        uint64_t    rdx;
+        uint64_t    rcx;
+        uint64_t    rbx;
+        uint64_t    rax;
+    } general_registers;
+	
+    struct 
+    {
+        uint64_t    rbp;
+        uint64_t    vector;
+        uint64_t    error_code;
+        uint64_t    rip;
+        uint64_t    cs;
+        uint64_t    rflags;
+        uint64_t    rsp;
+        uint64_t    dss;
+    } base_frame;
+} interrupt_frame;
+*/
 
 
 
@@ -527,4 +575,38 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
         PIC_EndSlave();
     else
         PIC_EndMaster();
+}
+
+
+extern "C" void intr_common_handler_c(interrupt_frame* regs) 
+{
+    //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
+    if (regs->interrupt_number == 32)
+        TempPitRoutine(regs);
+    // else if (regs->interrupt_number == 13)
+    //     GPFaultRoutine(regs);
+    else
+    {
+        Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", regs->interrupt_number);
+        Scheduler::RemoveTask(Scheduler::currentRunningTask);
+        Scheduler::currentRunningTask = NULL;
+
+        Scheduler::SchedulerInterrupt(regs);
+        //Serial::Writelnf("> 2 WAAAAAAAAA %d", regs->interrupt_number);
+    }
+
+
+
+
+    //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
+
+    //Serial::Writelnf("> END OF INTERRUPT");
+}
+
+
+extern "C" void CloseCurrentTask()
+{
+    Serial::Writelnf("> PROGRAM REACHED END");
+    Scheduler::RemoveTask(Scheduler::currentRunningTask);
+    Scheduler::currentRunningTask = NULL;
 }

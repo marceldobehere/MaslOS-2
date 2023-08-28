@@ -56,6 +56,24 @@ void PrintRegisterDump(BasicRenderer* renderer)
 	renderer->Print("0x");
 	renderer->Print(ConvertHexToString(Register));
     renderer->Println();
+    renderer->Print("cr0: ");
+    asm volatile("mov %%cr0, %0" : "=r"(Register));
+    renderer->Print("0x");
+    renderer->Print(ConvertHexToString(Register));
+    renderer->Print("  ");
+    renderer->Print("cr2: ");
+    asm volatile("mov %%cr2, %0" : "=r"(Register));
+    renderer->Print("0x");
+    renderer->Print(ConvertHexToString(Register));
+    renderer->Print("  ");
+    renderer->Print("cr3: ");
+    asm volatile("mov %%cr3, %0" : "=r"(Register));
+    renderer->Print("0x");
+    renderer->Print(ConvertHexToString(Register));
+    renderer->Print("  ");
+    renderer->Println();
+
+    
 
     Serial::Writeln();
     Serial::Writeln("Register dump: ");
@@ -100,6 +118,23 @@ void PrintRegisterDump(BasicRenderer* renderer)
     Serial::Write("0x");
     Serial::Write(ConvertHexToString(Register));
     Serial::Writeln();
+    Serial::Write("cr0: ");
+    asm volatile("mov %%cr0, %0" : "=r"(Register));
+    Serial::Write("0x");
+    Serial::Write(ConvertHexToString(Register));
+    Serial::Write("  ");
+    Serial::Write("cr2: ");
+    asm volatile("mov %%cr2, %0" : "=r"(Register));
+    Serial::Write("0x");
+    Serial::Write(ConvertHexToString(Register));
+    Serial::Write("  ");
+    Serial::Write("cr3: ");
+    asm volatile("mov %%cr3, %0" : "=r"(Register));
+    Serial::Write("0x");
+    Serial::Write(ConvertHexToString(Register));
+    Serial::Write("  ");
+    Serial::Writeln();
+    
 }
 
 int kernelPanicCount = 0;

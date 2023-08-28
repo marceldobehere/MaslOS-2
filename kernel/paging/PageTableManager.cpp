@@ -7,18 +7,7 @@ PageTableManager::PageTableManager(PageTable* PML4Address)
     this->PML4 = PML4Address;
 }
 
-// flags
-#define PT_Flag_Present 1
-#define PT_Flag_ReadWrite 2
-#define PT_Flag_UserSuper 4
-#define PT_Flag_WriteThrough 8
-#define PT_Flag_CacheDisabled 16
-#define PT_Flag_Accessed 32
-#define PT_Flag_LargerPages 64
-#define PT_Flag_Custom0 128
-#define PT_Flag_Custom1 256
-#define PT_Flag_Custom2 512
-#define PT_Flag_PAT 1024
+
 
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int flags)
 {
@@ -37,6 +26,8 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
         PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
+
         PML4->entries[indexer.PDP_i] = PDE;
     }
     else
@@ -144,6 +135,26 @@ void PageTableManager::SwitchPageTable(PageTable* PML4Address)
 void PageTableManager::FreePageTable(PageTable* PML4Address)
 {
     UnmapMemory(PML4Address);
+}
+
+void PageTableManager::CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
+{
+    for (int i = 0; i < 512; i++)
+    {
+        if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present))
+        {
+            void* src = (void*)((uint64_t)srcPML4Address->entries[i].GetAddress() << 12);
+            void* dest = (void*)((uint64_t)destPML4Address->entries[i].GetAddress() << 12);
+            if (dest == NULL)
+            {
+                dest = (void*)GlobalAllocator->RequestPage();
+                GlobalPageTableManager.MapMemory(dest, dest);
+                destPML4Address->entries[i].SetAddress((uint64_t)dest >> 12);
+                destPML4Address->entries[i].SetFlag(PT_Flag::Present, 1);
+            }
+            _memcpy(src, dest, 0x1000);
+        }
+    }
 }
 
 

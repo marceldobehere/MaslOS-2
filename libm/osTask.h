@@ -29,6 +29,8 @@ struct osTask
     uint8_t* kernelStack;
     uint8_t* userStack;
 
+    void* pageTableContext;
+
 	//bool active;
 
 	//vmm_context_t* context;

@@ -55,8 +55,8 @@ override CFLAGS +=       \
     -MMD                 \
     -I.
     
-CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w -I ../
-CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w -I ../
+CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -w -I ../ -g
+CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -w -I ../ -g
 
 #-ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fcommon
 
@@ -101,6 +101,11 @@ $(KERNEL): $(OBJ)
 
 # Compilation rules for *.asm (nasm) files.
 %gdt/gdt_asm.o: %gdt/gdt.asm
+	@ echo !==== COMPILING $^
+	@ echo !==== COMPILING $^
+	nasm $(NASMFLAGS) $^ -f elf64 -o $@
+	
+%interruptStuff_asm.o: %interruptStuff.asm
 	@ echo !==== COMPILING $^
 	@ echo !==== COMPILING $^
 	nasm $(NASMFLAGS) $^ -f elf64 -o $@

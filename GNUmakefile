@@ -38,7 +38,8 @@ kernel:
 MaslOS2.iso: limine kernel
 	rm -rf iso_root
 	mkdir -p iso_root
-	cp modules/test/test.elf external/test.o
+	cp modules/test/test.elf external/test.elf
+	cp modules/nothing-doer/main.elf external/nothing-doer.elf
 	cp kernel-loader/kernel.elf \
 		limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin \
 		external/* \

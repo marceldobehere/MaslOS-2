@@ -30,6 +30,7 @@ struct MaslOsAssetStruct
 
     // Modules
     kernelFiles::DefaultFile* testModule;
+    kernelFiles::DefaultFile* nothingDoer;
 
     // EFI Mem?
 

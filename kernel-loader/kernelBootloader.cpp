@@ -471,8 +471,11 @@ extern "C" void _start(void) {
     kernelFiles::ZIPFile zip_5 = getZIP("other.mbzf");
     assets.otherZIP = &zip_5;
 
-    kernelFiles::DefaultFile file_1 = getKernelFile("test.o");
+    kernelFiles::DefaultFile file_1 = getKernelFile("test.elf");
     assets.testModule = &file_1;
+
+    kernelFiles::DefaultFile file_2 = getKernelFile("nothing-doer.elf");
+    assets.nothingDoer = &file_2;
 
 
     e9_printf("> Assets loaded!");

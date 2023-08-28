@@ -2,6 +2,9 @@
 
 void _start(int argc, char** argv, ENV_DATA* env)
 {
+    //return;
+    //while (true);
+
     main(argc, argv, env);
 }
 
@@ -15,7 +18,7 @@ void Bruhus(char* yes)
 
 void main(int argc, char** argv, ENV_DATA* env)
 {
-    Bruhus(env->globalFrameBuffer->BaseAddress);
+    Bruhus((char*)env->globalFrameBuffer->BaseAddress);
     //while (true);
 }
 

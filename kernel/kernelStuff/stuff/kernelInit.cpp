@@ -238,36 +238,37 @@ void PrepareInterrupts()
     }
 
     // Main Stuff
-    SetIDTGate((void*)PageFault_handler, 0xE, IDT_TA_InterruptGate, 0x08);
-    SetIDTGate((void*)DoubleFault_handler, 0x8, IDT_TA_InterruptGate, 0x08);
-    SetIDTGate((void*)GPFault_handler, 0xD, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)intr_stub_14, 0xE, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)intr_stub_8, 0x8, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)intr_stub_13, 0xD, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)KeyboardInt_handler, 0x21, IDT_TA_InterruptGate, 0x08);
     SetIDTGate((void*)MouseInt_handler, 0x2C, IDT_TA_InterruptGate, 0x08);
-    SetIDTGate((void*)PITInt_handler, 0x20, IDT_TA_InterruptGate, 0x08);
-    
+    //SetIDTGate((void*)PITInt_handler, 0x20, IDT_TA_InterruptGate, 0x08);
+    SetIDTGate((void*)intr_stub_32, 0x20, IDT_TA_InterruptGate, 0x08);
+
     // Main Exceptions
-    SetIDTGate((void*)GenMathFault_handler, 0x0, IDT_TA_InterruptGate, 0x08); // Divide by 0
-    SetIDTGate((void*)Debug_handler, 0x1, IDT_TA_InterruptGate, 0x08); // Debug
-    SetIDTGate((void*)Breakpoint_handler, 0x3, IDT_TA_InterruptGate, 0x08); // Breakpoint
-    SetIDTGate((void*)GenFloatFault_handler, 0x10, IDT_TA_InterruptGate, 0x08); // x87 Float error
-    SetIDTGate((void*)GenFloatFault_handler, 0x13, IDT_TA_InterruptGate, 0x08); // SIMD Float error
+    SetIDTGate((void*)intr_stub_0, 0x0, IDT_TA_InterruptGate, 0x08); // Divide by 0
+    SetIDTGate((void*)intr_stub_1, 0x1, IDT_TA_InterruptGate, 0x08); // Debug
+    SetIDTGate((void*)intr_stub_3, 0x3, IDT_TA_InterruptGate, 0x08); // Breakpoint
+    SetIDTGate((void*)intr_stub_16, 0x10, IDT_TA_InterruptGate, 0x08); // x87 Float error
+    SetIDTGate((void*)intr_stub_19, 0x13, IDT_TA_InterruptGate, 0x08); // SIMD Float error
 
     // Other Exceptions
-    SetIDTGate((void*)GenFault_handler, 0x2, IDT_TA_InterruptGate, 0x08); // Non Maskable interrupt
-    SetIDTGate((void*)GenFault_handler, 0x4, IDT_TA_InterruptGate, 0x08); // Overflow
-    SetIDTGate((void*)GenFault_handler, 0x5, IDT_TA_InterruptGate, 0x08); // Bound Range Exceeded
-    SetIDTGate((void*)InvalidOpCode_handler, 0x6, IDT_TA_InterruptGate, 0x08); // Invalid OPCODE
-    SetIDTGate((void*)GenFault_handler, 0x7, IDT_TA_InterruptGate, 0x08); // Device not avaiable
-    SetIDTGate((void*)GenFault1_handler, 0xA, IDT_TA_InterruptGate, 0x08); // Invalid TSS
-    SetIDTGate((void*)GenFault1_handler, 0xB, IDT_TA_InterruptGate, 0x08); // Segment not present
-    SetIDTGate((void*)GenFault1_handler, 0xC, IDT_TA_InterruptGate, 0x08); // Stack segment fault
-    SetIDTGate((void*)GenFault1_handler, 0x11, IDT_TA_InterruptGate, 0x08); //  Alligment check
-    SetIDTGate((void*)GenFault1_handler, 0x12, IDT_TA_InterruptGate, 0x08); // machine check
-    SetIDTGate((void*)VirtualizationFault_handler, 0x14, IDT_TA_InterruptGate, 0x08); // Virtualization Exception
-    SetIDTGate((void*)ControlProtectionFault_handler, 0x15, IDT_TA_InterruptGate, 0x08); // Control Protection Exception
-    SetIDTGate((void*)HypervisorFault_handler, 0x1C, IDT_TA_InterruptGate, 0x08); // Hypervisor Injection Exception
-    SetIDTGate((void*)VMMCommunicationFault_handler, 0x1D, IDT_TA_InterruptGate, 0x08); // VMM Communication Exception
-    SetIDTGate((void*)SecurityException_handler, 0x1E, IDT_TA_InterruptGate, 0x08); // Security Exception
+    SetIDTGate((void*)intr_stub_2, 0x2, IDT_TA_InterruptGate, 0x08); // Non Maskable interrupt
+    SetIDTGate((void*)intr_stub_4, 0x4, IDT_TA_InterruptGate, 0x08); // Overflow
+    SetIDTGate((void*)intr_stub_5, 0x5, IDT_TA_InterruptGate, 0x08); // Bound Range Exceeded
+    SetIDTGate((void*)intr_stub_6, 0x6, IDT_TA_InterruptGate, 0x08); // Invalid OPCODE
+    SetIDTGate((void*)intr_stub_7, 0x7, IDT_TA_InterruptGate, 0x08); // Device not avaiable
+    SetIDTGate((void*)intr_stub_10, 0xA, IDT_TA_InterruptGate, 0x08); // Invalid TSS
+    SetIDTGate((void*)intr_stub_11, 0xB, IDT_TA_InterruptGate, 0x08); // Segment not present
+    SetIDTGate((void*)intr_stub_12, 0xC, IDT_TA_InterruptGate, 0x08); // Stack segment fault
+    SetIDTGate((void*)intr_stub_17, 0x11, IDT_TA_InterruptGate, 0x08); //  Alligment check
+    SetIDTGate((void*)intr_stub_18, 0x12, IDT_TA_InterruptGate, 0x08); // machine check
+    SetIDTGate((void*)intr_stub_20, 0x14, IDT_TA_InterruptGate, 0x08); // Virtualization Exception
+    SetIDTGate((void*)intr_stub_21, 0x15, IDT_TA_InterruptGate, 0x08); // Control Protection Exception
+    SetIDTGate((void*)intr_stub_28, 0x1C, IDT_TA_InterruptGate, 0x08); // Hypervisor Injection Exception
+    SetIDTGate((void*)intr_stub_29, 0x1D, IDT_TA_InterruptGate, 0x08); // VMM Communication Exception
+    SetIDTGate((void*)intr_stub_30, 0x1E, IDT_TA_InterruptGate, 0x08); // Security Exception
 
     // Unhandled IRQs
     //SetIDTGate((void*)IRQ0_handler, 0x20, IDT_TA_InterruptGate, 0x08); // IRQ0 Handled

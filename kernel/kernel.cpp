@@ -37,7 +37,20 @@ void boot(void* _bootInfo)
     InitKernel(bootInfo);
 
     //GlobalRenderer->Clear(Colors.black);
+    
+    Scheduler::SchedulerEnabled = false;
 
+    {
+        uint8_t* data = (uint8_t*)bootInfo->nothingDoer->fileData;
+        Serial::Writelnf("data: %x", data);
+
+        Elf::LoadedElfFile file = Elf::LoadElf(data);
+        if (!file.works)
+            Panic("FILE NO WORK :(", true);
+
+        Scheduler::AddModule(file, 0, NULL);
+        Serial::Writelnf("> ADDED MODULE 0");
+    }
 
     {
         uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
@@ -48,6 +61,19 @@ void boot(void* _bootInfo)
             Panic("FILE NO WORK :(", true);
 
         Scheduler::AddModule(file, 0, NULL);
+        Serial::Writelnf("> ADDED MODULE 1");
+    }
+
+    {
+        uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
+        Serial::Writelnf("data: %x", data);
+
+        Elf::LoadedElfFile file = Elf::LoadElf(data);
+        if (!file.works)
+            Panic("FILE NO WORK :(", true);
+
+        Scheduler::AddModule(file, 0, NULL);
+        Serial::Writelnf("> ADDED MODULE 2");
     }
 
     //bootInfo->smpData->cpus[1]->goto_address;
@@ -58,6 +84,8 @@ void boot(void* _bootInfo)
     
     // GlobalRenderer->Clear(Colors.black);
 
+
+    Scheduler::SchedulerEnabled = true;
 
     while (true);
 }
@@ -86,6 +114,7 @@ void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAss
     tempBootInfo.windowIconsZIP = assets->windowIconsZIP;
 
     tempBootInfo.testModule = assets->testModule;
+    tempBootInfo.nothingDoer = assets->nothingDoer;
 
     tempBootInfo.mMapStart = freeMemStart;
     tempBootInfo.m2MapStart = extraMemStart;

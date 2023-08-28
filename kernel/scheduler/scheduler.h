@@ -8,12 +8,14 @@
 namespace Scheduler
 {
     extern Lockable<List<osTask*>*> osTasks;
+    extern osTask* currentRunningTask;
     extern bool SchedulerEnabled;
+    extern int CurrentTaskIndex; 
 
     void InitScheduler();
 
     // maybe save more registers yes
-    void SchedulerInterrupt(interrupt_frame* frame);
+    interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
     void AddModule(Elf::LoadedElfFile module, int argc, char** argv);
 
