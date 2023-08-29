@@ -8,13 +8,13 @@
 namespace Scheduler
 {
     Lockable<List<osTask*>*> osTasks;
-    osTask* currentRunningTask;
+    osTask* CurrentRunningTask;
     bool SchedulerEnabled = false;
     int CurrentTaskIndex = 0;
 
     void InitScheduler()
     {
-        currentRunningTask = NULL;
+        CurrentRunningTask = NULL;
         CurrentTaskIndex = 0;
 
         osTasks = Lockable<List<osTask*>*>(new List<osTask*>());
@@ -61,7 +61,7 @@ namespace Scheduler
 
         //Serial::Writelnf("1> CURR RUNNING TASK: %X, CURR TASK: %X", (uint64_t)currentRunningTask, (uint64_t)currentTask);
 
-        if (currentRunningTask == currentTask)
+        if (CurrentRunningTask == currentTask)
         {
             //Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
             currentTask->frame->rax = frame->rax;
@@ -120,9 +120,9 @@ namespace Scheduler
         frame->rsi = currentTask->frame->rsi;
         frame->rdi = currentTask->frame->rdi;
         frame->rflags = currentTask->frame->rflags;
-        if (currentRunningTask != currentTask)
+        if (CurrentRunningTask != currentTask)
         {
-            currentRunningTask = currentTask;
+            CurrentRunningTask = currentTask;
             Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d", CurrentTaskIndex);
         }
 
@@ -157,31 +157,42 @@ namespace Scheduler
 
 
 
-        ENV_DATA env;
-        env.globalFrameBuffer = GlobalRenderer->framebuffer;
-        env.globalFont = GlobalRenderer->psf1_font;
 
-        //write argc, argv, env to stack
-        uint8_t* stack = (uint8_t*)task->userStack;
-        *((uint32_t*)stack) = argc;
-        stack += 4;
-        *((uint64_t*)stack) = (uint64_t)argv;
-        stack += 8;
-        *((ENV_DATA*)stack) = env;
-        stack += sizeof(ENV_DATA);
+        uint8_t* kernelStackEnd = (uint8_t*)(uint64_t)kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
+        
 
 
-        interrupt_frame* frame = (interrupt_frame*) ((uint64_t)kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000 - sizeof(interrupt_frame));
-        _memset(frame, 0, sizeof(interrupt_frame));
-        frame->rip = (uint64_t)task_entry;
-        //frame->cr3 = (uint64_t)GlobalPageTableManager.PML4->entries;//(uint64_t)((PageTable*)task->pageTableContext)->entries;
-        frame->rsp = (uint64_t)kernelStack;
-        frame->rax = (uint64_t)module.entryPoint;
+        {
+            ENV_DATA env;
+            env.globalFrameBuffer = GlobalRenderer->framebuffer;
+            env.globalFont = GlobalRenderer->psf1_font;
+
+            //write argc, argv, env to stack
+            task->kernelEnvStack = kernelStackEnd;
+
+            kernelStackEnd -= 4;
+            *((int*)kernelStackEnd) = argc;
+            
+            kernelStackEnd -= 8;
+            *((uint64_t*)kernelStackEnd) = (uint64_t)argv;
+            
+            kernelStackEnd -= sizeof(ENV_DATA);
+            *((ENV_DATA*)kernelStackEnd) = env;
+        }
 
 
+        {
+            kernelStackEnd -= sizeof(interrupt_frame);
+            interrupt_frame* frame = (interrupt_frame*)kernelStackEnd;
+            _memset(frame, 0, sizeof(interrupt_frame));
+            frame->rip = (uint64_t)task_entry;
+            //frame->cr3 = (uint64_t)GlobalPageTableManager.PML4->entries;//(uint64_t)((PageTable*)task->pageTableContext)->entries;
+            frame->rsp = (uint64_t)kernelStackEnd;
+            frame->rax = (uint64_t)module.entryPoint;
 
 
-        task->frame = frame;
+            task->frame = frame;
+        }
         
 
 

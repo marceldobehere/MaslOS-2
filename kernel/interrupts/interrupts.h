@@ -123,6 +123,10 @@ extern "C" void intr_stub_45(void);
 extern "C" void intr_stub_46(void);
 extern "C" void intr_stub_47(void);
 
+extern "C" void intr_stub_49(void);
+
 extern "C" void intr_stub_255(void);
 
 extern "C" void task_entry(void);
+
+void Syscall_handler(interrupt_frame* frame);

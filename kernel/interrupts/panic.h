@@ -1,5 +1,7 @@
 #pragma once
 
+void PrintRegisterDump(void* renderer);
+
 void Panic(const char* panicMessage, const char* var, bool lock);
 
 void Panic(const char* panicMessage, const char* var);

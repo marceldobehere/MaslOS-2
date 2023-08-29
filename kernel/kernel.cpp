@@ -48,7 +48,7 @@ void boot(void* _bootInfo)
         if (!file.works)
             Panic("FILE NO WORK :(", true);
 
-        Scheduler::AddModule(file, 0, NULL);
+        Scheduler::AddModule(file, 1, NULL);
         Serial::Writelnf("> ADDED MODULE 0");
     }
 
@@ -60,7 +60,7 @@ void boot(void* _bootInfo)
         if (!file.works)
             Panic("FILE NO WORK :(", true);
 
-        Scheduler::AddModule(file, 0, NULL);
+        Scheduler::AddModule(file, 1234, NULL);
         Serial::Writelnf("> ADDED MODULE 1");
     }
 
@@ -72,7 +72,7 @@ void boot(void* _bootInfo)
         if (!file.works)
             Panic("FILE NO WORK :(", true);
 
-        Scheduler::AddModule(file, 0, NULL);
+        Scheduler::AddModule(file, 12345678, NULL);
         Serial::Writelnf("> ADDED MODULE 2");
     }
 

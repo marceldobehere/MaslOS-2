@@ -27,6 +27,7 @@ struct osTask
     bool exited;
 
     uint8_t* kernelStack;
+    uint8_t* kernelEnvStack;
     uint8_t* userStack;
 
     void* pageTableContext;

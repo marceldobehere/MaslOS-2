@@ -8,8 +8,9 @@
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
 
-void PrintRegisterDump(BasicRenderer* renderer)
+void PrintRegisterDump(void* _renderer)
 {
+    BasicRenderer* renderer = (BasicRenderer*)_renderer;
     uint64_t Register = 0;
     //Panic("Page Fault Detected! {}", to_string(*((uint64_t*)frame)), true);
     renderer->Println();

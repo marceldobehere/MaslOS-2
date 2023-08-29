@@ -8,7 +8,7 @@
 namespace Scheduler
 {
     extern Lockable<List<osTask*>*> osTasks;
-    extern osTask* currentRunningTask;
+    extern osTask* CurrentRunningTask;
     extern bool SchedulerEnabled;
     extern int CurrentTaskIndex; 
 

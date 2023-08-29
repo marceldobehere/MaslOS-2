@@ -104,7 +104,7 @@ $(KERNEL): $(OBJ)
 # Compilation rules for *.cpp files.
 %.elf: %.cpp
 	$(CC) $(CFLAGS2) -c $^ -o $@.o
-	$(LD) $@.o $(LDFLAGS) -o $@
+	$(LD) $@.o ../libm/FINAL_libm.o $(LDFLAGS) -o $@
 	
 # Compilation rules for *.cpp files.
 %.o: %.c

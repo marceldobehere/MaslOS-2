@@ -98,6 +98,8 @@ intr_stub 45
 intr_stub 46
 intr_stub 47
 
+intr_stub 49
+
 intr_stub 255
 
 ;# intr_common_handler-signature: void intr_common_handler()

@@ -578,21 +578,31 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
 }
 
 
-extern "C" void intr_common_handler_c(interrupt_frame* regs) 
+extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
-    if (regs->interrupt_number == 32)
-        TempPitRoutine(regs);
-    // else if (regs->interrupt_number == 13)
-    //     GPFaultRoutine(regs);
+    if (frame->interrupt_number == 32)
+        TempPitRoutine(frame);
+    else if (frame->interrupt_number == 0x31)
+        Syscall_handler(frame);
     else
     {
-        Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", regs->interrupt_number);
-        Scheduler::RemoveTask(Scheduler::currentRunningTask);
-        Scheduler::currentRunningTask = NULL;
+        Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", frame->interrupt_number);
+        Serial::Writeln();
+        
+        PrintMStackTrace(MStackData::stackArr, MStackData::stackPointer);
+        GlobalRenderer->Println();
+        Serial::Writeln();
+        PrintRegisterDump(GlobalRenderer);
+        Serial::Writeln();
+        
 
-        Scheduler::SchedulerInterrupt(regs);
+        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+        Scheduler::CurrentRunningTask = NULL;
+
+        Scheduler::SchedulerInterrupt(frame);
         //Serial::Writelnf("> 2 WAAAAAAAAA %d", regs->interrupt_number);
+        Serial::Writeln();
     }
 
 
@@ -607,6 +617,36 @@ extern "C" void intr_common_handler_c(interrupt_frame* regs)
 extern "C" void CloseCurrentTask()
 {
     Serial::Writelnf("> PROGRAM REACHED END");
-    Scheduler::RemoveTask(Scheduler::currentRunningTask);
-    Scheduler::currentRunningTask = NULL;
+    Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+    Scheduler::CurrentRunningTask = NULL;
+}
+
+#include <libm/syscallList.h>
+
+void Syscall_handler(interrupt_frame* frame)
+{
+    Serial::Writelnf("> Syscall: %d", frame->rax);
+    if (Scheduler::CurrentRunningTask == NULL)
+        return;
+
+    int syscall = frame->rax;
+    frame->rax = 0;
+    if (syscall == SYSCALL_GET_ARGC)
+    {
+        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
+        frame->rax = *((int*)(stack - 4));
+        Serial::Writelnf("> Get argc %d", frame->rax);
+    }
+    else if (syscall == SYSCALL_GET_ARGV)
+    {
+        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
+        frame->rax = *((int*)(stack - 12));
+        Serial::Writelnf("> Get argv %d", frame->rax);
+    }
+    else if (syscall == SYSCALL_GET_ENV)
+    {
+        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
+        frame->rax = (uint64_t)((int*)(stack - 12 - sizeof(ENV_DATA)));
+        Serial::Writelnf("> Get env %d", frame->rax);
+    }
 }
