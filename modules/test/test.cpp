@@ -1,5 +1,7 @@
 #include "test.h"
 #include <libm/syscallManager.h>
+#include <libm/rendering/basicRenderer.h>
+#include <libm/rendering/Cols.h>
 
 void _start()
 {
@@ -29,8 +31,12 @@ void Bruhus(char* yes)
 
 void main(int argc, char** argv, ENV_DATA* env)
 {
+    TempRenderer renderer = TempRenderer(env->globalFrameBuffer, env->globalFont);
+    renderer.Clear(Colors.bblue);
+    
     //*((char*)(uint64_t)argc) = 'A';
-    Bruhus((char*)env->globalFrameBuffer->BaseAddress);
+    //Bruhus((char*)env->globalFrameBuffer->BaseAddress);
+    
     //while (true);
 }
 
