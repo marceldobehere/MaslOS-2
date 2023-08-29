@@ -1,5 +1,6 @@
 #include "queue.h"
 #include "./queue_all.h"
+#include "../stubs.h"
 
 
 #define DEF_SIZE 10

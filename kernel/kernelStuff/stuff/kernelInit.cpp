@@ -12,6 +12,7 @@
 #include "../../osData/MStack/MStackM.h"
 #include "../../memory/heap.h"
 #include "../../scheduler/scheduler.h"
+#include "../../devices/gdt/initialGdt.h"
 
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
@@ -32,16 +33,15 @@ void InitKernel(BootInfo* bootInfo)
     PrintMsgStartLayer("BOOT");
     StepDone(0);
 
-    PrintMsg("> Preparing GDT");
-    GDTDescriptor gdtDescriptor;
-    gdtDescriptor.Size = sizeof(GDT) - 1;
-    gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
-    LoadGDT(&gdtDescriptor);
-    StepDone();
-    
     PrintMsg("> Preparing Memory");
     PrepareMemory(bootInfo);
     StepDone();
+    
+    PrintMsg("> Preparing GDT");
+    InitInitialGdt();
+    StepDone();
+    
+    
 
     PrintMsg("> Initializing Heap");
     InitializeHeap((void*)0x0000100000000000, 0x10);
@@ -229,7 +229,7 @@ void PrepareInterrupts()
 
     // GenericInt_handler
     for (int i = 0; i < (0x1000 / sizeof(IDTDescEntry)); i++)
-        SetIDTGate((void*)GenericInt_handler, i, IDT_TA_InterruptGate, 0x08);
+        SetIDTGate((void*)intr_stub_254, i, IDT_TA_InterruptGate, 0x08);
 
     for (int i = 0; i < 256; i++)
     {

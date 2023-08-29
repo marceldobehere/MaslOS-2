@@ -60,7 +60,7 @@ namespace Elf
         }
     }
 
-    LoadedElfFile borkedElfFile = {NULL, NULL, NULL, NULL, false};
+    LoadedElfFile borkedElfFile = {NULL, 0, NULL, NULL, false};
 
     LoadedElfFile LoadElf(uint8_t* data)
     {

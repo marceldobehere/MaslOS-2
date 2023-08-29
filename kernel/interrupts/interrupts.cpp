@@ -21,6 +21,7 @@
 
 #include "../scheduler/scheduler.h"
 
+#include "../devices/serial/serial.h"
 
 
 extern "C" void BruhusSafus()
@@ -83,6 +84,7 @@ __attribute__((interrupt)) void GenericInt_handler(interrupt_frame* frame)
 {
     AddToStack();
     //Panic("GENERIC INTERRUPT BRUH", true);   
+    //Serial::Writelnf("> Generic Interrupt: %d", frame->interrupt_number);
     RemoveFromStack();
 }
 
@@ -585,11 +587,14 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         TempPitRoutine(frame);
     else if (frame->interrupt_number == 0x31)
         Syscall_handler(frame);
+    else if (frame->interrupt_number == 254)
+        Serial::Writelnf("> Generic Interrupt");
     else
     {
         Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", frame->interrupt_number);
         Serial::Writeln();
         
+        GlobalRenderer->Clear(Colors.black);
         PrintMStackTrace(MStackData::stackArr, MStackData::stackPointer);
         GlobalRenderer->Println();
         Serial::Writeln();
@@ -601,8 +606,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Scheduler::CurrentRunningTask = NULL;
 
         Scheduler::SchedulerInterrupt(frame);
-        //Serial::Writelnf("> 2 WAAAAAAAAA %d", regs->interrupt_number);
-        Serial::Writeln();
+        
     }
 
 
@@ -649,4 +653,31 @@ void Syscall_handler(interrupt_frame* frame)
         frame->rax = (uint64_t)((int*)(stack - 12 - sizeof(ENV_DATA)));
         Serial::Writelnf("> Get env %d", frame->rax);
     }
+    else if (syscall == SYSCALL_SERIAL_PRINT)
+    {
+        char* str = (char*)frame->rbx;
+        Serial::Write(str);
+    }
+    else if (syscall == SYSCALL_SERIAL_PRINTLN)
+    {
+        char* str = (char*)frame->rbx;
+        Serial::Writeln(str);
+    }
+    else if (syscall == SYSCALL_GLOBAL_PRINT)
+    {
+        char* str = (char*)frame->rbx;
+        GlobalRenderer->Print(str);
+    }
+    else if (syscall == SYSCALL_GLOBAL_PRINTLN)
+    {
+        char* str = (char*)frame->rbx;
+        GlobalRenderer->Println(str);
+    }
+    else if (syscall == SYSCALL_GLOBAL_CLS)
+    {
+        Serial::Writelnf("> Clearing Screen %X", GlobalRenderer);
+        GlobalRenderer->Clear(Colors.black);
+    }
+
+    //Scheduler::SchedulerInterrupt(frame);
 }

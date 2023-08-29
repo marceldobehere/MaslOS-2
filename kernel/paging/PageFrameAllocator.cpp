@@ -163,6 +163,7 @@ void* PageFrameAllocator::RequestPages(int count)
     
     //SwitchToBackupHeap();
     Panic("No more RAM avaiable! (Count: {})", to_string(reqCount), true);
+    return NULL;
 }
 
 void PageFrameAllocator::FreePages(void* address, int count)

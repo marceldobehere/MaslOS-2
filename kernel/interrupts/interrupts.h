@@ -125,6 +125,7 @@ extern "C" void intr_stub_47(void);
 
 extern "C" void intr_stub_49(void);
 
+extern "C" void intr_stub_254(void);
 extern "C" void intr_stub_255(void);
 
 extern "C" void task_entry(void);

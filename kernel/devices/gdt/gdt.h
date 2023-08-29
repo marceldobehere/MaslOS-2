@@ -13,12 +13,12 @@ struct GDTDescriptor
 
 struct GDTEntry 
 {
-    uint16_t Limit0;
-    uint16_t Base0;
-    uint8_t Base1;
+    uint16_t Limit;
+    uint16_t BaseLow;
+    uint8_t BaseMid;
     uint8_t AccessByte;
-    uint8_t Limit1_Flags;
-    uint8_t Base2;
+    uint8_t Granularity;
+    uint8_t BaseHigh;
 }__attribute((packed));
 
 

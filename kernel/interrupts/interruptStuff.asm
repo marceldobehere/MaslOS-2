@@ -100,6 +100,8 @@ intr_stub 47
 
 intr_stub 49
 
+intr_stub 254; generic
+
 intr_stub 255
 
 ;# intr_common_handler-signature: void intr_common_handler()

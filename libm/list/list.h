@@ -1,6 +1,6 @@
 #pragma once
-#include "../stubs.h"
-
+#include <stdint.h>
+#include <stddef.h>
 
 template <typename T> class Array
 {

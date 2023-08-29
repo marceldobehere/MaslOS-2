@@ -16,6 +16,8 @@ void _start()
     char** argv = getArgV();
     ENV_DATA* env = getEnvData();
 
+
+
     //return;
     
     main(argc, argv, env);
@@ -31,6 +33,13 @@ void Bruhus(char* yes)
 
 void main(int argc, char** argv, ENV_DATA* env)
 {
+    globalCls();
+    //return;
+    
+    globalPrintLn("Hello from a test module!");
+    globalPrintLn("Yes, new line!");
+
+    //return;
     TempRenderer renderer = TempRenderer(env->globalFrameBuffer, env->globalFont);
     renderer.Clear(Colors.bblue);
     
