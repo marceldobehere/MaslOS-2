@@ -6,3 +6,5 @@ void InitKernel(BootInfo* bootInfo);
 void PrepareMemory(BootInfo* bootInfo);
 
 void PrepareInterrupts();
+
+void DoGdtStuff();

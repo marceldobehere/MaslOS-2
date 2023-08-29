@@ -3,7 +3,8 @@
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
 #include "../../devices/serial/serial.h"
-#include "../../devices/gdt/gdt.h"
+//#include "../../devices/gdt/gdt.h"
+#include "../../devices/gdt/gdt2.h"
 #include "../../devices/rtc/rtc.h"
 #include "../../devices/pit/pit.h"
 #include "../../interrupts/IDT.h"
@@ -38,7 +39,8 @@ void InitKernel(BootInfo* bootInfo)
     StepDone();
     
     PrintMsg("> Preparing GDT");
-    InitInitialGdt();
+    //InitInitialGdt();
+    DoGdtStuff();
     StepDone();
     
     
@@ -139,6 +141,36 @@ void InitKernel(BootInfo* bootInfo)
 
     Println();
     PrintMsgCol("> Inited Kernel!", Colors.bgreen);
+}
+
+#define IDT_SIZE	256
+
+#define IDT_TYPE_PRESENT	0b1
+#define IDT_TYPE_PRIVILEGE	0b00
+
+#define IDT_IST_ISR		1
+#define IDT_IST_IRQ		2
+#define IDT_IST_TIMER	3
+
+void DoGdtStuff()
+{
+    GDTBlock* gdt_block = (GDTBlock*)GlobalAllocator->RequestPage();
+    GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
+    char* stack_kernel = (char*)GlobalAllocator->RequestPages(8);
+    GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
+    char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
+    GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
+    char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
+    GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
+    char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
+    GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
+
+    gdt_init(gdt_block);
+	gdt_set_tss_ring(gdt_block, 0, stack_kernel);
+	gdt_set_tss_ist(gdt_block, IDT_IST_ISR, stack_isr);
+	gdt_set_tss_ist(gdt_block, IDT_IST_IRQ, stack_irq);
+	gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer);
+	gdt_load(&gdt_block->gdt_descriptor);
 }
 
 
