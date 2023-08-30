@@ -145,6 +145,7 @@ namespace Scheduler
         // set cr3
         //GlobalPageTableManager.SwitchPageTable((PageTable*)currentTask->pageTableContext);
         frame->cr3 = (uint64_t)((PageTable*)currentTask->pageTableContext)->entries;
+        frame->cr3 = (uint64_t)GlobalPageTableManager.PML4->entries;
 
         //Serial::Writelnf("SCHEDULER> EXITING INTERRUPT");
         return frame;      

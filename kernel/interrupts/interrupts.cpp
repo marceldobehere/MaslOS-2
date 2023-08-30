@@ -265,6 +265,7 @@ bool speakA = false;
 //#include "../audio/audioDevStuff.h"
 
 #include "../paging/PageTableManager.h"
+#include "../devices/rtc/rtc.h"
 
 void TempPitRoutine(interrupt_frame* frame)
 {
@@ -280,6 +281,28 @@ void TempPitRoutine(interrupt_frame* frame)
     // if (osData.serialManager != NULL)
     //     osData.serialManager->DoStuff();
     
+
+    Point tempPoint = GlobalRenderer->CursorPosition;
+    GlobalRenderer->CursorPosition.x = 0;
+    GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - 16;
+
+    GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
+
+    GlobalRenderer->Print("DATE: ", Colors.yellow);
+    GlobalRenderer->Print("{}.", to_string((int)RTC::Day), Colors.yellow);
+    GlobalRenderer->Print("{}.", to_string((int)RTC::Month), Colors.yellow);
+    GlobalRenderer->Print("{}", to_string((int)RTC::Year), Colors.yellow);
+
+    GlobalRenderer->Print("  ", Colors.yellow);
+
+    GlobalRenderer->Print("TIME: ", Colors.yellow);
+    GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), Colors.yellow);
+    GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), Colors.yellow);
+    GlobalRenderer->Print("{}", to_string((int)RTC::Second), Colors.yellow);
+
+    GlobalRenderer->CursorPosition = tempPoint;
+
+
 
     // TestSetSpeakerPosition(speakA);
     // speakA = !speakA;

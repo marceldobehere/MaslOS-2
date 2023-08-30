@@ -157,19 +157,19 @@ void DoGdtStuff()
     GDTBlock* gdt_block = (GDTBlock*)GlobalAllocator->RequestPage();
     GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
     char* stack_kernel = (char*)GlobalAllocator->RequestPages(8);
-    GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
-    char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
-    GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
-    char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
-    GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
-    char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
-    GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
+    // GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
+    // char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
+    // GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
+    // char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
+    // GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
+    // char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
+    // GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
 
     gdt_init(gdt_block);
 	gdt_set_tss_ring(gdt_block, 0, stack_kernel);
-	gdt_set_tss_ist(gdt_block, IDT_IST_ISR, stack_isr);
-	gdt_set_tss_ist(gdt_block, IDT_IST_IRQ, stack_irq);
-	gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer);
+	// gdt_set_tss_ist(gdt_block, IDT_IST_ISR, stack_isr);
+	// gdt_set_tss_ist(gdt_block, IDT_IST_IRQ, stack_irq);
+	// gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer);
 	gdt_load(&gdt_block->gdt_descriptor);
 }
 
