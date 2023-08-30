@@ -1,3 +1,10 @@
 *.o
 *.d
 disk.img
+
+*.o.kernel_src
+*.o.kernel_module
+*.o.user_module
+
+kernel.elf
+/modules/*/*.elf
