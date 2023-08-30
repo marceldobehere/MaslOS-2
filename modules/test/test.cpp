@@ -3,13 +3,11 @@
 #include <libm/rendering/basicRenderer.h>
 #include <libm/rendering/Cols.h>
 
-void _start()
+int main()
 {
-    //*((char*)(uint64_t)argc) = 'A';
-    //return;
+    //return 0;
     //while (true);
 
-    
 
     int argc = getArgC();
     //*((char*)(uint64_t)argc) = 'A';
@@ -18,9 +16,11 @@ void _start()
 
 
 
-    //return;
+    //return 0;
     
-    main(argc, argv, env);
+    main2(argc, argv, env);
+
+    return 0;
 }
 
 void Bruhus(char* yes)
@@ -31,7 +31,7 @@ void Bruhus(char* yes)
     }
 }
 
-void main(int argc, char** argv, ENV_DATA* env)
+void main2(int argc, char** argv, ENV_DATA* env)
 {
     globalCls();
     //return;

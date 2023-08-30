@@ -82,9 +82,12 @@ override CPPFILES  := $(shell find . -type f -name '*.cpp')
 override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ         := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o)
-override OBJ2         := $(CFILES:.c=.o.kernel) $(CPPFILES:.cpp=.o.kernel) $(ASFILES:.S=.o.kernel) $(NASMFILES:.asm=_asm.o.kernel)
-override HEADER_DEPS := $(CFILES:.c=.d) $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d)
+override OBJ          := $(CFILES:.c=.o)               $(CPPFILES:.cpp=.o)               $(ASFILES:.S=.o)               $(NASMFILES:.asm=_asm.o)
+override OBJ1         := $(CFILES:.c=.o.user_module)   $(CPPFILES:.cpp=.o.user_module)   $(ASFILES:.S=.o.user_module)   $(NASMFILES:.asm=_asm.o.user_module)
+override OBJ2         := $(CFILES:.c=.o.kernel_src)    $(CPPFILES:.cpp=.o.kernel_src)    $(ASFILES:.S=.o.kernel_src)    $(NASMFILES:.asm=_asm.o.kernel_src)
+override OBJ3         := $(CFILES:.c=.o.kernel_module) $(CPPFILES:.cpp=.o.kernel_module) $(ASFILES:.S=.o.kernel_module) $(NASMFILES:.asm=_asm.o.kernel_module)
+override OBJ4         := $(CFILES:.c=.o.kernel)        $(CPPFILES:.cpp=.o.kernel)        $(ASFILES:.S=.o.kernel)        $(NASMFILES:.asm=_asm.o.kernel)
+override HEADER_DEPS  := $(CFILES:.c=.d)               $(CPPFILES:.cpp=.d)               $(ASFILES:.S=.d)
 
 # Default target.
 .PHONY: all
@@ -95,8 +98,10 @@ limine.h:
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
-	$(LD) $(OBJ2) $(LDFLAGS) -o $@.kernel
+	#$(LD) $(OBJ) $(LDFLAGS) -o $@.kernel_src
+	$(LD) $(OBJ1) $(LDFLAGS) -o $@.user_module
+	@$(LD) $(OBJ2) $(LDFLAGS) -o $@.kernel_src
+	@$(LD) $(OBJ3) $(LDFLAGS) -o $@.kernel_module
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
@@ -105,34 +110,46 @@ $(KERNEL): $(OBJ)
 
 # Compilation rules for *.cpp files.
 %.o: %.cpp
-	$(CC) $(CFLAGS2) -c $^ -o $@
-	$(CC) $(CFLAGS2) -c $^ -o $@.kernel -D _KERNEL_SRC
+	$(CC) $(CFLAGS2) -c $^ -o $@.kernel_src -D _KERNEL_SRC
+	@$(CC) $(CFLAGS2) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
+	@$(CC) $(CFLAGS2) -c $^ -o $@.user_module -D _USER_MODULE
 	
 # Compilation rules for *.cpp files.
 %.o: %.c
-	$(CC) $(CFLAGS3) -c $^ -o $@
+	@$(CC) $(CFLAGS3) -c $^ -o $@
 
 
 # Compilation rules for *.c files.
 %.o: %.c limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 	
 	
 # Compilation rules for *.S files.
 %.o: %.S limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 
 
 # Compilation rules for *.asm (nasm) files.
 %.o: %.asm
-	nasm $(NASMFLAGS) $< -o $@
+	n@asm $(NASMFLAGS) $< -o $@
 
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
-	rm -rf $(KERNEL) $(OBJ2) $(HEADER_DEPS)
+	@rm -rf $(OBJ)
+	@rm -rf $(OBJ1)
+	@rm -rf $(OBJ2)
+	@rm -rf $(OBJ3)
+	@rm -rf $(OBJ4)
+	
+	@rm -rf $(HEADER_DEPS)
+	
+	@rm -rf $(KERNEL).kernel_src
+	@rm -rf $(KERNEL).kernel_module
+	@rm -rf $(KERNEL).user_module
+	@rm -rf $(KERNEL).kernel
+	
 
 .PHONY: distclean
 distclean: clean

@@ -5,3 +5,5 @@ make clean
 
 ./RUN.sh
 
+
+make clean2

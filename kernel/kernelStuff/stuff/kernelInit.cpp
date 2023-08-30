@@ -156,22 +156,29 @@ void DoGdtStuff()
 {
     GDTBlock* gdt_block = (GDTBlock*)GlobalAllocator->RequestPage();
     GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
+    Serial::Writelnf("GDT: %X", (uint64_t)gdt_block);
+
     char* stack_kernel = (char*)GlobalAllocator->RequestPages(8);
     char* stack_kernel_end = stack_kernel + 0x1000 * 8;
-    // GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
-    // char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
-    // GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
-    // char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
-    // GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
-    // char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
-    // GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
+    GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
+    char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
+    char* stack_isr_end = stack_isr + 0x1000 * 8;
+    GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
+    char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
+    char* stack_irq_end = stack_irq + 0x1000 * 8;
+    GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
+    char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
+    char* stack_timer_end = stack_timer + 0x1000 * 8;
+    GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
 
     gdt_init(gdt_block);
 	gdt_set_tss_ring(gdt_block, 0, stack_kernel_end);
-	// gdt_set_tss_ist(gdt_block, IDT_IST_ISR, stack_isr);
-	// gdt_set_tss_ist(gdt_block, IDT_IST_IRQ, stack_irq);
-	// gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer);
+	gdt_set_tss_ist(gdt_block, IDT_IST_ISR, stack_isr_end);
+	gdt_set_tss_ist(gdt_block, IDT_IST_IRQ, stack_irq_end);
+	gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer_end);
 	gdt_load(&gdt_block->gdt_descriptor);
+
+    cpu_enable_features();
 }
 
 
@@ -323,7 +330,7 @@ void PrepareInterrupts()
     SetIDTGate((void*)IRQ14_handler, 0x2E, IDT_TA_InterruptGate, 0x08); // IRQ14
     SetIDTGate((void*)IRQ15_handler, 0x2F, IDT_TA_InterruptGate, 0x08); // IRQ15
 
-     SetIDTGate((void*)intr_stub_49, 0x31, IDT_TA_InterruptGate, 0x08); // SYSCALL
+     SetIDTGate((void*)intr_stub_49, 0x31, IDT_TA_InterruptGate | IDT_FLAG_RING3, 0x08); // SYSCALL
 
 
     io_wait();    

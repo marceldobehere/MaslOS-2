@@ -85,6 +85,7 @@ override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
 override OBJ         := $(CFILES:.c=.elf) $(CPPFILES:.cpp=.elf) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
+override OBJ2         := $(CFILES:.c=.elf.o) $(CPPFILES:.cpp=.elf.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
 override HEADER_DEPS := $(CFILES:.c=.d) $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d)
 
 # Default target.
@@ -105,11 +106,12 @@ $(KERNEL): $(OBJ)
 # Compilation rules for *.cpp files.
 %.elf: %.cpp
 	$(CC) $(CFLAGS2) -c $^ -o $@.o
-	$(LD) $@.o ../libm/FINAL_libm.o $(LDFLAGS) -o $@
+	$(LD) $@.o ../libm/FINAL_libm.o.kernel_module $(LDFLAGS) -o $@
 	
 # Compilation rules for *.cpp files.
-%.o: %.c
-	$(CC) $(CFLAGS3) -c $^ -o $@
+%.elf: %.c
+	$(CC) $(CFLAGS3) -c $^ -o $@.o
+	$(LD) $@.o ../libm/FINAL_libm.o.kernel_module $(LDFLAGS) -o $@
 
 
 # Compilation rules for *.c files.
@@ -130,7 +132,7 @@ $(KERNEL): $(OBJ)
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
+	@rm -rf $(KERNEL) $(OBJ) $(OBJ2) $(HEADER_DEPS)
 
 .PHONY: distclean
 distclean: clean

@@ -704,6 +704,18 @@ void Syscall_handler(interrupt_frame* frame)
         Serial::Writelnf("> Clearing Screen %X", GlobalRenderer);
         GlobalRenderer->Clear(Colors.black);
     }
+    else if (syscall == SYSCALL_EXIT)
+    {
+        // Serial::Writelnf("> Clearing Screen %X", GlobalRenderer);
+        // GlobalRenderer->Clear(Colors.black);
+        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+        Scheduler::CurrentRunningTask = NULL;
 
+        Scheduler::SchedulerInterrupt(frame);
+    }
+    else
+    {
+        Serial::Writelnf("> Unknown Syscall: %d", syscall);
+    }
     //Scheduler::SchedulerInterrupt(frame);
 }

@@ -137,7 +137,7 @@ namespace Scheduler
         {
             CurrentRunningTask = currentTask;
             Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d", CurrentTaskIndex);
-            Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
+            //Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
         }
 
         //Serial::Writelnf("> CS 2: %D", frame->cs);
@@ -162,7 +162,7 @@ namespace Scheduler
         osTask* task = new osTask();
 
         uint8_t* kernelStack = (uint8_t*)GlobalAllocator->RequestPages(KERNEL_STACK_PAGE_SIZE);
-        GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
 
         uint8_t* userStack = (uint8_t*)GlobalAllocator->RequestPages(USER_STACK_PAGE_SIZE);
         if (isUserMode)
@@ -229,7 +229,7 @@ namespace Scheduler
         }
         else
         {
-            frame->rip = (uint64_t)task_entry;
+            frame->rip = (uint64_t)module.entryPoint;//(uint64_t)task_entry;
             frame->cr3 = (uint64_t)tempManager.PML4->entries; // (uint64_t)GlobalPageTableManager.PML4->entries;//
             frame->rsp = (uint64_t)userStackEnd;
             frame->rax = (uint64_t)module.entryPoint;

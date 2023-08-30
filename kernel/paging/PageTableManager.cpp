@@ -12,30 +12,37 @@ PageTableManager::PageTableManager(PageTable* PML4Address)
 
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int flags)
 {
-    flags |= PT_Flag_UserSuper;
-    //return;
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
+    bool userSpace = ((flags & PT_Flag_UserSuper) != 0);
+    //Serial::Writelnf("%X -> %X, %d, %B", (uint64_t)virtualMemory, (uint64_t)physicalMemory, flags, userSpace);
 
     PDE = PML4->entries[indexer.PDP_i];
     PageTable* PDP;
+
     if (!PDE.GetFlag(PT_Flag::Present))
     {
         PDP = (PageTable*)GlobalAllocator->RequestPage();
         _memset(PDP, 0, 0x1000);
         PDE.SetAddress((uint64_t)PDP >> 12);
-        PDE.SetFlag(PT_Flag::Present, flags & PT_Flag_Present != 0);
-        PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
-        PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
-        PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
-        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
+        PDE.SetFlag(PT_Flag::Present, (flags & PT_Flag_Present) != 0);
+        PDE.SetFlag(PT_Flag::ReadWrite, (flags & PT_Flag_ReadWrite) != 0);
+        PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
+        PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
 
         PML4->entries[indexer.PDP_i] = PDE;
     }
     else
     {
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
+        {
+            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PML4->entries[indexer.PDP_i] = PDE;
+        }
     }
+
 
 
     PDE = PDP->entries[indexer.PD_i];
@@ -45,17 +52,24 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PD = (PageTable*)GlobalAllocator->RequestPage();
         _memset(PD, 0, 0x1000);
         PDE.SetAddress((uint64_t)PD >> 12);
-        PDE.SetFlag(PT_Flag::Present, flags & PT_Flag_Present != 0);
-        PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
-        PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
-        PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
-        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
+        PDE.SetFlag(PT_Flag::Present, (flags & PT_Flag_Present) != 0);
+        PDE.SetFlag(PT_Flag::ReadWrite, (flags & PT_Flag_ReadWrite) != 0);
+        PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
+        PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
         PDP->entries[indexer.PD_i] = PDE;
     }
     else
     {
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
+        {
+            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PDP->entries[indexer.PD_i] = PDE;
+        }
     }
+
+
 
 
     PDE = PD->entries[indexer.PT_i];
@@ -65,29 +79,33 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PT = (PageTable*)GlobalAllocator->RequestPage();
         _memset(PT, 0, 0x1000);
         PDE.SetAddress((uint64_t)PT >> 12);
-        PDE.SetFlag(PT_Flag::Present, flags & PT_Flag_Present != 0);
-        PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
-        PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
-        PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
-        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
+        PDE.SetFlag(PT_Flag::Present, (flags & PT_Flag_Present) != 0);
+        PDE.SetFlag(PT_Flag::ReadWrite, (flags & PT_Flag_ReadWrite) != 0);
+        PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
+        PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
         PD->entries[indexer.PT_i] = PDE;
     }
     else
     {
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
+        {
+            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PD->entries[indexer.PT_i] = PDE;
+        }
     }
 
 
     
     PDE = PT->entries[indexer.P_i];
     PDE.SetAddress((uint64_t)physicalMemory >> 12);
-    PDE.SetFlag(PT_Flag::Present, flags & PT_Flag_Present != 0);
-    PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
-    PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
-    PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
-    PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
+    PDE.SetFlag(PT_Flag::Present, (flags & PT_Flag_Present) != 0);
+    PDE.SetFlag(PT_Flag::ReadWrite, (flags & PT_Flag_ReadWrite) != 0);
+    PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
+    PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
+    PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
     PT->entries[indexer.P_i] = PDE;
-
 
     return;
 }
@@ -170,41 +188,41 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 
 void PageTableManager::MakeEveryEntryUserReadable()
 {
-    for (int i = 0; i < 512; i++)
-    {
-        if (PML4->entries[i].GetFlag(PT_Flag::Present))
-        {
-            PML4->entries[i].SetFlag(PT_Flag::UserSuper, 1);
-            //PML4->entries[i].SetFlag(PT_Flag::ReadWrite, 1);
-            PageTable* PDP = (PageTable*)((uint64_t)PML4->entries[i].GetAddress() << 12);
-            for (int j = 0; j < 512; j++)
-            {
-                if (PDP->entries[j].GetFlag(PT_Flag::Present))
-                {
-                    PDP->entries[j].SetFlag(PT_Flag::UserSuper, 1);
-                    //PDP->entries[j].SetFlag(PT_Flag::ReadWrite, 1);
-                    PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
-                    for (int k = 0; k < 512; k++)
-                    {
-                        if (PD->entries[k].GetFlag(PT_Flag::Present))
-                        {
-                            PD->entries[k].SetFlag(PT_Flag::UserSuper, 1);
-                            PD->entries[k].SetFlag(PT_Flag::ReadWrite, 1);
-                            // PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
-                            // for (int l = 0; l < 512; l++)
-                            // {
-                            //     if (PT->entries[l].GetFlag(PT_Flag::Present))
-                            //     {
-                            //         PT->entries[l].SetFlag(PT_Flag::UserSuper, 1);
-                            //         //PT->entries[l].SetFlag(PT_Flag::ReadWrite, 1);
-                            //     }
-                            // }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // for (int i = 0; i < 512; i++)
+    // {
+    //     if (PML4->entries[i].GetFlag(PT_Flag::Present))
+    //     {
+    //         PML4->entries[i].SetFlag(PT_Flag::UserSuper, 1);
+    //         //PML4->entries[i].SetFlag(PT_Flag::ReadWrite, 1);
+    //         PageTable* PDP = (PageTable*)((uint64_t)PML4->entries[i].GetAddress() << 12);
+    //         for (int j = 0; j < 512; j++)
+    //         {
+    //             if (PDP->entries[j].GetFlag(PT_Flag::Present))
+    //             {
+    //                 PDP->entries[j].SetFlag(PT_Flag::UserSuper, 1);
+    //                 //PDP->entries[j].SetFlag(PT_Flag::ReadWrite, 1);
+    //                 PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 for (int k = 0; k < 512; k++)
+    //                 {
+    //                     if (PD->entries[k].GetFlag(PT_Flag::Present))
+    //                     {
+    //                         PD->entries[k].SetFlag(PT_Flag::UserSuper, 1);
+    //                         //PD->entries[k].SetFlag(PT_Flag::ReadWrite, 1);
+    //                         PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
+    //                         for (int l = 0; l < 512; l++)
+    //                         {
+    //                             if (PT->entries[l].GetFlag(PT_Flag::Present))
+    //                             {
+    //                                 PT->entries[l].SetFlag(PT_Flag::UserSuper, 0);
+    //                                 //PT->entries[l].SetFlag(PT_Flag::ReadWrite, 1);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 PageTableManager GlobalPageTableManager = NULL;

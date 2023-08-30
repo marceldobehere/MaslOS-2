@@ -61,6 +61,14 @@ clean:
 	$(MAKE) -C kernel clean
 	$(MAKE) -C modules clean
 	$(MAKE) -C kernel-loader clean
+	
+.PHONY: clean2
+clean2:
+	rm -rf iso_root barebones.hdd
+	$(MAKE) -C libm clean
+	$(MAKE) -C kernel clean
+	$(MAKE) -C modules clean
+	$(MAKE) -C kernel-loader clean
 
 .PHONY: distclean
 distclean: clean

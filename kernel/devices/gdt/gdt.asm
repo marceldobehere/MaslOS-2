@@ -1,3 +1,5 @@
+SECTION	.text
+
 [bits 64]
 LoadGDT:
     lgdt[rdi]
@@ -55,3 +57,26 @@ gdt_load:	; rdi=[gdt_descriptor]
 	push	QWORD GDT_OFFSET_KERNEL_CODE	; push code segment: g_idt[1]
 	push	rsi								; set rip to the return address from earlier
 	iretq									; far return in new code segment
+
+
+
+
+GLOBAL	cpu_enable_features
+cpu_enable_features:
+	push	rbp
+	mov		rbp, rsp
+	push	rbx
+	; Enable Coprocessors (FPU and SSE)
+	mov		rax, cr0
+	and		rax, 0xfffffffffffffffb	; disable FPU emulation
+	or		rax, 0x22				; enable monitoring coprocessor and numeric error
+	mov		cr0, rax
+	mov		rax, cr4
+	; TODO enable XSAVE here
+	or		rax, 0x0406b0			; enable OSFXSR, OSXMMEXCPT and others
+	mov		cr4, rax	
+	fninit
+	; Finish
+	pop		rbx
+	pop		rbp
+	ret

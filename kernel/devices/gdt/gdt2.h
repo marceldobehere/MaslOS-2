@@ -97,3 +97,4 @@ void gdt_set_tss_ist(struct GDTBlock* gdt_block, size_t ist_num, void* stack);
 // Sets the [ring_num] stack to [stack] in [gdt_block]
 void gdt_set_tss_ring(struct GDTBlock* gdt_block, size_t ring_num, void* stack);
 
+extern "C" void cpu_enable_features();

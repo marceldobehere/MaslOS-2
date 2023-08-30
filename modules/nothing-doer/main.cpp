@@ -1,4 +1,6 @@
-void _start()
+int main()
 {
     while (true);
+
+    return 0;
 }

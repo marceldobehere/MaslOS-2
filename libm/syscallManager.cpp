@@ -57,3 +57,9 @@ void globalCls()
     int syscall = SYSCALL_GLOBAL_CLS;
     asm("int $0x31" : : "a"(syscall));
 }
+
+void exitProgram(int code)
+{
+    int syscall = SYSCALL_EXIT;
+    asm("int $0x31" : : "a"(syscall), "b"(code));
+}

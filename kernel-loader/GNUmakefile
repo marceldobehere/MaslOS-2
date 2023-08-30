@@ -99,7 +99,7 @@ limine.h:
 
 # Link rules for the final kernel executable.
 $(KERNEL): $(OBJ)
-	$(LD) $(OBJ) ../kernel/FINAL_kernel.o ../libm/FINAL_libm.o.kernel $(LDFLAGS) -o $@
+	$(LD) $(OBJ) ../kernel/FINAL_kernel.o ../libm/FINAL_libm.o.kernel_src $(LDFLAGS) -o $@
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
@@ -131,7 +131,7 @@ $(KERNEL): $(OBJ)
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
+	@rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
 
 .PHONY: distclean
 distclean: clean
