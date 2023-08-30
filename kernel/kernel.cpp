@@ -48,6 +48,8 @@ void boot(void* _bootInfo)
         if (!file.works)
             Panic("FILE NO WORK :(", true);
 
+        Serial::Writelnf("> Adding ELF");
+
         Scheduler::AddElf(file, 0, NULL, false);
         Serial::Writelnf("> ADDED NOTHING DOER");
     }
@@ -60,6 +62,8 @@ void boot(void* _bootInfo)
     //     if (!file.works)
     //         Panic("FILE NO WORK :(", true);
 
+    //     Serial::Writelnf("> Adding ELF");
+
     //     Scheduler::AddElf(file, 1234, NULL, false);
     //     Serial::Writelnf("> ADDED MODULE 1");
     // }
@@ -71,6 +75,8 @@ void boot(void* _bootInfo)
         Elf::LoadedElfFile file = Elf::LoadElf(data);
         if (!file.works)
             Panic("FILE NO WORK :(", true);
+
+        Serial::Writelnf("> Adding ELF");
 
         Scheduler::AddElf(file, 12345678, NULL, true);
         Serial::Writelnf("> ADDED MODULE 2");

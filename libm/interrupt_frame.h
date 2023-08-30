@@ -33,6 +33,7 @@ typedef struct
     //     uint64_t    rsp;
     //     uint64_t    dss;
     // } base_frame;
+    //uint64_t ss;
     uint64_t cr4;
     uint64_t cr3;
     uint64_t cr2;
@@ -58,4 +59,5 @@ typedef struct
     uint64_t cs;
     uint64_t rflags;
     uint64_t rsp;
+    uint64_t ss;
 } interrupt_frame;

@@ -593,8 +593,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     {
         Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", frame->interrupt_number);
         Serial::Writeln();
-        
+
         GlobalRenderer->Clear(Colors.black);
+        GlobalRenderer->Println("Interrupt/Exception: {}", to_string(frame->interrupt_number), Colors.bred);
+        GlobalRenderer->Println();   
+        
         PrintMStackTrace(MStackData::stackArr, MStackData::stackPointer);
         GlobalRenderer->Println();
         Serial::Writeln();

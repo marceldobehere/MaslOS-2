@@ -63,7 +63,9 @@ namespace Scheduler
 
         //Serial::Writelnf("1> CURR RUNNING TASK: %X, CURR TASK: %X", (uint64_t)currentRunningTask, (uint64_t)currentTask);
 
-        //Serial::Writelnf("> CS 1: %D", frame->cs);
+        // Serial::Writelnf("> CS 1: %D", frame->cs);
+        // Serial::Writelnf("> SS 1: %D", frame->ss);
+
 
         if (CurrentRunningTask == currentTask)
         {
@@ -135,6 +137,7 @@ namespace Scheduler
         {
             CurrentRunningTask = currentTask;
             Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d", CurrentTaskIndex);
+            Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
         }
 
         //Serial::Writelnf("> CS 2: %D", frame->cs);
@@ -158,7 +161,7 @@ namespace Scheduler
         osTask* task = new osTask();
 
         uint8_t* kernelStack = (uint8_t*)GlobalAllocator->RequestPages(KERNEL_STACK_PAGE_SIZE);
-        GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE);
+        GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
 
         uint8_t* userStack = (uint8_t*)GlobalAllocator->RequestPages(USER_STACK_PAGE_SIZE);
         if (isUserMode)
@@ -175,7 +178,7 @@ namespace Scheduler
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
         
-        GlobalPageTableManager.CopyPageTable(GlobalPageTableManager.PML4, tempManager.PML4);
+        CopyPageTable(GlobalPageTableManager.PML4, tempManager.PML4);
 
         if (isUserMode)
             tempManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
@@ -214,14 +217,14 @@ namespace Scheduler
 
         if (isUserMode)
         {
-            frame->rip = (uint64_t)task_entry;
+            frame->rip = (uint64_t)module.entryPoint;//task_entry;
             frame->cr3 = (uint64_t)tempManager.PML4->entries; // (uint64_t)GlobalPageTableManager.PML4->entries;//
             frame->rsp = (uint64_t)userStackEnd;
             frame->rax = (uint64_t)module.entryPoint;
-            frame->cs = 0x18 | 0x03;
-            //frame->ss = 0x20 | 0x03;
+            frame->cs = 0x28 | 0x03; // 0x28;//
+            frame->ss = 0x20 | 0x03; // 0x20;//
 
-            frame->rflags = (1 << 9) | (1 << 1);
+            frame->rflags = 0x202;//(1 << 9) | (1 << 1);
         }
         else
         {
@@ -229,9 +232,10 @@ namespace Scheduler
             frame->cr3 = (uint64_t)tempManager.PML4->entries; // (uint64_t)GlobalPageTableManager.PML4->entries;//
             frame->rsp = (uint64_t)userStackEnd;
             frame->rax = (uint64_t)module.entryPoint;
-            frame->cs = 8;// 0x18 | 0x03;
+            frame->cs = 0x8;// 0x18 | 0x03;
+            frame->ss = 0x10;
 
-            frame->rflags = (1 << 9) | (1 << 1);
+            frame->rflags = 0x202;//(1 << 9) | (1 << 1);
         }
         
 

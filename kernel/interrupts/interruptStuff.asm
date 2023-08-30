@@ -120,6 +120,7 @@ intr_common_handler:
 	mov rax, cr4
 	push rax
 
+
 	mov rdi, rsp
 
 	call intr_common_handler_c

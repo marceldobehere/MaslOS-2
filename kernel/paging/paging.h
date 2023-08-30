@@ -31,7 +31,7 @@ struct PageDirectoryEntry
     bool GetFlag(PT_Flag flag)
     {
         uint64_t bitSelector = (uint64_t) 1 << flag;
-        return ((Value & bitSelector) > 0);
+        return ((Value & bitSelector) != 0);
     }
     void SetAddress(uint64_t address)
     {

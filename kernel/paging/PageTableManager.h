@@ -37,8 +37,10 @@ class PageTableManager
     PageTable* CreatePageTableContext();
     void SwitchPageTable(PageTable* PML4Address);
     void FreePageTable(PageTable* PML4Address);
-    void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address);
 
+    void MakeEveryEntryUserReadable();
 };
+
+void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address);
 
 extern PageTableManager GlobalPageTableManager;

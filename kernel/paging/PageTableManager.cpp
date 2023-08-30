@@ -1,4 +1,5 @@
 #include "PageTableManager.h"
+#include "../devices/serial/serial.h"
 
 
 
@@ -11,6 +12,7 @@ PageTableManager::PageTableManager(PageTable* PML4Address)
 
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int flags)
 {
+    flags |= PT_Flag_UserSuper;
     //return;
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
     PageDirectoryEntry PDE;
@@ -47,6 +49,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
         PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
         PDP->entries[indexer.PD_i] = PDE;
     }
     else
@@ -66,6 +69,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
         PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
+        PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
         PD->entries[indexer.PT_i] = PDE;
     }
     else
@@ -81,6 +85,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
     PDE.SetFlag(PT_Flag::ReadWrite, flags & PT_Flag_ReadWrite != 0);
     PDE.SetFlag(PT_Flag::CacheDisabled, flags & PT_Flag_CacheDisabled != 0);
     PDE.SetFlag(PT_Flag::WriteThrough, flags & PT_Flag_WriteThrough != 0);
+    PDE.SetFlag(PT_Flag::UserSuper, flags & PT_Flag_UserSuper != 0);
     PT->entries[indexer.P_i] = PDE;
 
 
@@ -120,7 +125,7 @@ void PageTableManager::UnmapMemories(void* virtualMemory, int c)
 PageTable* PageTableManager::CreatePageTableContext()
 {
     PageTable* table = (PageTable*)GlobalAllocator->RequestPage();
-    MapMemory(table, table);
+    MapMemory(table, table, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
     _memset(table, 0, 0x1000);
 
     return table;
@@ -137,25 +142,69 @@ void PageTableManager::FreePageTable(PageTable* PML4Address)
     UnmapMemory(PML4Address);
 }
 
-void PageTableManager::CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
+void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 {
     for (int i = 0; i < 512; i++)
     {
         if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present))
         {
-            void* src = (void*)((uint64_t)srcPML4Address->entries[i].GetAddress() << 12);
-            void* dest = (void*)((uint64_t)destPML4Address->entries[i].GetAddress() << 12);
-            if (dest == NULL)
+            destPML4Address->entries[i] = srcPML4Address->entries[i];
+            // void* src = (void*)((uint64_t)srcPML4Address->entries[i].GetAddress() << 12);
+            // void* dest = (void*)((uint64_t)destPML4Address->entries[i].GetAddress() << 12);
+            // if (dest == NULL)
+            // {
+            //     dest = (void*)GlobalAllocator->RequestPage();
+            //     GlobalPageTableManager.MapMemory(dest, dest);
+            //     destPML4Address->entries[i].SetAddress((uint64_t)dest >> 12);
+            //     destPML4Address->entries[i].SetFlag(PT_Flag::Present, srcPML4Address->entries[i].GetFlag(PT_Flag::Present));
+            //     destPML4Address->entries[i].SetFlag(PT_Flag::ReadWrite, srcPML4Address->entries[i].GetFlag(PT_Flag::ReadWrite));
+            //     destPML4Address->entries[i].SetFlag(PT_Flag::CacheDisabled, srcPML4Address->entries[i].GetFlag(PT_Flag::CacheDisabled));
+            //     destPML4Address->entries[i].SetFlag(PT_Flag::WriteThrough, srcPML4Address->entries[i].GetFlag(PT_Flag::WriteThrough));
+            //     destPML4Address->entries[i].SetFlag(PT_Flag::UserSuper, srcPML4Address->entries[i].GetFlag(PT_Flag::UserSuper));
+            // }
+            // _memcpy(src, dest, 0x1000);
+        }
+    }
+    
+}
+
+void PageTableManager::MakeEveryEntryUserReadable()
+{
+    for (int i = 0; i < 512; i++)
+    {
+        if (PML4->entries[i].GetFlag(PT_Flag::Present))
+        {
+            PML4->entries[i].SetFlag(PT_Flag::UserSuper, 1);
+            //PML4->entries[i].SetFlag(PT_Flag::ReadWrite, 1);
+            PageTable* PDP = (PageTable*)((uint64_t)PML4->entries[i].GetAddress() << 12);
+            for (int j = 0; j < 512; j++)
             {
-                dest = (void*)GlobalAllocator->RequestPage();
-                GlobalPageTableManager.MapMemory(dest, dest);
-                destPML4Address->entries[i].SetAddress((uint64_t)dest >> 12);
-                destPML4Address->entries[i].SetFlag(PT_Flag::Present, 1);
+                if (PDP->entries[j].GetFlag(PT_Flag::Present))
+                {
+                    PDP->entries[j].SetFlag(PT_Flag::UserSuper, 1);
+                    //PDP->entries[j].SetFlag(PT_Flag::ReadWrite, 1);
+                    PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
+                    for (int k = 0; k < 512; k++)
+                    {
+                        if (PD->entries[k].GetFlag(PT_Flag::Present))
+                        {
+                            PD->entries[k].SetFlag(PT_Flag::UserSuper, 1);
+                            PD->entries[k].SetFlag(PT_Flag::ReadWrite, 1);
+                            // PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
+                            // for (int l = 0; l < 512; l++)
+                            // {
+                            //     if (PT->entries[l].GetFlag(PT_Flag::Present))
+                            //     {
+                            //         PT->entries[l].SetFlag(PT_Flag::UserSuper, 1);
+                            //         //PT->entries[l].SetFlag(PT_Flag::ReadWrite, 1);
+                            //     }
+                            // }
+                        }
+                    }
+                }
             }
-            _memcpy(src, dest, 0x1000);
         }
     }
 }
-
 
 PageTableManager GlobalPageTableManager = NULL;
