@@ -1,25 +1,10 @@
-# This is the name that our final kernel executable will have.
-# Change as needed.
+# RESULT YES
 override KERNEL := FINAL_kernel.o
 
-# Convenience macro to reliably declare overridable command variables.
-define DEFAULT_VAR =
-    ifeq ($(origin $1),default)
-        override $(1) := $(2)
-    endif
-    ifeq ($(origin $1),undefined)
-        override $(1) := $(2)
-    endif
-endef
 
-# It is highly recommended to use a custom built cross toolchain to build a kernel.
-# We are only using "cc" as a placeholder here. It may work by using
-# the host system's toolchain, but this is not guaranteed.
-#$(eval $(call DEFAULT_VAR,CC,cc))
 CC = gcc
 
-# Same thing for "ld" (the linker).
-$(eval $(call DEFAULT_VAR,LD,ld))
+LD = ld
 
 # User controllable CFLAGS.
 CFLAGS ?= -g -O2 -pipe -Wall -Wextra
@@ -118,23 +103,6 @@ interrupts/interrupts.o: interrupts/interrupts.cpp
 	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
 
 
-# %ahci/ahci.o: %ahci/ahci.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
-
-#$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@
-
-# %pit/pit.o: %pit/pit.cpp
-# 	@ echo !==== COMPILING $^
-# 	@ echo !==== COMPILING $^
-# 	$(CC) $(CFLAGS2) -c $< -o $@
-
-
-# %/test/testTask.o: %/test/testTask.cpp
-# 	$(CC) $(CFLAGS2) -c $^ -o $@ -lm
-
-
 
 # Compilation rules for *.cpp files.
 %.o: %.cpp
@@ -153,7 +121,6 @@ interrupts/interrupts.o: interrupts/interrupts.cpp
 # Compilation rules for *.S files.
 %.o: %.S limine.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
 
 
 # Compilation rules for *.asm (nasm) files.

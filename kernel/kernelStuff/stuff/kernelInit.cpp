@@ -37,11 +37,14 @@ void InitKernel(BootInfo* bootInfo)
     PrintMsg("> Preparing Memory");
     PrepareMemory(bootInfo);
     StepDone();
+
+    
     
     PrintMsg("> Preparing GDT");
     //InitInitialGdt();
     DoGdtStuff();
     StepDone();
+    
     
     
 
@@ -154,9 +157,13 @@ void InitKernel(BootInfo* bootInfo)
 
 void DoGdtStuff()
 {
+    //GlobalRenderer->Clear(Colors.red);
     GDTBlock* gdt_block = (GDTBlock*)GlobalAllocator->RequestPage();
+    //GlobalRenderer->Clear(Colors.green);
     GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
+    //GlobalRenderer->Clear(Colors.blue);
     Serial::Writelnf("GDT: %X", (uint64_t)gdt_block);
+    
 
     char* stack_kernel = (char*)GlobalAllocator->RequestPages(8);
     char* stack_kernel_end = stack_kernel + 0x1000 * 8;
@@ -178,7 +185,7 @@ void DoGdtStuff()
 	gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer_end);
 	gdt_load(&gdt_block->gdt_descriptor);
 
-    cpu_enable_features();
+    //cpu_enable_features();
 }
 
 

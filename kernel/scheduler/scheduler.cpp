@@ -30,6 +30,9 @@ namespace Scheduler
         SchedulerEnabled = true;
     }
 
+    // TODO
+    // Handle SMP (Symmetric Multi-Processing)
+    // Handle FPU Register States on Context Switch
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame)
     {
         if (!SchedulerEnabled)
@@ -59,39 +62,10 @@ namespace Scheduler
 
         //Serial::Writelnf("SCHEDULER> SWITCHING FROM TASK %d", CurrentTaskIndex);
 
-        //GlobalPageTableManager.SwitchPageTable((PageTable*)currentTask->pageTableContext);
-
-        //Serial::Writelnf("1> CURR RUNNING TASK: %X, CURR TASK: %X", (uint64_t)currentRunningTask, (uint64_t)currentTask);
-
-        // Serial::Writelnf("> CS 1: %D", frame->cs);
-        // Serial::Writelnf("> SS 1: %D", frame->ss);
-
-
         if (CurrentRunningTask == currentTask)
         {
             //Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
             *currentTask->frame = *frame;
-
-            // currentTask->frame->rax = frame->rax;
-            // currentTask->frame->rbx = frame->rbx;
-            // currentTask->frame->rcx = frame->rcx;
-            // currentTask->frame->rdx = frame->rdx;
-            // currentTask->frame->r8 = frame->r8;
-            // currentTask->frame->r9 = frame->r9;
-            // currentTask->frame->r10 = frame->r10;
-            // currentTask->frame->r11 = frame->r11;
-            // currentTask->frame->r12 = frame->r12;
-            // currentTask->frame->r13 = frame->r13;
-            // currentTask->frame->r14 = frame->r14;
-            // currentTask->frame->r15 = frame->r15;
-            // currentTask->frame->rip = frame->rip;
-            // currentTask->frame->rsp = frame->rsp;
-            // currentTask->frame->rbp = frame->rbp;
-            // currentTask->frame->rsi = frame->rsi;
-            // currentTask->frame->rdi = frame->rdi;
-            // currentTask->frame->rflags = frame->rflags;
-
-            //currentTask->frame->cs = frame->cs;
         }
 
         CurrentTaskIndex++;  
@@ -113,26 +87,8 @@ namespace Scheduler
 
         //Serial::Writelnf("SCHEDULER> LOADING NEXT DATA");
         *frame = *currentTask->frame;
-        // frame->rax = currentTask->frame->rax;
-        // frame->rbx = currentTask->frame->rbx;
-        // frame->rcx = currentTask->frame->rcx;
-        // frame->rdx = currentTask->frame->rdx;
-        // frame->r8 = currentTask->frame->r8;
-        // frame->r9 = currentTask->frame->r9;
-        // frame->r10 = currentTask->frame->r10;
-        // frame->r11 = currentTask->frame->r11;
-        // frame->r12 = currentTask->frame->r12;
-        // frame->r13 = currentTask->frame->r13;
-        // frame->r14 = currentTask->frame->r14;
-        // frame->r15 = currentTask->frame->r15;
-        // frame->rip = currentTask->frame->rip;
-        // frame->rsp = currentTask->frame->rsp;
-        // frame->rbp = currentTask->frame->rbp;
-        // frame->rsi = currentTask->frame->rsi;
-        // frame->rdi = currentTask->frame->rdi;
-        // frame->rflags = currentTask->frame->rflags;
 
-        //frame->cs = currentTask->frame->cs;
+
         if (CurrentRunningTask != currentTask)
         {
             CurrentRunningTask = currentTask;
@@ -218,28 +174,26 @@ namespace Scheduler
 
         if (isUserMode)
         {
-            frame->rip = (uint64_t)module.entryPoint;//task_entry;
-            frame->cr3 = (uint64_t)tempManager.PML4->entries; // (uint64_t)GlobalPageTableManager.PML4->entries;//
+            frame->rip = (uint64_t)module.entryPoint;
+            frame->cr3 = (uint64_t)tempManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
             frame->rax = (uint64_t)module.entryPoint;
-            frame->cs = 0x28 | 0x03; // 0x28;//
-            frame->ss = 0x20 | 0x03; // 0x20;//
+            frame->cs = 0x28 | 0x03;
+            frame->ss = 0x20 | 0x03;
 
-            frame->rflags = 0x202;//(1 << 9) | (1 << 1);
+            frame->rflags = 0x202;
         }
         else
         {
-            frame->rip = (uint64_t)module.entryPoint;//(uint64_t)task_entry;
-            frame->cr3 = (uint64_t)tempManager.PML4->entries; // (uint64_t)GlobalPageTableManager.PML4->entries;//
+            frame->rip = (uint64_t)module.entryPoint;
+            frame->cr3 = (uint64_t)tempManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
             frame->rax = (uint64_t)module.entryPoint;
-            frame->cs = 0x8;// 0x18 | 0x03;
+            frame->cs = 0x8;
             frame->ss = 0x10;
 
-            frame->rflags = 0x202;//(1 << 9) | (1 << 1);
+            frame->rflags = 0x202;
         }
-        
-
 
         osTasks.Lock();
         osTasks.obj->Add(task);
