@@ -68,19 +68,19 @@ void boot(void* _bootInfo)
         Serial::Writelnf("> ADDED MODULE 1");
     }
 
-    {
-        uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
-        Serial::Writelnf("data: %x", data);
+    // {
+    //     uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
+    //     Serial::Writelnf("data: %x", data);
 
-        Elf::LoadedElfFile file = Elf::LoadElf(data);
-        if (!file.works)
-            Panic("FILE NO WORK :(", true);
+    //     Elf::LoadedElfFile file = Elf::LoadElf(data);
+    //     if (!file.works)
+    //         Panic("FILE NO WORK :(", true);
 
-        Serial::Writelnf("> Adding ELF");
+    //     Serial::Writelnf("> Adding ELF");
 
-        Scheduler::AddElf(file, 12345678, NULL, true);
-        Serial::Writelnf("> ADDED MODULE 2");
-    }
+    //     Scheduler::AddElf(file, 12345678, NULL, true);
+    //     Serial::Writelnf("> ADDED MODULE 2");
+    // }
 
     //bootInfo->smpData->cpus[1]->goto_address;
 
