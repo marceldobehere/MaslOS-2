@@ -11,6 +11,8 @@
 #include "memory/heap.h"
 #include "scheduler/scheduler.h"
 
+#include "saf/saf.h"
+
 
 void boot(void* _bootInfo)
 {
@@ -41,32 +43,59 @@ void boot(void* _bootInfo)
     Scheduler::SchedulerEnabled = false;
 
     {
-        uint8_t* data = (uint8_t*)bootInfo->nothingDoer->fileData;
-        Serial::Writelnf("data: %x", data);
+        uint8_t* data = (uint8_t*)bootInfo->programs->fileData;
+        Serial::Writelnf("data: %X", data);
 
-        Elf::LoadedElfFile file = Elf::LoadElf(data);
-        if (!file.works)
-            Panic("FILE NO WORK :(", true);
+        SAF::initrdMount* mount = SAF::initrd_mount(data);
+        SAF::saf_node_folder_t* topNode = (SAF::saf_node_folder_t*) mount->driver_specific_data;
+        Serial::Writelnf("NODES: %d", topNode->num_children);
+        
+        SAF::saf_node_folder_t* moduleNode = (SAF::saf_node_folder_t*)SAF::initrd_find("modules/", topNode, (SAF::saf_node_hdr_t*)topNode);
+        Serial::Writelnf("module nodes: %d", moduleNode->num_children);
+        for (int i = 0; i < moduleNode->num_children; i++)
+        {
+            SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]));
+            Serial::Writelnf("MODULE> file: %d", file->size);
 
-        Serial::Writelnf("> Adding ELF");
+            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
+            if (!elf.works)
+                Panic("FILE NO WORK :(", true);
 
-        Scheduler::AddElf(file, 0, NULL, false);
-        Serial::Writelnf("> ADDED NOTHING DOER");
+            Serial::Writelnf("> Adding ELF");
+
+            Scheduler::AddElf(elf, 0, NULL, false);
+            Serial::Writelnf("> ADDED MODULE");
+
+        }
     }
 
-    {
-        uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
-        Serial::Writelnf("data: %x", data);
+    // {
+    //     uint8_t* data = (uint8_t*)bootInfo->nothingDoer->fileData;
+    //     Serial::Writelnf("data: %x", data);
 
-        Elf::LoadedElfFile file = Elf::LoadElf(data);
-        if (!file.works)
-            Panic("FILE NO WORK :(", true);
+    //     Elf::LoadedElfFile file = Elf::LoadElf(data);
+    //     if (!file.works)
+    //         Panic("FILE NO WORK :(", true);
 
-        Serial::Writelnf("> Adding ELF");
+    //     Serial::Writelnf("> Adding ELF");
 
-        Scheduler::AddElf(file, 1234, NULL, false);
-        Serial::Writelnf("> ADDED MODULE 1");
-    }
+    //     Scheduler::AddElf(file, 0, NULL, false);
+    //     Serial::Writelnf("> ADDED NOTHING DOER");
+    // }
+
+    // {
+    //     uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
+    //     Serial::Writelnf("data: %x", data);
+
+    //     Elf::LoadedElfFile file = Elf::LoadElf(data);
+    //     if (!file.works)
+    //         Panic("FILE NO WORK :(", true);
+
+    //     Serial::Writelnf("> Adding ELF");
+
+    //     Scheduler::AddElf(file, 1234, NULL, false);
+    //     Serial::Writelnf("> ADDED MODULE 1");
+    // }
 
     // {
     //     uint8_t* data = (uint8_t*)bootInfo->testModule->fileData;
@@ -119,8 +148,8 @@ void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAss
     tempBootInfo.windowButtonZIP = assets->windowButtonZIP;
     tempBootInfo.windowIconsZIP = assets->windowIconsZIP;
 
-    tempBootInfo.testModule = assets->testModule;
-    tempBootInfo.nothingDoer = assets->nothingDoer;
+    tempBootInfo.programs = assets->programs;
+    //tempBootInfo.nothingDoer = assets->nothingDoer;
 
     tempBootInfo.mMapStart = freeMemStart;
     tempBootInfo.m2MapStart = extraMemStart;

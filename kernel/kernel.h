@@ -29,8 +29,8 @@ struct MaslOsAssetStruct
     kernelFiles::ZIPFile* otherZIP;
 
     // Modules
-    kernelFiles::DefaultFile* testModule;
-    kernelFiles::DefaultFile* nothingDoer;
+    kernelFiles::DefaultFile* programs;
+    //kernelFiles::DefaultFile* nothingDoer;
 
     // EFI Mem?
 

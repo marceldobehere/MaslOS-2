@@ -1,140 +1,57 @@
-# This is the name that our final kernel executable will have.
-# Change as needed.
-override KERNEL := FINAL_libm.o
-# Convenience macro to reliably declare overridable command variables.
-define DEFAULT_VAR =
-    ifeq ($(origin $1),default)
-        override $(1) := $(2)
-    endif
-    ifeq ($(origin $1),undefined)
-        override $(1) := $(2)
-    endif
-endef
+override OUTPUT := FINAL_libm.o
 
-# It is highly recommended to use a custom built cross toolchain to build a kernel.
-# We are only using "cc" as a placeholder here. It may work by using
-# the host system's toolchain, but this is not guaranteed.
-#$(eval $(call DEFAULT_VAR,CC,cc))
 CC = gcc
+LD = ld
 
-# Same thing for "ld" (the linker).
-$(eval $(call DEFAULT_VAR,LD,ld))
-
-# User controllable CFLAGS.
-CFLAGS ?= -g -O2 -pipe -Wall -Wextra
-
-# User controllable preprocessor flags. We set none by default.
-CPPFLAGS ?=
-
-# User controllable nasm flags.
-NASMFLAGS ?= -F dwarf -g
-
-# User controllable linker flags. We set none by default.
-LDFLAGS ?=
-
-# Internal C flags that should not be changed by the user.
-
-override CFLAGS +=       \
-    -std=c14             \
-    -ffreestanding       \
-    -fno-stack-protector \
-    -fno-stack-check     \
-    -fno-lto             \
-    -fno-pie             \
-    -fno-pic             \
-    -m64                 \
-    -march=x86-64        \
-    -mabi=sysv           \
-    -mno-80387           \
-    -mno-mmx             \
-    -mno-sse             \
-    -mno-sse2            \
-    -mno-red-zone        \
-    -mcmodel=kernel      \
-    -MMD                 \
-    -I.
-    
-CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
-CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
-# -w
-
-#-ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fcommon
-
-# Internal linker flags that should not be changed by the user.
-override LDFLAGS +=         \
-    -m elf_x86_64           \
-    -r
-
+LDFLAGS += -m elf_x86_64 -r
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
     override LDFLAGS += -no-pie
 endif
 
-# Internal nasm flags that should not be changed by the user.
-override NASMFLAGS += \
-    -f elf64
+NASMFLAGS ?= -F dwarf -g -f elf64
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
+CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
+# -w
 
-# Use find to glob all *.c, *.S, and *.asm files in the directory and extract the object names.
 
 
 override CFILES    := $(shell find . -type f -name '*.c')
 override CPPFILES  := $(shell find . -type f -name '*.cpp')
-override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ          := $(CFILES:.c=.o)               $(CPPFILES:.cpp=.o)               $(ASFILES:.S=.o)               $(NASMFILES:.asm=_asm.o)
-override OBJ1         := $(CFILES:.c=.o.user_module)   $(CPPFILES:.cpp=.o.user_module)   $(ASFILES:.S=.o.user_module)   $(NASMFILES:.asm=_asm.o.user_module)
-override OBJ2         := $(CFILES:.c=.o.kernel_src)    $(CPPFILES:.cpp=.o.kernel_src)    $(ASFILES:.S=.o.kernel_src)    $(NASMFILES:.asm=_asm.o.kernel_src)
-override OBJ3         := $(CFILES:.c=.o.kernel_module) $(CPPFILES:.cpp=.o.kernel_module) $(ASFILES:.S=.o.kernel_module) $(NASMFILES:.asm=_asm.o.kernel_module)
-override OBJ4         := $(CFILES:.c=.o.kernel)        $(CPPFILES:.cpp=.o.kernel)        $(ASFILES:.S=.o.kernel)        $(NASMFILES:.asm=_asm.o.kernel)
-override HEADER_DEPS  := $(CFILES:.c=.d)               $(CPPFILES:.cpp=.d)               $(ASFILES:.S=.d)
+override OBJ          := $(CFILES:.c=.o)               $(CPPFILES:.cpp=.o)               $(NASMFILES:.asm=_asm.o)
+override OBJ1         := $(CFILES:.c=.o.user_module)   $(CPPFILES:.cpp=.o.user_module)   $(NASMFILES:.asm=_asm.o.user_module)
+override OBJ2         := $(CFILES:.c=.o.kernel_src)    $(CPPFILES:.cpp=.o.kernel_src)    $(NASMFILES:.asm=_asm.o.kernel_src)
+override OBJ3         := $(CFILES:.c=.o.kernel_module) $(CPPFILES:.cpp=.o.kernel_module) $(NASMFILES:.asm=_asm.o.kernel_module)
+override OBJ4         := $(CFILES:.c=.o.kernel)        $(CPPFILES:.cpp=.o.kernel)        $(NASMFILES:.asm=_asm.o.kernel)
 
-# Default target.
+
 .PHONY: all
-all: $(KERNEL)
+all: $(OUTPUT)
 
-limine.h:
-	curl https://raw.githubusercontent.com/limine-bootloader/limine/trunk/limine.h -o $@
 
-# Link rules for the final kernel executable.
-$(KERNEL): $(OBJ)
-	#$(LD) $(OBJ) $(LDFLAGS) -o $@.kernel_src
-	$(LD) $(OBJ1) $(LDFLAGS) -o $@.user_module
+$(OUTPUT): $(OBJ)
+	$(LD)  $(OBJ1) $(LDFLAGS) -o $@.user_module
 	@$(LD) $(OBJ2) $(LDFLAGS) -o $@.kernel_src
 	@$(LD) $(OBJ3) $(LDFLAGS) -o $@.kernel_module
 
-# Include header dependencies.
--include $(HEADER_DEPS)
 
-
-
-# Compilation rules for *.cpp files.
 %.o: %.cpp
-	$(CC) $(CFLAGS2) -c $^ -o $@.kernel_src -D _KERNEL_SRC
-	@$(CC) $(CFLAGS2) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
-	@$(CC) $(CFLAGS2) -c $^ -o $@.user_module -D _USER_MODULE
+	$(CC)  $(CPPFLAGS) -c $^ -o $@.kernel_src -D _KERNEL_SRC
+	@$(CC) $(CPPFLAGS) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
+	@$(CC) $(CPPFLAGS) -c $^ -o $@.user_module -D _USER_MODULE
 	
-# Compilation rules for *.cpp files.
 %.o: %.c
-	@$(CC) $(CFLAGS3) -c $^ -o $@
+	$(CC)  $(CFLAGS) -c $^ -o $@.kernel_src -D _KERNEL_SRC
+	@$(CC) $(CFLAGS) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
+	@$(CC) $(CFLAGS) -c $^ -o $@.user_module -D _USER_MODULE
 
-
-# Compilation rules for *.c files.
-%.o: %.c limine.h
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-	
-	
-# Compilation rules for *.S files.
-%.o: %.S limine.h
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+%_asm.o: %.asm
+	@nasm $(NASMFLAGS) $< -o $@
 
 
 
-# Compilation rules for *.asm (nasm) files.
-%.o: %.asm
-	n@asm $(NASMFLAGS) $< -o $@
-
-# Remove object files and the final executable.
 .PHONY: clean
 clean:
 	@rm -rf $(OBJ)
@@ -145,12 +62,7 @@ clean:
 	
 	@rm -rf $(HEADER_DEPS)
 	
-	@rm -rf $(KERNEL).kernel_src
-	@rm -rf $(KERNEL).kernel_module
-	@rm -rf $(KERNEL).user_module
-	@rm -rf $(KERNEL).kernel
-	
-
-.PHONY: distclean
-distclean: clean
-	rm -f limine.h
+	@rm -rf $(OUTPUT).kernel_src
+	@rm -rf $(OUTPUT).kernel_module
+	@rm -rf $(OUTPUT).user_module
+	@rm -rf $(OUTPUT).kernel

@@ -1,66 +1,20 @@
 # RESULT YES
-override KERNEL := FINAL_kernel.o
-
+override OUTPUT := FINAL_kernel.o
 
 CC = gcc
-
 LD = ld
 
-# User controllable CFLAGS.
-CFLAGS ?= -g -O2 -pipe -Wall -Wextra
-
-# User controllable preprocessor flags. We set none by default.
-CPPFLAGS ?=
-
-# User controllable nasm flags.
-NASMFLAGS ?= -F dwarf -g
-
-# User controllable linker flags. We set none by default.
-LDFLAGS ?=
-
-# Internal C flags that should not be changed by the user.
-
-override CFLAGS +=       \
-    -std=c14             \
-    -ffreestanding       \
-    -fno-stack-protector \
-    -fno-stack-check     \
-    -fno-lto             \
-    -fno-pie             \
-    -fno-pic             \
-    -m64                 \
-    -march=x86-64        \
-    -mabi=sysv           \
-    -mno-80387           \
-    -mno-mmx             \
-    -mno-sse             \
-    -mno-sse2            \
-    -mno-red-zone        \
-    -mcmodel=kernel      \
-    -MMD                 \
-    -I.
-    
-CFLAGS2 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../ -g
-CFLAGS3 = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../ -g
-#  -w 
-
-#-ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fcommon
-
-# Internal linker flags that should not be changed by the user.
-override LDFLAGS +=         \
-    -m elf_x86_64           \
-    -r         
-
+LDFLAGS += -m elf_x86_64 -r
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
     override LDFLAGS += -no-pie
 endif
 
-# Internal nasm flags that should not be changed by the user.
-override NASMFLAGS += \
-    -f elf64
 
-# Use find to glob all *.c, *.S, and *.asm files in the directory and extract the object names.
+NASMFLAGS ?= -F dwarf -g -f elf64
+CFLAGS   = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../ -g
+CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../ -g -fpermissive -Wno-pmf-conversions
+#  -w 
 
 
 override CFILES    := $(shell find . -type f -name '*.c')
@@ -68,70 +22,30 @@ override CPPFILES  := $(shell find . -type f -name '*.cpp')
 override ASFILES   := $(shell find . -type f -name '*.S')
 override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ         := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
-override HEADER_DEPS := $(CFILES:.c=.d) $(CPPFILES:.cpp=.d) $(ASFILES:.S=.d)
+override OBJ       := $(CFILES:.c=.o) $(CPPFILES:.cpp=.o) $(ASFILES:.S=.o) $(NASMFILES:.asm=_asm.o)
 
-# Default target.
+
 .PHONY: all
-all: $(KERNEL)
+all: $(OUTPUT)
 
-limine.h:
-	curl https://raw.githubusercontent.com/limine-bootloader/limine/trunk/limine.h -o $@
 
-# Link rules for the final kernel executable.
-$(KERNEL): $(OBJ)
-	$(LD) $(OBJ) $(LDFLAGS) -o $@
-
-# Include header dependencies.
--include $(HEADER_DEPS)
-
-# Compilation rules for *.asm (nasm) files.
-%gdt/gdt_asm.o: %gdt/gdt.asm
-	@ echo !==== COMPILING $^
-	@ echo !==== COMPILING $^
-	nasm $(NASMFLAGS) $^ -f elf64 -o $@
-	
-%interruptStuff_asm.o: %interruptStuff.asm
-	@ echo !==== COMPILING $^
-	@ echo !==== COMPILING $^
-	nasm $(NASMFLAGS) $^ -f elf64 -o $@
+$(OUTPUT): $(OBJ)
+	@$(LD) $(OBJ) $(LDFLAGS) -o $@
 
 
 interrupts/interrupts.o: interrupts/interrupts.cpp
-	@ echo !==== COMPILING $^
-	@ echo !==== COMPILING $^
-	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
+	@$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
 
-
-
-# Compilation rules for *.cpp files.
 %.o: %.cpp
-	$(CC) $(CFLAGS2) -c $^ -o $@
+	@$(CC) $(CPPFLAGS) -c $^ -o $@
 	
-# Compilation rules for *.cpp files.
 %.o: %.c
-	$(CC) $(CFLAGS3) -c $^ -o $@
+	@$(CC) $(CFLAGS) -c $^ -o $@
+
+%_asm.o: %.asm
+	@nasm $(NASMFLAGS) $< -o $@
 
 
-# Compilation rules for *.c files.
-%.o: %.c limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-	
-	
-# Compilation rules for *.S files.
-%.o: %.S limine.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-
-# Compilation rules for *.asm (nasm) files.
-%.o: %.asm
-	nasm $(NASMFLAGS) $< -o $@
-
-# Remove object files and the final executable.
 .PHONY: clean
 clean:
-	@rm -rf $(KERNEL) $(OBJ) $(HEADER_DEPS)
-
-.PHONY: distclean
-distclean: clean
-	rm -f limine.h
+	@rm -rf $(OUTPUT) $(OBJ) $(HEADER_DEPS)

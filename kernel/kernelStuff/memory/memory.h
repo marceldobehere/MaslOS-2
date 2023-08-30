@@ -23,8 +23,8 @@ struct BootInfo
 	kernelFiles::ZIPFile* windowIconsZIP;
 	kernelFiles::ZIPFile* maabZIP;
 	kernelFiles::ZIPFile* otherZIP;
-	kernelFiles::DefaultFile* testModule;
-	kernelFiles::DefaultFile* nothingDoer;
+	kernelFiles::DefaultFile* programs;
+	//kernelFiles::DefaultFile* nothingDoer;
 	//EFI_MEMORY_DESCRIPTOR* mMap;
 	// uint64_t mMapSize;
 	// uint64_t mMapDescSize;
