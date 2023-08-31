@@ -67,6 +67,24 @@ void boot(void* _bootInfo)
             Serial::Writelnf("> ADDED MODULE");
 
         }
+
+        SAF::saf_node_folder_t* programNode = (SAF::saf_node_folder_t*)SAF::initrd_find("programs/", topNode, (SAF::saf_node_hdr_t*)topNode);
+        Serial::Writelnf("program nodes: %d", programNode->num_children);
+        for (int i = 0; i < programNode->num_children; i++)
+        {
+            SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode->children[i]));
+            Serial::Writelnf("PROGRAM> file: %d", file->size);
+
+            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
+            if (!elf.works)
+                Panic("FILE NO WORK :(", true);
+
+            Serial::Writelnf("> Adding ELF");
+
+            Scheduler::AddElf(elf, 0, NULL, true);
+            Serial::Writelnf("> ADDED PROGRAM");
+
+        }
     }
 
     // {

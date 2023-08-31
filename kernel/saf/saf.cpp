@@ -10,7 +10,7 @@ namespace SAF
 {
     saf_node_hdr_t* initrd_find(char* path, void* base, saf_node_hdr_t* current) 
     {
-        Serial::Writelnf("initrd_find(%s, %X, %X, %s)", path, base, current, current->name);
+        //Serial::Writelnf("initrd_find(%s, %X, %X, %s)", path, base, current, current->name);
 
         while (*path == '/') 
             path++;
@@ -42,7 +42,7 @@ namespace SAF
 
     file_t* initrd_open(initrdMount* mount, char* path, int flags) 
     {
-        Serial::Writelnf("open: %s", path);
+        //Serial::Writelnf("open: %s", path);
 
         saf_node_hdr_t* file = initrd_find(path, mount->driver_specific_data, (saf_node_hdr_t*) mount->driver_specific_data);
         if (file == NULL) {

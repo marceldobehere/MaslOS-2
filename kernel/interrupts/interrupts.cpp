@@ -692,22 +692,23 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_GLOBAL_PRINT)
     {
         char* str = (char*)frame->rbx;
+        Serial::Writelnf("> Printing: \"%s\"", str);
         GlobalRenderer->Print(str);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINTLN)
     {
         char* str = (char*)frame->rbx;
+        Serial::Writelnf("> Printing: \"%s\"", str);
         GlobalRenderer->Println(str);
     }
     else if (syscall == SYSCALL_GLOBAL_CLS)
     {
-        Serial::Writelnf("> Clearing Screen %X", GlobalRenderer);
+        Serial::Writelnf("> Clearing Screen");
         GlobalRenderer->Clear(Colors.black);
     }
     else if (syscall == SYSCALL_EXIT)
     {
-        // Serial::Writelnf("> Clearing Screen %X", GlobalRenderer);
-        // GlobalRenderer->Clear(Colors.black);
+        Serial::Writelnf("> EXITING PROGRAM %d", frame->rbx);
         Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
         Scheduler::CurrentRunningTask = NULL;
 

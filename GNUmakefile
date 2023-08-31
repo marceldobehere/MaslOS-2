@@ -6,6 +6,7 @@ kernel:
 	$(MAKE) -C libm
 	$(MAKE) -C kernel
 	$(MAKE) -C modules
+	$(MAKE) -C programs
 	$(MAKE) -C kernel-loader
 
 MaslOS2.iso:
@@ -52,14 +53,8 @@ MaslOS2.iso:
 	rm -rf iso_root
 
 
-clean:
+clean: clean2
 	@rm -rf iso_root MaslOS2.iso barebones.hdd ./external/programs.saf
-	@$(MAKE) cleanObjFolder
-	@$(MAKE) -C libm clean
-	@$(MAKE) -C kernel clean
-	@$(MAKE) -C modules clean
-	@$(MAKE) -C kernel-loader clean	
-	@$(MAKE) -C saf clean
 	
 
 
@@ -69,6 +64,7 @@ clean2:
 	@$(MAKE) -C libm clean
 	@$(MAKE) -C kernel clean
 	@$(MAKE) -C modules clean
+	@$(MAKE) -C programs clean
 	@$(MAKE) -C kernel-loader clean
 	@$(MAKE) -C saf clean
 
