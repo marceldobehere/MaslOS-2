@@ -9,8 +9,12 @@ kernel:
 	$(MAKE) -C programs
 	$(MAKE) -C kernel-loader
 
+limine:
+	git clone https://github.com/limine-bootloader/limine.git --branch=v4.x-branch-binary --depth=1
+	make -C limine
+
 MaslOS2.iso:
-	@$(MAKE) cleanObjFolder --silent
+	$(MAKE) cleanObjFolder --silent
 	$(MAKE) kernel
 	rm -rf iso_root
 	mkdir -p iso_root

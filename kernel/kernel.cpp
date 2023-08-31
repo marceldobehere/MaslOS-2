@@ -189,9 +189,3 @@ void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAss
     boot(&tempBootInfo);
     return;
 }
-
-
-int main()
-{
-    return 0;
-}

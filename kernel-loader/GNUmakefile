@@ -24,7 +24,7 @@ endif
 
 override CPPFILES  := $(shell find . -type f -name '*.cpp')
 
-override OBJ         := $(CPPFILES:.cpp=.o)
+override OBJ       := $(CPPFILES:.cpp=.o)
 
 
 # Default target.
@@ -43,4 +43,4 @@ $(OUTPUT): $(OBJ)
 
 .PHONY: clean
 clean:
-	@rm -rf $(OUTPUT) $(OBJ) $(HEADER_DEPS)
+	@rm -rf $(OUTPUT) $(OBJ)

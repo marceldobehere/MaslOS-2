@@ -48,4 +48,4 @@ interrupts/interrupts.o: interrupts/interrupts.cpp
 
 .PHONY: clean
 clean:
-	@rm -rf $(OUTPUT) $(OBJ) $(HEADER_DEPS)
+	@rm -rf $(OUTPUT) $(OBJ)
