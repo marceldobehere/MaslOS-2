@@ -38,7 +38,7 @@ void boot(void* _bootInfo)
     
     InitKernel(bootInfo);
 
-    //GlobalRenderer->Clear(Colors.black);
+    GlobalRenderer->ClearDotted(Colors.black);
     
     Scheduler::SchedulerEnabled = false;
 

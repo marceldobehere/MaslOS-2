@@ -14,6 +14,7 @@
 #include "../../memory/heap.h"
 #include "../../scheduler/scheduler.h"
 #include "../../devices/gdt/initialGdt.h"
+#include "../../devices/keyboard/keyboard.h"
 
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
@@ -98,9 +99,9 @@ void InitKernel(BootInfo* bootInfo)
 //     //mouseImage = kernelFiles::ConvertFileToImage(kernelFiles::ZIP::GetFileFromFileName(bootInfo->mouseZIP, "default.mbif"));
 //     StepDone();
 
-//     PrintMsg("> Initing Keyboard State List");
-//     InitKeyboardListRam();
-//     StepDone();
+    PrintMsg("> Initing Keyboard");
+    Keyboard::InitKeyboard();
+    StepDone();
 
 //     PrintMsg("> Initing PS/2 Keyboard");
 //     InitKeyboard();

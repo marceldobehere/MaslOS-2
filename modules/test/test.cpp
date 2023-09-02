@@ -33,7 +33,7 @@ void Bruhus(char* yes)
 
 void main2(int argc, char** argv, ENV_DATA* env)
 {
-    globalCls();
+    //globalCls();
     //return;
     
     globalPrintLn("Hello from a test module!");
@@ -41,7 +41,8 @@ void main2(int argc, char** argv, ENV_DATA* env)
 
     //return;
     TempRenderer renderer = TempRenderer(env->globalFrameBuffer, env->globalFont);
-    renderer.Clear(Colors.bblue);
+    //renderer.Clear(Colors.bblue);
+    renderer.Clear(0,0,10, 10, Colors.green);
     
     //*((char*)(uint64_t)argc) = 'A';
     //Bruhus((char*)env->globalFrameBuffer->BaseAddress);

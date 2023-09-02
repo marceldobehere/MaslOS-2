@@ -57,8 +57,8 @@ namespace Keyboard
     void HandleKeyboardInterrupt(uint8_t scancode);
     void HandleMultiScanCodeKey(bool released);
 
-    bool KeyAvaiable();
-    uint8_t GetKey();
+    int KeysAvaiable();
+    bool DoKey();
 
     bool IsKeyPressed(int scancode);
 }

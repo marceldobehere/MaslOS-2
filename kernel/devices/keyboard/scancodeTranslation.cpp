@@ -56,7 +56,7 @@ namespace ScancodeTranslation
         if (scancode == LeftShift) return 0x2A;
         if (scancode == RightShift) return  0x36;
         if (scancode == LeftAlt) return 0x38;
-        
+
         if (scancode == Backspace) return 0x0E;
         if (scancode == Enter) return '\n';
         if (scancode == Escape) return  0x01;
@@ -69,12 +69,12 @@ namespace ScancodeTranslation
     {
         char specialKey = GetSpecialKey(scancode);
         if (specialKey != 0) 
-            return specialKey;
+            return 0;
 
         if (scancode < 0 || scancode >= 58) 
             return 0;
 
-        if (tableShift) 
+        if (shift) 
             return tableShift[scancode];
 
         return table[scancode];

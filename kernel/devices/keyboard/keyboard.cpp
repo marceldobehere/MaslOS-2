@@ -3,6 +3,8 @@
 #include <libm/queue/queue_basics.h>
 #include <libm/lock/lock.h>
 
+#include "../serial/serial.h"
+
 namespace Keyboard
 {
     bool KeyboardScancodeState[KeyboardScancodeStateSize];
@@ -88,33 +90,43 @@ namespace Keyboard
         keyboardQueue.Unlock();
     }
 
-    bool KeyAvaiable()
+    int KeysAvaiable()
     {
         if (!keyboardQueue.HasItem())
-            return;
+            return 0;
         
         keyboardQueue.Lock();
-        bool result = keyboardQueue.obj->GetCount() > 0;
+        int result = keyboardQueue.obj->GetCount();
         keyboardQueue.Unlock();
 
         return result;
     }
 
-    uint8_t GetKey()
+    bool DoKey()
     {
-        if (!KeyAvaiable())
-            return 0;
+        if (!KeysAvaiable())
+            return false;
 
         keyboardQueue.Lock();
-        uint8_t scancode = keyboardQueue.obj->Dequeue();
+        int scancode = keyboardQueue.obj->Dequeue();
         keyboardQueue.Unlock();
 
-        uint8_t actualScancode = scancode & ~KEY_RELEASED;
+        int actualScancode = scancode & ~KEY_RELEASED;
 
         if ((scancode & KEY_RELEASED) == 0)
             KeyboardScancodeState[actualScancode] = true;
         else
             KeyboardScancodeState[actualScancode] = false;
+
+        bool shift = Keyboard::IsKeyPressed(Key_GeneralShift);
+        char chr = ScancodeTranslation::TranslateScancode(actualScancode, shift);
+
+        if ((scancode & KEY_RELEASED) == 0)
+            Serial::Writelnf("> Key %d (%c) pressed", actualScancode, chr);
+        else
+            Serial::Writelnf("> Key %d (%c) released", actualScancode, chr);
+
+        return true;
     }
 
     bool IsKeyPressed(int scancode)
