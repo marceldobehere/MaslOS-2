@@ -1,4 +1,4 @@
-override OUTPUT := $(shell basename $(shell pwd)).elf
+override OUTPUT := $(shell basename "$(shell pwd)").elf
 
 CC = gcc
 LD = ld

@@ -8,3 +8,4 @@ disk.img
 
 kernel.elf
 /modules/*/*.elf
+/programs/*/*.elf
