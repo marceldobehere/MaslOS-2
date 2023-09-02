@@ -49,10 +49,10 @@ void _memset(void* start, uint8_t value, uint64_t num)
         *(uint8_t*)((uint64_t)start + i) = value;
 }
 
-void _memcpy(void* src, void* dest, uint64_t size)
+void _memcpy(const void* src, void* dest, uint64_t size)
 {
-    uint8_t* _src  = (uint8_t*)src;
-    uint8_t* _dest = (uint8_t*)dest;
+    const char* _src  = (const char*)src;
+    char* _dest = (char*)dest;
     while (size--)
     {
         *_dest = *_src;
@@ -61,10 +61,10 @@ void _memcpy(void* src, void* dest, uint64_t size)
     }
 }
 
-int _memcmp(void* src, void* dest, int amt)
+int _memcmp(const void* src, const void* dest, int amt)
 {
-    char* fi = (char*)src;
-    char* la = (char*)dest;
+    const char* fi = (const char*)src;
+    const char* la = (const char*)dest;
     for (int i = 0; i < amt; i++)
     {
         if (fi[i] > la[i])

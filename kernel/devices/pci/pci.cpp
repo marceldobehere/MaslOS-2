@@ -313,7 +313,7 @@ namespace PCI
 
         uint32_t* bar_ptr = bar0 + bar_num;
 
-        if (*bar_ptr == NULL) 
+        if (*bar_ptr == 0) 
         {
             bar.type = NONE;
             return bar;
@@ -363,6 +363,7 @@ namespace PCI
             return *(uint8_t*)(type.mem_address + field);
         else if (type.type == PCI_BAR_TYPE_ENUM::IO)
             return inb(type.io_address + field);
+        return 0;
     }
 
 	uint16_t read_word(uint64_t address, PCI_BAR_TYPE type, uint8_t field)
@@ -371,6 +372,7 @@ namespace PCI
             return *(uint16_t*)(type.mem_address + field);
         else if (type.type == PCI_BAR_TYPE_ENUM::IO)
             return inw(type.io_address + field);
+        return 0;
     }
 
 	uint32_t read_dword(uint64_t address, PCI_BAR_TYPE type, uint8_t field)
@@ -379,6 +381,7 @@ namespace PCI
             return *(uint32_t*)(type.mem_address + field);
         else if (type.type == PCI_BAR_TYPE_ENUM::IO)
             return inl(type.io_address + field);
+        return 0;
     }
 
 	void write_byte(uint64_t address, PCI_BAR_TYPE type, uint16_t field, uint8_t value)

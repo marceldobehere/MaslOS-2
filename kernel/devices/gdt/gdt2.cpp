@@ -45,13 +45,13 @@ void gdt_set_tss(struct GDTBlock* gdt_block, size_t gdt_index) {
 	struct TSSDescriptor* tss_descriptor = (struct TSSDescriptor*)(gdt_block->gdt + gdt_index);
 	*tss_descriptor = (TSSDescriptor)
     {
-		.limit_low = sizeof(TSSEntry),
-		.base_low = (uint64_t)tss & 0xffff,
-		.base_mid = ((uint64_t)tss >> 16) & 0xff,
+		.limit_low = (uint16_t)sizeof(TSSEntry),
+		.base_low = (uint16_t)((uint64_t)tss & 0xffff),
+		.base_mid = (uint8_t)(((uint64_t)tss >> 16) & 0xff),
         .access = 0b10000000 | 0b00001001,	// Present, Type (Intel Manual 3A 3.4.5.1) Execute-Only, accessed
 		.flags = 0b00010000,					// Available
-        .base_mid2 = ((uint64_t)tss >> 24) & 0xff,
-		.base_high = ((uint64_t)tss >> 32) & 0xffffffff,
+        .base_mid2 = (uint8_t)(((uint64_t)tss >> 24) & 0xff),
+		.base_high = (uint32_t)(((uint64_t)tss >> 32) & 0xffffffff),
 		
 	};
 }

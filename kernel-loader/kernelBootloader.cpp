@@ -270,6 +270,8 @@ kernelFiles::ZIPFile getZIP(const char* path)
     return zip;
 }
 
+static char BRUH = 0;
+
 kernelFiles::DefaultFile getKernelFile(const char* path)
 {
     limine_file* file = getFile(path);
@@ -285,7 +287,7 @@ kernelFiles::DefaultFile getKernelFile(const char* path)
     kernelFiles::DefaultFile defFile;
 
     defFile.fileData = file->address;
-    defFile.filename = "";
+    defFile.filename = NULL;
     defFile.filenameSize = 0;
     defFile.size = file->size;
 

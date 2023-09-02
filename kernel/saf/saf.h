@@ -117,11 +117,11 @@ namespace SAF
 
 
 
-    saf_node_hdr_t* initrd_find(char* path, void* base, saf_node_hdr_t* current);
-    file_t* initrd_open(initrdMount* mount, char* path, int flags);
+    saf_node_hdr_t* initrd_find(const char* path, void* base, saf_node_hdr_t* current);
+    file_t* initrd_open(initrdMount* mount, const char* path, int flags);
     void initrd_close(initrdMount* mount, file_t* f);
     void initrd_read(initrdMount* mount, file_t* f, void* buffer, size_t size, size_t offset);
-    dir_t initrd_dir_at(initrdMount* mount, int idx, char* path);
+    dir_t initrd_dir_at(initrdMount* mount, int idx, const char* path);
     initrdMount* initrd_mount(void* saf_image);
     file_t* LoadFileFromNode(initrdMount* mount, saf_node_file_t* file);
 }
