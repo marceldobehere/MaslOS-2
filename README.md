@@ -31,7 +31,7 @@ install NASM if you haven't.
  - Make sure your gcc version is 9.4.0 or lower maybe
  - Make sure your ld version is 2.34 or lower maybe
 
-Go into the MaslOS2 Folder and run the RUN.sh file
+Go into the MaslOS2 Folder and run the CRUN.sh file
 
 
 
