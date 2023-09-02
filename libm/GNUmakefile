@@ -3,7 +3,7 @@ override OUTPUT := FINAL_libm.o
 CC = gcc
 LD = ld
 
-LDFLAGS += -m elf_x86_64 -r
+LDFLAGS += -m elf_x86_64 -r -unresolved-symbols=ignore-all
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
     override LDFLAGS += -no-pie

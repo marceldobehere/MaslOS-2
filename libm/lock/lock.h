@@ -17,4 +17,5 @@ template <typename T> class Lockable
     void Lock();
     void Unlock();
     bool IsLocked();
+    bool HasItem();
 };

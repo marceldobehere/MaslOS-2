@@ -40,3 +40,8 @@ template <typename T> bool Lockable<T>::IsLocked()
 {
     return this->locked;
 }
+
+template <typename T> bool Lockable<T>::HasItem()
+{
+    return this->hasItem;
+}

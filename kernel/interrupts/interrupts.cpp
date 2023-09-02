@@ -202,6 +202,8 @@ __attribute__((interrupt)) void Breakpoint_handler(interrupt_frame* frame)
 
     SURVIVE_CRASH
 }
+
+#include "../devices/keyboard/keyboard.h"
  
 __attribute__((interrupt)) void KeyboardInt_handler(interrupt_frame* frame)
 { 
@@ -212,7 +214,7 @@ __attribute__((interrupt)) void KeyboardInt_handler(interrupt_frame* frame)
     if (osData.booting)
         osData.booting = false;
     else
-        ;//AddScancodeToKeyboardList(scancode);
+        Keyboard::HandleKeyboardInterrupt(scancode);//AddScancodeToKeyboardList(scancode);
         //HandleKeyboard(scancode);  
     PIC_EndMaster();
     RemoveFromStack();
