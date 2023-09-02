@@ -45,7 +45,11 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
 
 bool HeapCheck(bool wait);
 
+#define _sys_malloc(size) \
+     _Xmalloc(size, "NO TEXT", __FUNC__, __FILE__, __LINE__)
 
+#define _sys_free(ptr) \
+     _Xfree(ptr, "NO TEXT", __FUNC__, __FILE__, __LINE__)
 
 // get number of arguments with __NARG__
 #define __NARG__(...)  __NARG_I_(__VA_ARGS__,__RSEQ_N())
