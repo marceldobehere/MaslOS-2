@@ -49,7 +49,7 @@ namespace Keyboard
             SubScancodes[SubScancodeStep] = (scancode & ~KEY_RELEASED);
             SubScancodeStep++;
 
-            if (SubScancodeStep >= SubScancodeMode || SubScancodeMode > 4)
+            if (SubScancodeStep >= SubScancodeMode || SubScancodeStep > 4)
             {
                 bool released = (scancode & KEY_RELEASED) != 0;
                 HandleMultiScanCodeKey(released);
@@ -83,7 +83,8 @@ namespace Keyboard
         if (finalKey == 0)
             return;
 
-        finalKey |= KEY_RELEASED;
+        if (released)
+            finalKey |= KEY_RELEASED;
 
         keyboardQueue.Lock();
         keyboardQueue.obj->Enqueue(finalKey);
