@@ -13,7 +13,6 @@ int main()
     int argc = getArgC();
     char **argv = getArgV();
     ENV_DATA *env = getEnvData();
-    // AutoFree<char> chptr('a');
 
     return 0;
 }

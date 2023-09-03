@@ -1,4 +1,12 @@
+#pragma once
 #include <stdint.h>
+
+#ifndef MEMCPY
+#define MEMCPY
+
+void memcpy(char *a, char *b, uint64_t size);
+
+#endif
 
 struct RelocatableBlock
 {

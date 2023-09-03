@@ -8,12 +8,13 @@ LD = ld
 CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
 # -w
 
-override LDFLAGS +=         \
-    -nostdlib               \
-    -static                 \
-    -Bsymbolic              \
-    -m elf_x86_64           \
-    -z max-page-size=0x1000 \
+override LDFLAGS +=                         \
+    -unresolved-symbols=ignore-all          \
+    -nostdlib                               \
+    -static                                 \
+    -Bsymbolic                              \
+    -m elf_x86_64                           \
+    -z max-page-size=0x1000                 \
     -T linker.ld
 
 # Check if the linker supports -no-pie and enable it if it does

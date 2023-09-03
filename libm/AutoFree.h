@@ -1,3 +1,4 @@
+#pragma once
 #include <stdint.h>
 
 class ReferenceCounter
@@ -23,7 +24,6 @@ public:
     {
     }
     AutoFree(T value);
-    AutoFree(uint64_t size, char *value);
     AutoFree(AutoFree<T> &other);
     AutoFree<T> operator=(AutoFree<T> &other);
     T &operator*();
