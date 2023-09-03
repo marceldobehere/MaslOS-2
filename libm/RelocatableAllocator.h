@@ -1,4 +1,5 @@
 #include <stdint.h>
+
 struct RelocatableBlock
 {
     char *Pointer;
@@ -24,9 +25,14 @@ private:
         }
         return Smallest;
     }
-    int Size;
 
 public:
+    int Size;
+    RelocatableAllocator()
+    {
+        Buffer = nullptr;
+        Size = 0;
+    }
     RelocatableAllocator(char *buffer, int totalSize);
     char *alloc(uint64_t size);
     void free(char *ptr);

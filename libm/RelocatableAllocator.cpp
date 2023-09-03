@@ -51,3 +51,8 @@ RelocatableAllocator::RelocatableAllocator(char *buffer, int totalSize)
     FreeBlocks[0].Pointer = Buffer;
     FreeBlocks[0].Size = Size;
 }
+
+void memcpy()
+{
+    // please fucking work why tf does it want memcpy when I dont use it evn 1 time.
+}
