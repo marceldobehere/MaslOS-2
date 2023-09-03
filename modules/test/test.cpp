@@ -5,25 +5,22 @@
 
 int main()
 {
-    //return 0;
-    //while (true);
-
+    return 0;
+    // while (true);
 
     int argc = getArgC();
     //*((char*)(uint64_t)argc) = 'A';
-    char** argv = getArgV();
-    ENV_DATA* env = getEnvData();
+    char **argv = getArgV();
+    ENV_DATA *env = getEnvData();
 
+    // return 0;
 
-
-    //return 0;
-    
     main2(argc, argv, env);
 
     return 0;
 }
 
-void Bruhus(char* yes)
+void Bruhus(char *yes)
 {
     for (int i = 0; i < 10; i++)
     {
@@ -31,22 +28,21 @@ void Bruhus(char* yes)
     }
 }
 
-void main2(int argc, char** argv, ENV_DATA* env)
+void main2(int argc, char **argv, ENV_DATA *env)
 {
-    //globalCls();
-    //return;
-    
+    // globalCls();
+    // return;
+
     globalPrintLn("Hello from a test module!");
     globalPrintLn("Yes, new line!");
 
-    //return;
+    // return;
     TempRenderer renderer = TempRenderer(env->globalFrameBuffer, env->globalFont);
-    //renderer.Clear(Colors.bblue);
-    renderer.Clear(0,0,10, 10, Colors.green);
-    
-    //*((char*)(uint64_t)argc) = 'A';
-    //Bruhus((char*)env->globalFrameBuffer->BaseAddress);
-    
-    //while (true);
-}
+    // renderer.Clear(Colors.bblue);
+    renderer.Clear(0, 0, 10, 10, Colors.green);
 
+    //*((char*)(uint64_t)argc) = 'A';
+    // Bruhus((char*)env->globalFrameBuffer->BaseAddress);
+
+    // while (true);
+}
