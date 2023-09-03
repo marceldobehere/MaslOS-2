@@ -58,22 +58,22 @@ AutoFree<T>::AutoFree(AutoFree<T> &other)
     RefCount->Increment();
 }
 
-template <class T>
-AutoFree<T>::AutoFree(uint64_t size, T *value)
-{
-    if (Allocator.Size == 0)
-    {
-        Allocator = RelocatableAllocator(buf, 128 * sizeof(ReferenceCounter));
-    }
-    T *ptr = (T *)Allocator.alloc(sizeof(T));
-    for (int i = 0; i < sizeof(value); ++i)
-    {
-        ((char *)ptr)[i] = ((char *)value)[i];
-    }
-    Obj = ptr;
-    RefCount = (ReferenceCounter *)Allocator.alloc(sizeof(ReferenceCounter));
-    RefCount->Increment();
-}
+// template <class T>
+// AutoFree<T>::AutoFree(uint64_t size, T *value)
+// {
+//     if (Allocator.Size == 0)
+//     {
+//         Allocator = RelocatableAllocator(buf, 128 * sizeof(ReferenceCounter));
+//     }
+//     T *ptr = (T *)Allocator.alloc(sizeof(T));
+//     for (int i = 0; i < sizeof(value); ++i)
+//     {
+//         ((char *)ptr)[i] = ((char *)value)[i];
+//     }
+//     Obj = ptr;
+//     RefCount = (ReferenceCounter *)Allocator.alloc(sizeof(ReferenceCounter));
+//     RefCount->Increment();
+// }
 
 template <class T>
 AutoFree<T> AutoFree<T>::operator=(AutoFree<T> &other)
