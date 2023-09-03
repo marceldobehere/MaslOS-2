@@ -1,5 +1,5 @@
 #include "AutoFree.h"
-#include <libm/RelocatableAllocator.h>
+#include <libm/experimental/RelocatableAllocator.h>
 
 void ReferenceCounter::Increment()
 {
@@ -89,6 +89,7 @@ AutoFree<T> AutoFree<T>::operator=(AutoFree<T> &other)
         RefCount = other.RefCount;
         RefCount->Increment();
     }
+    return *this;
 }
 
 template <class T>

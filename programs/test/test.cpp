@@ -2,17 +2,50 @@
 #include <libm/syscallManager.h>
 #include <libm/rendering/basicRenderer.h>
 #include <libm/rendering/Cols.h>
-#include <libm/RelocatableAllocator.h>
-#include <libm/AutoFree.h>
-
-char buffer[512];
 
 int main()
 {
-    globalCls();
+    //return 0;
+    //while (true);
+
+
     int argc = getArgC();
-    char **argv = getArgV();
-    ENV_DATA *env = getEnvData();
+    //*((char*)(uint64_t)argc) = 'A';
+    char** argv = getArgV();
+    ENV_DATA* env = getEnvData();
+
+
+
+    //return 0;
+    
+    main2(argc, argv, env);
 
     return 0;
+}
+
+void Bruhus(char* yes)
+{
+    for (int i = 0; i < 10; i++)
+    {
+        yes[i] = 0xFF;
+    }
+}
+
+void main2(int argc, char** argv, ENV_DATA* env)
+{
+    //globalCls();
+    //return;
+    
+    globalPrintLn("Hello from a test program!");
+    globalPrintLn("Yes, new line!");
+
+    return;
+    // would crash the program but not the OS
+    TempRenderer renderer = TempRenderer(env->globalFrameBuffer, env->globalFont);
+    renderer.Clear(Colors.bblue);
+    
+    //*((char*)(uint64_t)argc) = 'A';
+    //Bruhus((char*)env->globalFrameBuffer->BaseAddress);
+    
+    //while (true);
 }

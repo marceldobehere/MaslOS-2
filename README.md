@@ -19,20 +19,13 @@ And it mostly works on real hardware.
 
 
 ## How to build (Linux)
-Install QEMU if you haven't.
+ - Install QEMU if you haven't.
+ - Install GNU MAKE if you haven't.
+ - Install GCC/LD if you haven't.
+ - Install NASM if you haven't.
 
-install CMAKE if you haven't.
 
-install NASM if you haven't.
-
-
-### Warning lol
- - Make sure mtools is on version 4.0.27 or lower
- - Make sure your gcc version is 9.4.0 or lower maybe
- - Make sure your ld version is 2.34 or lower maybe
-
-Go into the MaslOS2 Folder and run the CRUN.sh file
-
+Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
 
 
