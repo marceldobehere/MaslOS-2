@@ -25,7 +25,9 @@ public:
     }
     AutoFree(T value);
     AutoFree(AutoFree<T> &other);
+    AutoFree(AutoFree<T> &other);
     AutoFree<T> operator=(AutoFree<T> &other);
+    AutoFree<T>::AutoFree(uint64_t size, T *value);
     T &operator*();
     T *operator->();
     ~AutoFree();
