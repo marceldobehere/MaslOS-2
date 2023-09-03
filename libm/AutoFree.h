@@ -25,7 +25,6 @@ public:
     }
     AutoFree(T value);
     AutoFree(AutoFree<T> &other);
-    AutoFree(AutoFree<T> &other);
     AutoFree<T> operator=(AutoFree<T> &other);
     T &operator*();
     T *operator->();
