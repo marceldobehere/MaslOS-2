@@ -130,6 +130,8 @@ namespace Scheduler
         task->userStack = userStack;
 
         
+        task->taskTimeoutDone = 0;
+        task->requestedPages = new List<void*>();
         task->exited = false;
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
@@ -215,6 +217,8 @@ namespace Scheduler
             return;
         }
 
+        task->exited = true;
+
         osTasks.Lock();
 
         Serial::Writelnf("> Trying to remove task at %X", (uint64_t)task);
@@ -225,6 +229,34 @@ namespace Scheduler
             Serial::Writelnf("> Removing task at index %d", index);
             osTasks.obj->RemoveAt(index);
             // free task
+            
+            if (task->requestedPages != NULL)
+            {
+                for (int i = 0; i < task->requestedPages->GetCount(); i++)
+                    GlobalAllocator->FreePage((void*)task->requestedPages->ElementAt(i));
+                
+                task->requestedPages->Free();
+                _Free(task->requestedPages);
+                task->requestedPages = NULL;
+            }
+
+            if (task->kernelStack != NULL)
+            {
+                GlobalAllocator->FreePages(task->kernelStack, KERNEL_STACK_PAGE_SIZE);
+                task->kernelStack = NULL;
+            }
+
+            if (task->userStack != NULL)
+            {
+                GlobalAllocator->FreePages(task->userStack, USER_STACK_PAGE_SIZE);
+                task->userStack = NULL;
+            }
+
+            if (task->pageTableContext != NULL)
+            {
+                GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
+                task->pageTableContext = NULL;
+            }
         }
 
         osTasks.Unlock();

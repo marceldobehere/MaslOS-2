@@ -23,6 +23,8 @@
 
 #include "../devices/serial/serial.h"
 
+#include "../rnd/rnd.h"
+
 
 extern "C" void BruhusSafus()
 {
@@ -268,10 +270,11 @@ bool speakA = false;
 
 #include "../paging/PageTableManager.h"
 #include "../devices/rtc/rtc.h"
+#include "../memory/heap.h"
 
 void TempPitRoutine(interrupt_frame* frame)
 {
-    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+    //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
     AddToStack();
     PIT::Tick();
@@ -290,21 +293,44 @@ void TempPitRoutine(interrupt_frame* frame)
 
     GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
 
-    GlobalRenderer->Print("DATE: ", Colors.yellow);
-    GlobalRenderer->Print("{}.", to_string((int)RTC::Day), Colors.yellow);
-    GlobalRenderer->Print("{}.", to_string((int)RTC::Month), Colors.yellow);
-    GlobalRenderer->Print("{}", to_string((int)RTC::Year), Colors.yellow);
+    uint32_t currCol = 0;
+    
+    currCol = Colors.orange;
+    GlobalRenderer->Print("DATE: ", currCol);
+    GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
+    GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
+    GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
+    GlobalRenderer->Print(" - ", Colors.white);
 
-    GlobalRenderer->Print("  ", Colors.yellow);
+    currCol = Colors.yellow;
+    GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
+    GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
+    GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
+    GlobalRenderer->Print(" - ", Colors.white);
 
-    GlobalRenderer->Print("TIME: ", Colors.yellow);
-    GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), Colors.yellow);
-    GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), Colors.yellow);
-    GlobalRenderer->Print("{}", to_string((int)RTC::Second), Colors.yellow);
+    currCol = Colors.bgreen;
+    GlobalRenderer->Print("HEAP: ", currCol);
+    GlobalRenderer->Print("Used Count: {}, ", to_string(usedHeapCount), currCol);
+    GlobalRenderer->Print("Used Amount: {} Bytes", to_string(usedHeapAmount), currCol);
+    // GlobalRenderer->Print("Malloc Count: {}", to_string((int)mallocCount), currCol);
+    GlobalRenderer->Print(" - ", Colors.white);
 
+
+    currCol = Colors.cyan;
+    GlobalRenderer->Print("GLOB ALLOC: ", currCol);
+    GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
+    GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
+    //GlobalRenderer->Print("  - ", Colors.white);
+
+    if (mallocCount > 0)
+        Serial::Writelnf("MEM> Malloced %d times", mallocCount);
+    if (freeCount > 0)
+        Serial::Writelnf("MEM> Freed %d times", freeCount);
+
+    freeCount = 0;
+    mallocCount = 0;
+    
     GlobalRenderer->CursorPosition = tempPoint;
-
-
 
     // TestSetSpeakerPosition(speakA);
     // speakA = !speakA;
@@ -607,6 +633,8 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
+    int rnd = RND::RandomInt();
+    
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
     if (frame->interrupt_number == 32)
         TempPitRoutine(frame);
@@ -640,6 +668,9 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     for (int i = 0; i < 20; i++)
         if (!Keyboard::DoKey())
             break;
+
+    if (Scheduler::CurrentRunningTask == NULL)
+        return;
 
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 

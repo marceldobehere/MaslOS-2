@@ -50,7 +50,7 @@ void InitKernel(BootInfo* bootInfo)
     
 
     PrintMsg("> Initializing Heap");
-    InitializeHeap((void*)0x0000100000000000, 0x10);
+    InitializeHeap((void*)MEM_AREA_KERNEL_HEAP_START, 0x10);
     StepDone();
 
     PrintMsg("> Initing RTC");

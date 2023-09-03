@@ -30,7 +30,7 @@ extern bool mallocToCache;
 void SwitchToBackupHeap();
 void TrySwitchToBackupHeap();
 
-void InitializeHeap(void* heapAddress, size_t pageCount);
+void InitializeHeap(void* heapAddress, int pageCount);
 
 void* _Xmalloc(int64_t size, const char* func, const char* file, int line);
 void _Xfree(void* address, const char* func, const char* file, int line);

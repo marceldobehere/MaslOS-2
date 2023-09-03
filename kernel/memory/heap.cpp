@@ -152,7 +152,7 @@ bool mallocToCache = false;
 void* RAM_START_ADDR;
 
 void* backupHeapStart = NULL;
-static const size_t backupHeapPageCount = 8000; // ~32MB
+static const int backupHeapPageCount = 1000; // ~4MB
 bool usingBackupHeap = false;
 bool backupHeapFailed = false;
 
@@ -198,7 +198,7 @@ void SubInitHeap(void* heapAddress, size_t pageCount)
     RemoveFromStack();
 }
 
-void InitBackup(void* heapAddress, size_t pageCount)
+void InitBackup(void* heapAddress, int pageCount)
 {
     AddToStack();   
     backupHeapStart = heapAddress;
@@ -206,10 +206,10 @@ void InitBackup(void* heapAddress, size_t pageCount)
     backupHeapFailed = false;
 
     void* pos = heapAddress;
-    for (size_t i = 0; i < pageCount; i++)
+    for (int i = 0; i < pageCount; i++)
     {
         GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage());
-        pos = (void*)((size_t)pos + 0x1000);
+        pos = (void*)((uint64_t)pos + 0x1000);
     }
 
     RemoveFromStack();
@@ -235,7 +235,7 @@ void SwitchToBackupHeap()
     SubInitHeap(backupHeapStart, backupHeapPageCount);
 }
 
-void InitializeHeap(void* heapAddress, size_t pageCount)
+void InitializeHeap(void* heapAddress, int pageCount)
 {
     AddToStack();
     RAM_START_ADDR = heapAddress;
@@ -245,7 +245,7 @@ void InitializeHeap(void* heapAddress, size_t pageCount)
     InitBackup((void*)backupAddr, backupHeapPageCount);
     
     void* pos = heapAddress;
-    for (size_t i = 0; i < pageCount; i++)
+    for (int i = 0; i < pageCount; i++)
     {
         //uint64_t addr = (uint64_t)GlobalAllocator->RequestPage();
         //GlobalRenderer->Println("Requesting Page: {}", ConvertHexToString(addr), Colors.yellow);

@@ -20,6 +20,7 @@
 // } cpu_registers_t;
 
 #include "interrupt_frame.h"
+#include <libm/list/list_basics.h>
 
 struct osTask
 {
@@ -31,6 +32,12 @@ struct osTask
     uint8_t* userStack;
 
     void* pageTableContext;
+
+	int taskTimeoutDone;
+
+	List<void*>* requestedPages;
+
+	//int requestedPages;
 
 	//bool active;
 

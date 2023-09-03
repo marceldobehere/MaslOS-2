@@ -8,7 +8,73 @@ PageTableManager::PageTableManager(PageTable* PML4Address)
     this->PML4 = PML4Address;
 }
 
+void* PageTableManager::GetPhysicalAddressFromVirtualAddress(void* virtualAddress)
+{
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualAddress);
+    PageDirectoryEntry PDE;
 
+    PDE = PML4->entries[indexer.PDP_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return NULL;
+
+    PageTable* PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PDP->entries[indexer.PD_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return NULL;
+
+    PageTable* PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PD->entries[indexer.PT_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return NULL;
+    
+    PageTable* PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PT->entries[indexer.P_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return NULL;
+
+    return (void*)((uint64_t)PDE.GetAddress() << 12);
+}
+
+void* PageTableManager::GetVirtualAddressFromPhysicalAddress(void* physicalAddress)
+{
+    for (uint64_t PML4_i = 0; PML4_i < 512; PML4_i++)
+    {
+        PageDirectoryEntry PDE = PML4->entries[PML4_i];
+        if (!PDE.GetFlag(PT_Flag::Present))
+            continue;
+
+        PageTable* PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+        for (uint64_t PDP_i = 0; PDP_i < 512; PDP_i++)
+        {
+            PDE = PDP->entries[PDP_i];
+            if (!PDE.GetFlag(PT_Flag::Present))
+                continue;
+
+            PageTable* PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+            for (uint64_t PD_i = 0; PD_i < 512; PD_i++)
+            {
+                PDE = PD->entries[PD_i];
+                if (!PDE.GetFlag(PT_Flag::Present))
+                    continue;
+
+                PageTable* PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+                for (uint64_t PT_i = 0; PT_i < 512; PT_i++)
+                {
+                    PDE = PT->entries[PT_i];
+                    if (!PDE.GetFlag(PT_Flag::Present))
+                        continue;
+
+                    if ((void*)((uint64_t)PDE.GetAddress() << 12) == physicalAddress)
+                    {
+                        return (void*)((PML4_i << 39) | (PDP_i << 30) | (PD_i << 21) | (PT_i << 12));
+                    }
+                }
+            }
+        }
+    }
+
+    return NULL;
+}
 
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int flags)
 {
@@ -149,15 +215,16 @@ PageTable* PageTableManager::CreatePageTableContext()
     return table;
 }
 
-void PageTableManager::SwitchPageTable(PageTable* PML4Address)
+void PageTableManager::SwitchPageTable(PageTable* table)
 {
     //this->PML4 = PML4Address;
-    asm volatile("mov %0, %%cr3" : : "r"(&PML4Address->entries));
+    asm volatile("mov %0, %%cr3" : : "r"(&table->entries));
 }
 
-void PageTableManager::FreePageTable(PageTable* PML4Address)
+void PageTableManager::FreePageTable(PageTable* table)
 {
-    UnmapMemory(PML4Address);
+    GlobalAllocator->FreePage((void*)((uint64_t)table));
+    UnmapMemory(table);
 }
 
 void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
