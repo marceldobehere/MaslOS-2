@@ -17,7 +17,7 @@ int main()
     ENV_DATA *env = getEnvData();
 
     globalPrintLn("Hello from a test (2) program!");
-    char c = 'a';
+    char c = serialReadC();
     serialPrintC(c);
     return 0;
 }
