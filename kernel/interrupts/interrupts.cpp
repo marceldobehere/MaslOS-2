@@ -723,6 +723,19 @@ void Syscall_handler(interrupt_frame* frame)
         char* str = (char*)frame->rbx;
         Serial::Writeln(str);
     }
+    else if(syscall ==SYSCALL_SERIAL_PRINT_CHAR)
+    {
+        char* ch = (char*)frame->rbx;
+        Serial::Write(*ch);
+    }
+    else if(syscall == SYSCALL_SERIAL_READ_CHAR)
+    {
+        char* ch = (char*)frame->rbx;
+        if(ch != nullptr)
+        {
+            *ch = Serial::Read();
+        }
+    }
     else if (syscall == SYSCALL_GLOBAL_PRINT)
     {
         char* str = (char*)frame->rbx;

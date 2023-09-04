@@ -1,5 +1,8 @@
+
 all: MaslOS2.iso
 
+CRun:	
+	./CRUN.sh
 
 .PHONY: kernel
 kernel:
