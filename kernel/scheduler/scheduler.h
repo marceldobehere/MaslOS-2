@@ -9,6 +9,7 @@ namespace Scheduler
 {
     extern Lockable<List<osTask*>*> osTasks;
     extern osTask* CurrentRunningTask;
+    extern osTask* NothingDoerTask;
     extern bool SchedulerEnabled;
     extern int CurrentTaskIndex; 
 
@@ -17,7 +18,7 @@ namespace Scheduler
     // maybe save more registers yes
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
-    void AddElf(Elf::LoadedElfFile module, int argc, char** argv, bool isUserMode);
+    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, char** argv, bool isUserMode);
 
     void AddTask(osTask* task);
 

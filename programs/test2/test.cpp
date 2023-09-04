@@ -26,6 +26,8 @@ int main()
             globalPrintChar(c);
             i++;
         }
+        else
+            programWait(500);//programYield();
     }
     return 0;
 }

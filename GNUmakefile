@@ -1,6 +1,8 @@
 
-all: MaslOS2.iso
+all: 
+	$(MAKE) MaslOS2.iso || $(MAKE) cleanError
 
+# for nvim users apparently
 CRun:	
 	./CRUN.sh
 
@@ -60,10 +62,13 @@ MaslOS2.iso:
 	rm -rf iso_root
 
 
+cleanError:
+	$(MAKE) clean2 
+	$(error "error happened")
+
 clean: clean2
 	@rm -rf iso_root MaslOS2.iso barebones.hdd ./external/programs.saf
 	
-
 
 clean2:
 	@rm -rf iso_root barebones.hdd ./external/programs.saf

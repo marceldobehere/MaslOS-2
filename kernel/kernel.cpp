@@ -65,7 +65,11 @@ void boot(void* _bootInfo)
 
             Serial::Writelnf("> Adding ELF");
 
-            Scheduler::AddElf(elf, 0, NULL, false);
+            osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+            if (i == 0)
+                Scheduler::NothingDoerTask = task;
+            else
+                Scheduler::AddTask(task);
             Serial::Writelnf("> ADDED MODULE");
 
         }
@@ -83,7 +87,7 @@ void boot(void* _bootInfo)
 
             Serial::Writelnf("> Adding ELF");
 
-            Scheduler::AddElf(elf, 0, NULL, true);
+            Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 0, NULL, true));
             Serial::Writelnf("> ADDED PROGRAM");
 
         }

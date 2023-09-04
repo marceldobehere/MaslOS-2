@@ -87,8 +87,42 @@ void globalCls()
     asm("int $0x31" : : "a"(syscall));
 }
 
-void exitProgram(int code)
+void proramExit(int code)
 {
     int syscall = SYSCALL_EXIT;
     asm("int $0x31" : : "a"(syscall), "b"(code));
+}
+
+void programCrash()
+{
+    int syscall = SYSCALL_CRASH;
+    asm("int $0x31" : : "a"(syscall));
+}
+
+void programWait(int timeMs)
+{
+    int syscall = SYSCALL_WAIT;
+    asm("int $0x31" : : "a"(syscall), "b"(timeMs));
+}
+
+void programYield()
+{
+    int syscall = SYSCALL_YIELD;
+    asm("int $0x31" : : "a"(syscall));
+}
+
+uint64_t envGetTimeMs()
+{
+    int syscall = SYSCALL_ENV_GET_TIME_MS;
+    uint64_t timeMs;
+    asm("int $0x31" : "=a"(timeMs) : "a"(syscall));
+    return timeMs;
+}
+
+uint64_t randomUint64()
+{
+    int syscall = SYSCALL_RNG_UINT64;
+    uint64_t rand;
+    asm("int $0x31" : "=a"(rand) : "a"(syscall));
+    return rand;
 }

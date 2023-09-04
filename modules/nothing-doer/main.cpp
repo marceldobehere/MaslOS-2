@@ -1,6 +1,9 @@
+//#include <libm/syscallManager.h>
+
 int main()
 {
-    while (true);
+    while (true)
+        ;//programYield();
 
     return 0;
 }

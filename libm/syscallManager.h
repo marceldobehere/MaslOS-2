@@ -20,4 +20,11 @@ void globalPrintChar(char chr);
 
 void globalCls();
 
-void exitProgram(int code);
+void proramExit(int code);
+void programCrash();
+void programWait(int timeMs);
+void programYield();
+
+uint64_t envGetTimeMs();
+
+uint64_t randomUint64();

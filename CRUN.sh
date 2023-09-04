@@ -1,9 +1,11 @@
 #!/bin/bash
 
-find . -type f -name '*.o' -delete
+trap "make clean2 --silent \\ echo" INT
+
 make clean --silent
  
 ./RUN.sh
 
 
 make clean2 --silent
+

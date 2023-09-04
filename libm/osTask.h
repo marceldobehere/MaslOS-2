@@ -25,7 +25,8 @@
 struct osTask
 {
 	interrupt_frame* frame;
-    bool exited;
+    bool doExit;
+	bool active;
 
     uint8_t* kernelStack;
     uint8_t* kernelEnvStack;

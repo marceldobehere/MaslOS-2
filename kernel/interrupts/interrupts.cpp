@@ -771,6 +771,34 @@ void Syscall_handler(interrupt_frame* frame)
 
         Scheduler::SchedulerInterrupt(frame);
     }
+    else if (syscall == SYSCALL_CRASH)
+    {
+        Serial::Writelnf("> EXITING PROGRAM bc it CRASHED");
+        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+        Scheduler::CurrentRunningTask = NULL;
+
+        Scheduler::SchedulerInterrupt(frame);
+    }
+    else if (syscall == SYSCALL_YIELD)
+    {
+        Serial::Writelnf("> YIELDING PROGRAM");
+        Scheduler::SchedulerInterrupt(frame);
+    }
+    else if (syscall == SYSCALL_WAIT)
+    {
+        Serial::Writelnf("> WAITING PROGRAM %d ms", frame->rbx);
+        if (Scheduler::CurrentRunningTask != NULL)
+            Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + frame->rbx;
+        Scheduler::SchedulerInterrupt(frame);
+    }
+    else if (syscall == SYSCALL_ENV_GET_TIME_MS)
+    {
+        frame->rax = PIT::TimeSinceBootMS();
+    }
+    else if (syscall == SYSCALL_RNG_UINT64)
+    {
+        frame->rax = RND::RandomInt();
+    }
     else
     {
         Serial::Writelnf("> Unknown Syscall: %d", syscall);
