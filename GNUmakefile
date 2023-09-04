@@ -1,6 +1,8 @@
 
 all: 
-	$(MAKE) MaslOS2.iso || $(MAKE) cleanError
+	rm MaslOS2.iso || true
+	$(MAKE) MaslOS2.iso
+	# || $(MAKE) cleanError
 
 # for nvim users apparently
 CRun:	
@@ -19,7 +21,7 @@ limine:
 	make -C limine
 
 MaslOS2.iso:
-	$(MAKE) cleanObjFolder --silent
+	# $(MAKE) cleanObjFolder --silent
 	$(MAKE) kernel
 	rm -rf iso_root
 	mkdir -p iso_root

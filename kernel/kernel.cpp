@@ -46,14 +46,14 @@ void boot(void* _bootInfo)
 
     {
         uint8_t* data = (uint8_t*)bootInfo->programs->fileData;
-        Serial::Writelnf("data: %X", data);
+        //Serial::Writelnf("data: %X", data);
 
         SAF::initrdMount* mount = SAF::initrd_mount(data);
         SAF::saf_node_folder_t* topNode = (SAF::saf_node_folder_t*) mount->driver_specific_data;
-        Serial::Writelnf("NODES: %d", topNode->num_children);
+        Serial::Writelnf("> NODES: %d", topNode->num_children);
         
         SAF::saf_node_folder_t* moduleNode = (SAF::saf_node_folder_t*)SAF::initrd_find("modules/", topNode, (SAF::saf_node_hdr_t*)topNode);
-        Serial::Writelnf("module nodes: %d", moduleNode->num_children);
+        Serial::Writelnf("> module nodes: %d", moduleNode->num_children);
         for (int i = 0; i < moduleNode->num_children; i++)
         {
             SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]));
@@ -75,7 +75,7 @@ void boot(void* _bootInfo)
         }
 
         SAF::saf_node_folder_t* programNode = (SAF::saf_node_folder_t*)SAF::initrd_find("programs/", topNode, (SAF::saf_node_hdr_t*)topNode);
-        Serial::Writelnf("program nodes: %d", programNode->num_children);
+        Serial::Writelnf("> program nodes: %d", programNode->num_children);
         for (int i = 0; i < programNode->num_children; i++)
         {
             SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode->children[i]));
