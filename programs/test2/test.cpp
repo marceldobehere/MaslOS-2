@@ -17,7 +17,15 @@ int main()
     ENV_DATA *env = getEnvData();
 
     globalPrintLn("Hello from a test (2) program!");
-    char c = serialReadC();
-    serialPrintC(c);
+    for (int i = 0; i < 10;)
+    {
+        if (serialCanReadChar())
+        {
+            char c = serialReadChar();
+            serialPrintChar(c);
+            globalPrintChar(c);
+            i++;
+        }
+    }
     return 0;
 }

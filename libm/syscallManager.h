@@ -9,13 +9,14 @@ ENV_DATA* getEnvData();
 
 void serialPrint(const char* str);
 void serialPrintLn(const char* str);
-void serialPrintC(char c);
 
-char serialReadC();
+void serialPrintChar(char c);
+char serialReadChar();
+bool serialCanReadChar();
 
 void globalPrint(const char* str);
 void globalPrintLn(const char* str);
-
+void globalPrintChar(char chr);
 
 void globalCls();
 

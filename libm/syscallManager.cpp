@@ -40,15 +40,23 @@ void serialPrintLn(const char* str)
     asm("int $0x31" : : "a"(syscall), "b"(str));
 }
 
-char serialReadC()
+char serialReadChar()
 {
     int syscall = SYSCALL_SERIAL_READ_CHAR;
     char ch;
-    asm("int $0x31" : : "a"(syscall), "b"(&ch));
+    asm("int $0x31" : "=a"(ch) : "a"(syscall));
     return ch;
 }
 
-void serialPrintC(char c)
+bool serialCanReadChar()
+{
+    int syscall = SYSCALL_SERIAL_CAN_READ_CHAR;
+    bool canRead;
+    asm("int $0x31" : "=a"(canRead) : "a"(syscall));
+    return canRead;
+}
+
+void serialPrintChar(char c)
 {
     int syscall = SYSCALL_SERIAL_PRINT_CHAR;
     asm("int $0x31" : : "a"(syscall), "b"(&c));
@@ -64,6 +72,12 @@ void globalPrintLn(const char* str)
 {
     int syscall = SYSCALL_GLOBAL_PRINTLN;
     asm("int $0x31" : : "a"(syscall), "b"(str));
+}
+
+void globalPrintChar(char chr)
+{
+    int syscall = SYSCALL_GLOBAL_PRINT_CHAR;
+    asm("int $0x31" : : "a"(syscall), "b"(chr));
 }
 
 

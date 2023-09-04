@@ -689,7 +689,7 @@ extern "C" void CloseCurrentTask()
 
 void Syscall_handler(interrupt_frame* frame)
 {
-    Serial::Writelnf("> Syscall: %d", frame->rax);
+    //Serial::Writelnf("> Syscall: %d", frame->rax);
     if (Scheduler::CurrentRunningTask == NULL)
         return;
 
@@ -730,11 +730,15 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if(syscall == SYSCALL_SERIAL_READ_CHAR)
     {
-        char* ch = (char*)frame->rbx;
-        if(ch != nullptr)
-        {
-            *ch = Serial::Read();
-        }
+        char chr = 0;
+        if (Serial::CanRead())
+            chr = Serial::Read();
+        
+        frame->rax = chr;
+    }
+    else if(syscall == SYSCALL_SERIAL_CAN_READ_CHAR)
+    {
+        frame->rax = Serial::CanRead();
     }
     else if (syscall == SYSCALL_GLOBAL_PRINT)
     {
@@ -747,6 +751,12 @@ void Syscall_handler(interrupt_frame* frame)
         char* str = (char*)frame->rbx;
         Serial::Writelnf("> Printing: \"%s\"", str);
         GlobalRenderer->Println(str);
+    }
+    else if (syscall == SYSCALL_GLOBAL_PRINT_CHAR)
+    {
+        char ch = (char)frame->rbx;
+        //Serial::Writelnf("> Printing: \"%d\"", frame->rbx);
+        GlobalRenderer->Print(ch);
     }
     else if (syscall == SYSCALL_GLOBAL_CLS)
     {
