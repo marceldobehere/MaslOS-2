@@ -1,55 +1,62 @@
-override OUTPUT := FINAL_libm.o
+OUTPUT = FINAL_libm.o
+OBJDIR = ../objects/libm
+
 
 CC = gcc
 LD = ld
 
-LDFLAGS += -m elf_x86_64 -r -unresolved-symbols=ignore-all
+
+LDFLAGS = -m elf_x86_64 -r -unresolved-symbols=ignore-all
+
 # Check if the linker supports -no-pie and enable it if it does
 ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
     override LDFLAGS += -no-pie
 endif
 
-NASMFLAGS ?= -F dwarf -g -f elf64
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
-CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
+
+NASMFLAGS = -F dwarf -g -f elf64
+CFLAGS    = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
+CPPFLAGS  = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
 # -w
 
 
+CFILES    = $(shell find . -type f -name '*.c')
+CPPFILES  = $(shell find . -type f -name '*.cpp')
+NASMFILES = $(shell find . -type f -name '*.asm')
 
-override CFILES    := $(shell find . -type f -name '*.c')
-override CPPFILES  := $(shell find . -type f -name '*.cpp')
-override NASMFILES := $(shell find . -type f -name '*.asm')
 
-override OBJ          := $(CFILES:.c=.o)               $(CPPFILES:.cpp=.o)               $(NASMFILES:.asm=_asm.o)
-override OBJ1         := $(CFILES:.c=.o.user_module)   $(CPPFILES:.cpp=.o.user_module)   $(NASMFILES:.asm=_asm.o.user_module)
-override OBJ2         := $(CFILES:.c=.o.kernel_src)    $(CPPFILES:.cpp=.o.kernel_src)    $(NASMFILES:.asm=_asm.o.kernel_src)
-override OBJ3         := $(CFILES:.c=.o.kernel_module) $(CPPFILES:.cpp=.o.kernel_module) $(NASMFILES:.asm=_asm.o.kernel_module)
-override OBJ4         := $(CFILES:.c=.o.kernel)        $(CPPFILES:.cpp=.o.kernel)        $(NASMFILES:.asm=_asm.o.kernel)
+OBJ       = $(patsubst %.c,   $(OBJDIR)/%.o,               $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o,               $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o,               $(NASMFILES))
+OBJ1      = $(patsubst %.c,   $(OBJDIR)/%.o.user_module,   $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o.user_module,   $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o.user_module,   $(NASMFILES))
+OBJ2      = $(patsubst %.c,   $(OBJDIR)/%.o.kernel_src,    $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o.kernel_src,    $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o.kernel_src,    $(NASMFILES))
+OBJ3      = $(patsubst %.c,   $(OBJDIR)/%.o.kernel_module, $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o.kernel_module, $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o.kernel_module, $(NASMFILES))
 
 
 .PHONY: all
 all: $(OUTPUT)
 
-
 $(OUTPUT): $(OBJ)
-	$(LD)  $(OBJ1) $(LDFLAGS) -o $@.user_module
-	@$(LD) $(OBJ2) $(LDFLAGS) -o $@.kernel_src
-	@$(LD) $(OBJ3) $(LDFLAGS) -o $@.kernel_module
+	$(LD)  $(OBJ1) $(LDFLAGS) -o $(OBJDIR)/$@.user_module
+	@$(LD) $(OBJ2) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_src
+	@$(LD) $(OBJ3) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_module
 
-
-%.o: %.cpp
+$(OBJDIR)/%.o: %.cpp
+	@mkdir -p $(@D)
 	$(CC)  $(CPPFLAGS) -c $^ -o $@.kernel_src -D _KERNEL_SRC
 	@$(CC) $(CPPFLAGS) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
 	@$(CC) $(CPPFLAGS) -c $^ -o $@.user_module -D _USER_MODULE
+	@echo foo > $@
 	
-%.o: %.c
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(@D)
 	$(CC)  $(CFLAGS) -c $^ -o $@.kernel_src -D _KERNEL_SRC
 	@$(CC) $(CFLAGS) -c $^ -o $@.kernel_module -D _KERNEL_MODULE
 	@$(CC) $(CFLAGS) -c $^ -o $@.user_module -D _USER_MODULE
+	@echo foo > $@
 
-%_asm.o: %.asm
+$(OBJDIR)/%_asm.o: %.asm
+	@mkdir -p $(@D)
 	@nasm $(NASMFLAGS) $< -o $@
-
+	@echo foo > $@
 
 
 .PHONY: clean
@@ -58,11 +65,9 @@ clean:
 	@rm -rf $(OBJ1)
 	@rm -rf $(OBJ2)
 	@rm -rf $(OBJ3)
-	@rm -rf $(OBJ4)
 	
 	@rm -rf $(HEADER_DEPS)
 	
 	@rm -rf $(OUTPUT).kernel_src
 	@rm -rf $(OUTPUT).kernel_module
 	@rm -rf $(OUTPUT).user_module
-	@rm -rf $(OUTPUT).kernel

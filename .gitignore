@@ -7,5 +7,4 @@ disk.img
 *.o.user_module
 
 kernel.elf
-/modules/*/*.elf
-/programs/*/*.elf
+objects/**/*.elf

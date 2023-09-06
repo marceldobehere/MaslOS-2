@@ -2,7 +2,7 @@
 all: 
 	rm MaslOS2.iso || true
 	$(MAKE) MaslOS2.iso
-	# || $(MAKE) cleanError
+	true || $(MAKE) cleanError
 
 # for nvim users apparently
 CRun:	
@@ -22,13 +22,14 @@ limine:
 
 MaslOS2.iso:
 	# $(MAKE) cleanObjFolder --silent
+	$(MAKE) cleanExternalFolder --silent
 	$(MAKE) kernel
 	rm -rf iso_root
 	mkdir -p iso_root
 	# cp modules/test/test.elf external/test.elf
 	# cp modules/nothing-doer/nothing-doer.elf external/nothing-doer.elf
 	
-	for i in ./modules/*/; do \
+	for i in ./objects/modules/*/; do \
 		if [ -d "$$i" ]; \
 		then \
 			echo "$$(basename "$$i")"; \
@@ -36,7 +37,7 @@ MaslOS2.iso:
 		fi \
 	done
 	
-	for i in ./programs/*/; do \
+	for i in ./objects/programs/*/; do \
 		if [ -d "$$i" ]; \
 		then \
 			echo "$$(basename "$$i")"; \
@@ -49,7 +50,7 @@ MaslOS2.iso:
 	
 	
 	
-	cp kernel-loader/kernel.elf \
+	cp objects/kernel-loader/kernel.elf \
 		limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-cd-efi.bin \
 		external/* \
 		iso_root/
@@ -91,6 +92,10 @@ cleanObjFolder:
 	@mkdir objects/libm
 	@mkdir objects/modules
 	@mkdir objects/programs
+	@$(MAKE) cleanExternalFolder
+	
+cleanExternalFolder:
+	@rm -rf objects/external || true
 	@mkdir objects/external
 	@mkdir objects/external/modules
 	@mkdir objects/external/programs
