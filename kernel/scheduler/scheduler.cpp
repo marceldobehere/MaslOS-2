@@ -132,8 +132,8 @@ namespace Scheduler
             if (!currentTask->active)
                 continue;
 
-            // if (currentTask->priority != 0)
-            //     continue;
+            if (currentTask->priority != 0)
+                continue;
 
             if (currentTask->justYielded)
             {

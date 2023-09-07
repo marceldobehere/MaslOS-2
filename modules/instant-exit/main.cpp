@@ -25,6 +25,10 @@ int main()
                 programSetPriority(2);
             else if (c == '6')
                 programSetPriority(3);
+            else if (c == '7')
+                programSetPriority(20);
+            else if (c == '8')
+                programWait(1000);
         }
     }
 
