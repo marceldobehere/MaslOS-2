@@ -2,7 +2,7 @@
 
 int main()
 {
-    //return 0;
+    return 0;
     programSetPriority(1);
     while (true)
     {
