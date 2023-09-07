@@ -320,6 +320,13 @@ void TempPitRoutine(interrupt_frame* frame)
     GlobalRenderer->Print("GLOB ALLOC: ", currCol);
     GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
     GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
+    GlobalRenderer->Print("  - ", Colors.white);
+
+    currCol = Colors.lime;
+    GlobalRenderer->Print("Runnings Tasks: ", currCol);
+    Scheduler::osTasks.Lock();
+    GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
+    Scheduler::osTasks.Unlock();
     //GlobalRenderer->Print("  - ", Colors.white);
 
     if (mallocCount > 0)
@@ -782,6 +789,8 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_YIELD)
     {
         Serial::Writelnf("> YIELDING PROGRAM");
+        if (Scheduler::CurrentRunningTask != NULL)
+            Scheduler::CurrentRunningTask->justYielded = true;
         Scheduler::SchedulerInterrupt(frame);
     }
     else if (syscall == SYSCALL_WAIT)
@@ -790,6 +799,23 @@ void Syscall_handler(interrupt_frame* frame)
         if (Scheduler::CurrentRunningTask != NULL)
             Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + frame->rbx;
         Scheduler::SchedulerInterrupt(frame);
+    }
+    else if (syscall == SYSCALL_SET_PRIORITY)
+    {
+        if (Scheduler::CurrentRunningTask != NULL)
+        {
+            int prio = frame->rbx;
+            if (prio < 0)
+                prio = 0;
+
+            // user space programs cant get a prio of 1-4          
+            if (prio != 0 && prio < 5 && !Scheduler::CurrentRunningTask->isKernelModule)
+                prio = 5;
+     
+            Serial::Writelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
+            Scheduler::CurrentRunningTask->priority = prio;
+            frame->rax = prio;
+        }
     }
     else if (syscall == SYSCALL_ENV_GET_TIME_MS)
     {

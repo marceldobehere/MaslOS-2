@@ -111,6 +111,14 @@ void programYield()
     asm("int $0x31" : : "a"(syscall));
 }
 
+int programSetPriority(int priority)
+{
+    int actualPrio = 0;
+    int syscall = SYSCALL_SET_PRIORITY;
+    asm("int $0x31" : "=a"(actualPrio) : "a"(syscall), "b"(priority));
+    return actualPrio;
+}
+
 uint64_t envGetTimeMs()
 {
     int syscall = SYSCALL_ENV_GET_TIME_MS;

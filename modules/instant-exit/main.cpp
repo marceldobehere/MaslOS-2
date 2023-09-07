@@ -1,10 +1,32 @@
-//#include <libm/syscallManager.h>
+#include <libm/syscallManager.h>
 
 int main()
 {
-    return 1;
+    //return 0;
+    programSetPriority(1);
     while (true)
-        ;//programYield();
+    {
+        if (serialCanReadChar())
+        {
+            char c = serialReadChar();
+            globalPrint("KEY> ");
+            globalPrintChar(c);
+            globalPrintLn("");
+
+            if (c == '1')
+                programYield();
+            else if (c == '2')
+                programWait(100);
+            else if (c == '3')
+                programSetPriority(0);
+            else if (c == '4')
+                programSetPriority(1);
+            else if (c == '5')
+                programSetPriority(2);
+            else if (c == '6')
+                programSetPriority(3);
+        }
+    }
 
     return 0;
 }

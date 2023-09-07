@@ -27,6 +27,8 @@ struct osTask
 	interrupt_frame* frame;
     bool doExit;
 	bool active;
+	bool isKernelModule;
+	bool justYielded;
 
     uint8_t* kernelStack;
     uint8_t* kernelEnvStack;
@@ -37,6 +39,7 @@ struct osTask
 	int taskTimeoutDone;
 
 	int priority;
+	int priorityStep;
 
 	List<void*>* requestedPages;
 

@@ -24,6 +24,7 @@ void proramExit(int code);
 void programCrash();
 void programWait(int timeMs);
 void programYield();
+int programSetPriority(int priority);
 
 uint64_t envGetTimeMs();
 

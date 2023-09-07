@@ -70,6 +70,43 @@ namespace Scheduler
         }
 
         bool cycleDone = false;
+        for (int i = 0; i < osTasks.obj->GetCount(); i++)
+        {
+            osTask* bruhTask = osTasks.obj->ElementAt(i);
+
+            if (bruhTask->taskTimeoutDone != 0)
+                continue;
+
+            if (!bruhTask->active)
+                continue;
+            
+            if (bruhTask->priority == 0)
+                continue;
+
+            if (bruhTask->justYielded)
+            {
+                bruhTask->justYielded = false;
+                continue;
+            }
+
+            bruhTask->priorityStep++;
+            if (bruhTask->priorityStep >= bruhTask->priority)
+            {
+                bruhTask->priorityStep = 0;
+                CurrentTaskIndex = i;
+                cycleDone = true;
+                break;
+            }
+        }
+
+        if (cycleDone)
+        {
+            cycleDone = false;
+            goto skip2ndLoop;
+        }
+            
+
+        cycleDone = false;
         while (true)
         {
             CurrentTaskIndex++;
@@ -95,10 +132,21 @@ namespace Scheduler
             if (!currentTask->active)
                 continue;
 
+            // if (currentTask->priority != 0)
+            //     continue;
+
+            if (currentTask->justYielded)
+            {
+                currentTask->justYielded = false;
+                continue;
+            }
+
 
             cycleDone = false;
             break;
         }
+
+        skip2ndLoop:
 
         if (cycleDone)
         {
@@ -178,6 +226,9 @@ namespace Scheduler
         task->doExit = false;
         task->active = true;
         task->priority = 0;
+        task->priorityStep = 0;
+        task->isKernelModule = !isUserMode;
+        task->justYielded = false;
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
