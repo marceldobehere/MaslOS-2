@@ -12,6 +12,7 @@ namespace Scheduler
     extern osTask* NothingDoerTask;
     extern bool SchedulerEnabled;
     extern int CurrentTaskIndex; 
+    extern Elf::LoadedElfFile testElfFile;
 
     void InitScheduler();
 

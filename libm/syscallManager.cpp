@@ -143,3 +143,15 @@ uint64_t randomUint64()
     asm("int $0x31" : "=a"(rand) : "a"(syscall));
     return rand;
 }
+
+void launchTestElfUser()
+{
+    int syscall = SYSCALL_LAUNCH_TEST_ELF_USER;
+    asm("int $0x31" : : "a"(syscall));
+}
+
+void launchTestElfKernel()
+{
+    int syscall = SYSCALL_LAUNCH_TEST_ELF_KERNEL;
+    asm("int $0x31" : : "a"(syscall));
+}

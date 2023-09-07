@@ -101,7 +101,7 @@ template <typename T> void List<T>::Add(T item)
     //RemoveFromStack();
 }
 
-template <typename T> void List<T>::Set(uint64_t index, T item)
+template <typename T> void List<T>::Set(int64_t index, T item)
 {
     //AddToStack();
     int64_t indx = index;
@@ -112,26 +112,23 @@ template <typename T> void List<T>::Set(uint64_t index, T item)
     //RemoveFromStack();
 }
 
-template <typename T> void List<T>::InsertAt(T item, uint64_t index)
+template <typename T> void List<T>::InsertAt(T item, int64_t index)
 {
-    int64_t indx = index;
-    if (index > count || indx < 0)
+    if (index > count || index < 0)
         return;
     
     AddToStack();
     if (count + 1 > cap)
         ExpandArr();
     
-
-
     AddToStack();
-    for (int64_t i = count - 1; i >= indx; i--)
+    for (int64_t i = count - 1; i >= index; i--)
     {
         arr[i+1] = arr[i];
     }
     RemoveFromStack();
     
-    arr[indx] = item;
+    arr[index] = item;
 
     count++;
     RemoveFromStack();
@@ -147,7 +144,7 @@ template <typename T> void List<T>::Clear()
     RemoveFromStack();
 }
 
-template <typename T> void List<T>::RemoveAt(uint64_t index)
+template <typename T> void List<T>::RemoveAt(int64_t index)
 {
     AddToStack();
     if (index < 0 || index >= count)
@@ -155,7 +152,7 @@ template <typename T> void List<T>::RemoveAt(uint64_t index)
         RemoveFromStack();
         return;
     }
-    for (uint64_t i = index + 1; i < count; i++)
+    for (int64_t i = index + 1; i < count; i++)
     {
         arr[i - 1] = arr[i];
     }
@@ -216,7 +213,7 @@ template <typename T> void List<T>::RemoveLast()
     RemoveFromStack();
 }
 
-template <typename T> T& List<T>::operator[](uint64_t index)
+template <typename T> T& List<T>::operator[](int64_t index)
 {
     //AddToStack();
     T& data = arr[index];
@@ -224,7 +221,7 @@ template <typename T> T& List<T>::operator[](uint64_t index)
     return data;
 }
 
-template <typename T> T List<T>::ElementAt(uint64_t index)
+template <typename T> T List<T>::ElementAt(int64_t index)
 {
     return arr[index];
 }

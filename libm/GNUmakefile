@@ -17,7 +17,7 @@ endif
 NASMFLAGS = -F dwarf -g -f elf64
 CFLAGS    = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
 CPPFLAGS  = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
-# -w
+# -w -Os
 
 
 CFILES    = $(shell find . -type f -name '*.c')

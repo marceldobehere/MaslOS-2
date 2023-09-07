@@ -30,3 +30,7 @@ int programSetPriority(int priority);
 uint64_t envGetTimeMs();
 
 uint64_t randomUint64();
+
+void launchTestElfUser();
+void launchTestElfKernel();
+

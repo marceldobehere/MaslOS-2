@@ -74,4 +74,4 @@ struct OSData
 
 
 
-extern OSData osData;
+extern volatile OSData osData;

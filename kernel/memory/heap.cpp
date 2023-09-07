@@ -163,10 +163,10 @@ void SubInitHeap(void* heapAddress, size_t pageCount)
     RAM_START_ADDR = heapAddress;
     activeMemFlagVal = 0;
 
-    size_t heapLength = pageCount * 0x1000;
+    uint64_t heapLength = pageCount * 0x1000;
 
     heapStart = heapAddress;
-    heapEnd = (void*)((size_t)heapStart + heapLength);
+    heapEnd = (void*)((uint64_t)heapStart + heapLength);
     HeapSegHdr* startSeg = (HeapSegHdr*)heapAddress;
     startSeg->length = heapLength - sizeof(HeapSegHdr);
     startSeg->next = NULL;
@@ -251,7 +251,7 @@ void InitializeHeap(void* heapAddress, int pageCount)
         //GlobalRenderer->Println("Requesting Page: {}", ConvertHexToString(addr), Colors.yellow);
         //GlobalPageTableManager.MapMemory(pos, (void*)addr);
         GlobalPageTableManager.MapMemory(pos, GlobalAllocator->RequestPage());
-        pos = (void*)((size_t)pos + 0x1000);
+        pos = (void*)((uint64_t)pos + 0x1000);
     }
 
     SubInitHeap(heapAddress, pageCount);

@@ -13,6 +13,7 @@ LDFLAGS =                                   \
     -Bsymbolic                              \
     -m elf_x86_64                           \
     -z max-page-size=0x1000                 \
+    --gc-sections                                \
     -T linker.ld
 
 # Check if the linker supports -no-pie and enable it if it does

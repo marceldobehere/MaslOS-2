@@ -26,6 +26,7 @@ struct osTask
 {
 	interrupt_frame* frame;
     bool doExit;
+	bool removeMe;
 	bool active;
 	bool isKernelModule;
 	bool justYielded;

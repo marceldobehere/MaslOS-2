@@ -151,8 +151,8 @@ task_entry:
 	
 	call rax
 
-.exit:
-	call CloseCurrentTask ; if the task ever returns just exit
+;.exit:
+	;call CloseCurrentTask ; if the task ever returns just exit
 	
 	jmp $
 

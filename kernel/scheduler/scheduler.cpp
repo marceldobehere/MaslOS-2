@@ -15,6 +15,7 @@ namespace Scheduler
     osTask* NothingDoerTask;
     bool SchedulerEnabled = false;
     int CurrentTaskIndex = 0;
+    Elf::LoadedElfFile testElfFile;
 
     void InitScheduler()
     {
@@ -36,37 +37,66 @@ namespace Scheduler
     // TODO
     // Handle SMP (Symmetric Multi-Processing)
     // Handle FPU Register States on Context Switch
-    interrupt_frame* SchedulerInterrupt(interrupt_frame* frame)
+    interrupt_frame* SchedulerInterrupt(interrupt_frame* currFrame)
     {
         if (!SchedulerEnabled)
-            return frame;
+            return currFrame;
         if (osTasks.IsLocked())
-            return frame;
+        {
+            CurrentRunningTask = NULL;
+            CurrentTaskIndex = 0;
+            Serial::Writelnf("SCHEDULER> LOCKED");
+            osTasks.Unlock();
+            //return currFrame;
+        }
+
+        interrupt_frame outFrame = *currFrame;
         
         int64_t time = PIT::TimeSinceBootMS();
 
         //Serial::Writelnf("SCHEDULER> INTERRUPT %d", osTasks.obj->GetCount());
 
+        osTasks.Lock();
 
-        osTask* currentTask = NULL;
-        if (osTasks.obj->GetCount() > 0 && CurrentTaskIndex < osTasks.obj->GetCount())
         {
-            currentTask = osTasks.obj->ElementAt(CurrentTaskIndex);
-            if (currentTask->doExit)
+            osTask* currentTask = NULL;
+            if (CurrentRunningTask != NULL && (int64_t)osTasks.obj->GetCount() > 0 && CurrentTaskIndex <  (int64_t)osTasks.obj->GetCount())
             {
-                Serial::Writelnf("SCHEDULER> TASK EXITED");
-                osTasks.obj->RemoveAt(CurrentTaskIndex);
-                CurrentRunningTask = NULL;
-                currentTask = NULL;
+                currentTask = osTasks.obj->ElementAt(CurrentTaskIndex);
+                if (currentTask == NULL)
+                    Panic("CURRENT TASK IS NULL!", true);
+                
+                if (currentTask->removeMe || currentTask->doExit)
+                {
+                    Serial::Writelnf("SCHEDULER> TASK WANTS TO EXIT");
+                    //osTasks.obj->RemoveAt(CurrentTaskIndex);
+                    CurrentRunningTask = NULL;
+                    currentTask = NULL;
+                }
+                else if (CurrentRunningTask == currentTask)
+                {
+                    Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
+                    *currentTask->frame = *currFrame;
+                }
             }
         }
 
-        //Serial::Writelnf("SCHEDULER> SWITCHING FROM TASK %d", CurrentTaskIndex);
-
-        if (CurrentRunningTask == currentTask && currentTask != NULL)
+        for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
-            //Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
-            *currentTask->frame = *frame;
+            osTask* bruhTask = osTasks.obj->ElementAt(i);
+
+            if (bruhTask == CurrentRunningTask)
+                continue;
+
+            if (bruhTask->removeMe || bruhTask->doExit)
+            {
+                Serial::Writelnf("SCHEDULER> AUTO REMOVING STOPPED TASK AT %d", i);
+
+                osTasks.Unlock();
+                RemoveTask(bruhTask);
+                osTasks.Lock();
+                i--;
+            }
         }
 
         bool cycleDone = false;
@@ -74,12 +104,20 @@ namespace Scheduler
         {
             osTask* bruhTask = osTasks.obj->ElementAt(i);
 
+            if (bruhTask->removeMe)
+                continue;
+            
+
+            if (bruhTask->doExit)
+                continue;
+            
+                
             if (bruhTask->taskTimeoutDone != 0)
                 continue;
 
             if (!bruhTask->active)
                 continue;
-            
+
             if (bruhTask->priority == 0)
                 continue;
 
@@ -121,7 +159,10 @@ namespace Scheduler
                     break;
             }
 
-            currentTask = osTasks.obj->ElementAt(CurrentTaskIndex);
+            if (osTasks.obj->GetCount() == 0)
+                break;
+
+            osTask* currentTask = osTasks.obj->ElementAt(CurrentTaskIndex);
             if (currentTask->taskTimeoutDone != 0)
                 if (currentTask->taskTimeoutDone < time)
                     currentTask->taskTimeoutDone = 0;
@@ -130,6 +171,12 @@ namespace Scheduler
                 continue;
 
             if (!currentTask->active)
+                continue;
+
+            if (currentTask->doExit)
+                continue;
+
+            if (currentTask->removeMe)
                 continue;
 
             if (currentTask->priority != 0)
@@ -148,27 +195,32 @@ namespace Scheduler
 
         skip2ndLoop:
 
+        osTask* nowTask;
         if (cycleDone)
         {
             if (CurrentRunningTask != NothingDoerTask)
                 Serial::Writelnf("SCHEDULER> NO TASKS TO RUN");
-            currentTask = NothingDoerTask;
+            nowTask = NothingDoerTask;
 
-            if (currentTask == NULL)
+            if (nowTask == NULL)
             {
+                osTasks.Unlock();
                 Serial::Writelnf("SCHEDULER> NO NOTHING DOER TASK!");
-                return frame;
+                return currFrame;
             }
         }
         else
-            currentTask = osTasks.obj->ElementAt(CurrentTaskIndex);
+            nowTask = osTasks.obj->ElementAt(CurrentTaskIndex);
         
-        if (currentTask->doExit)
+
+        if (nowTask->doExit)
         {
-            Serial::Writelnf("SCHEDULER> TASK EXITED");
-            RemoveTask(currentTask);
-            // free task
-            return frame;
+            Panic("YOU SHOULD NOT BE HERE!!!", true);
+            // osTasks.Unlock();
+            // Serial::Writelnf("SCHEDULER> TASK EXITED");
+            // RemoveTask(currentTask);
+            // // free task
+            return currFrame;
         }
 
         //Serial::Writelnf("2> CURR RUNNING TASK: %X, CURR TASK: %X", (uint64_t)currentRunningTask, (uint64_t)currentTask);
@@ -176,14 +228,14 @@ namespace Scheduler
         //Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d", CurrentTaskIndex);
 
         //Serial::Writelnf("SCHEDULER> LOADING NEXT DATA");
-        *frame = *currentTask->frame;
+        outFrame = *nowTask->frame;
 
 
-        if (CurrentRunningTask != currentTask)
+        if (CurrentRunningTask != nowTask)
         {
-            CurrentRunningTask = currentTask;
-            if (currentTask != NothingDoerTask)
-                Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d", CurrentTaskIndex);
+            CurrentRunningTask = nowTask;
+            if (nowTask != NothingDoerTask)
+                Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d / %d", CurrentTaskIndex, osTasks.obj->GetCount());
             //Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
         }
 
@@ -195,7 +247,9 @@ namespace Scheduler
         //frame->cr3 = (uint64_t)GlobalPageTableManager.PML4->entries;
 
         //Serial::Writelnf("SCHEDULER> EXITING INTERRUPT");
-        return frame;      
+        osTasks.Unlock();
+        *currFrame = outFrame;
+        return currFrame;      
     }
 
     #define KERNEL_STACK_PAGE_SIZE 8
@@ -206,7 +260,9 @@ namespace Scheduler
         bool tempEnabled = SchedulerEnabled;
         SchedulerEnabled = false;
 
+        AddToStack();
         osTask* task = new osTask();
+        RemoveFromStack();
 
         uint8_t* kernelStack = (uint8_t*)GlobalAllocator->RequestPages(KERNEL_STACK_PAGE_SIZE);
         GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
@@ -222,13 +278,16 @@ namespace Scheduler
 
         
         task->taskTimeoutDone = 0;
-        task->requestedPages = new List<void*>();
+        AddToStack();
+        task->requestedPages = new List<void*>(4);
+        RemoveFromStack();
         task->doExit = false;
         task->active = true;
         task->priority = 0;
         task->priorityStep = 0;
         task->isKernelModule = !isUserMode;
         task->justYielded = false;
+        task->removeMe = false;
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
@@ -315,60 +374,100 @@ namespace Scheduler
     {
         bool tempEnabled = SchedulerEnabled;
         SchedulerEnabled = false;
+        AddToStack();
 
         if (task == NULL)
         {
             Panic("Trying to remove non-existant Task!", true);
+            RemoveFromStack();
             return;
         }
 
+        AddToStack();
         task->active = false;
+        RemoveFromStack();
 
+        AddToStack();
         osTasks.Lock();
+        RemoveFromStack();
 
         Serial::Writelnf("> Trying to remove task at %X", (uint64_t)task);
 
+        AddToStack();
         int index = osTasks.obj->GetIndexOf(task);
+        RemoveFromStack();
         if (index != -1)
         {
+            AddToStack();
             Serial::Writelnf("> Removing task at index %d", index);
             osTasks.obj->RemoveAt(index);
-            //Serial::Writelnf("> Removed task at index %d", index);
+            Serial::Writelnf("> Removed task at index %d", index);
+            RemoveFromStack();
 
             // free task
-            
+            AddToStack();
             if (task->requestedPages != NULL)
             {
+                AddToStack();
                 for (int i = 0; i < task->requestedPages->GetCount(); i++)
+                {
+                    Serial::Writelnf("> Freeing page %X", (uint64_t)task->requestedPages->ElementAt(i));
                     GlobalAllocator->FreePage((void*)task->requestedPages->ElementAt(i));
-                
+                }
+                RemoveFromStack();
+
+                AddToStack();
+                Serial::Writelnf("> Freeing requested pages");
                 task->requestedPages->Free();
                 _Free(task->requestedPages);
                 task->requestedPages = NULL;
+                RemoveFromStack();
             }
+            RemoveFromStack();
 
+            AddToStack();
             if (task->kernelStack != NULL)
             {
+                Serial::Writelnf("> Freeing kernel stack");
                 GlobalAllocator->FreePages(task->kernelStack, KERNEL_STACK_PAGE_SIZE);
                 task->kernelStack = NULL;
             }
+            RemoveFromStack();
 
+            AddToStack();
             if (task->userStack != NULL)
             {
+                Serial::Writelnf("> Freeing user stack");
                 GlobalAllocator->FreePages(task->userStack, USER_STACK_PAGE_SIZE);
                 task->userStack = NULL;
             }
+            RemoveFromStack();
 
+            AddToStack();
             if (task->pageTableContext != NULL)
             {
+                Serial::Writelnf("> Freeing page table");
                 GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
                 task->pageTableContext = NULL;
             }
+            RemoveFromStack();
         }
 
+        AddToStack();
         osTasks.Unlock();
+        RemoveFromStack();
 
+        AddToStack();
+        Serial::Writelnf("> Freeing task");
+        _Free(task);
+        RemoveFromStack();
+
+        if (task == CurrentRunningTask)
+            CurrentRunningTask = NULL;
+
+        RemoveFromStack();
         SchedulerEnabled = tempEnabled;
+        Serial::Writelnf("> Done");
     }
 
 }

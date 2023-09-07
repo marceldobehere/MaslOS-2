@@ -5,6 +5,7 @@
 #include <libm/rendering/Cols.h>
 #include <libm/experimental/RelocatableAllocator.h>
 #include <libm/experimental/AutoFree.h>
+#include <libm/cstr.h>
 
 char buffer[512];
 
@@ -16,7 +17,41 @@ int main()
     char **argv = getArgV();
     ENV_DATA *env = getEnvData();
 
+    for (int i = 0; i < 10; i++)
+    {
+        void* newPage = requestNextPage();
+        uint64_t newPageAddr = (uint64_t)newPage;
+        globalPrint("> New page: ");
+        globalPrintLn(ConvertHexToString(newPageAddr));
+    }
+
     globalPrintLn("Hello from a test (2) program!");
+
+    
+    int prio = programSetPriority(1);
+    globalPrint("> Priority: ");
+    globalPrintLn(to_string(prio));
+
+    
+
+    programWait(2000);
+    globalPrintLn("> USER ELF");
+    for (int i = 0; i < 200; i++)
+    {
+        //programWait(50);
+        launchTestElfUser();
+    }
+    programWait(100);
+
+    return 0;
+    globalPrintLn("> KERNEL ELF");
+    for (int i = 0; i < 100; i++)
+    {
+        //programWait(50);
+        launchTestElfKernel();
+    }
+    return 0;
+
     for (int i = 0; i < 10;)
     {
         if (serialCanReadChar())

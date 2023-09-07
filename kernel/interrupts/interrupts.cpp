@@ -272,6 +272,9 @@ bool speakA = false;
 #include "../devices/rtc/rtc.h"
 #include "../memory/heap.h"
 
+int _usedHeapCount = 0;
+int _usedPages = 0;
+
 void TempPitRoutine(interrupt_frame* frame)
 {
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
@@ -324,9 +327,12 @@ void TempPitRoutine(interrupt_frame* frame)
 
     currCol = Colors.lime;
     GlobalRenderer->Print("Runnings Tasks: ", currCol);
-    Scheduler::osTasks.Lock();
-    GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
-    Scheduler::osTasks.Unlock();
+    if (!Scheduler::osTasks.IsLocked())
+    {
+        Scheduler::osTasks.Lock();
+        GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
+        Scheduler::osTasks.Unlock();
+    }
     //GlobalRenderer->Print("  - ", Colors.white);
 
     if (mallocCount > 0)
@@ -338,6 +344,20 @@ void TempPitRoutine(interrupt_frame* frame)
     mallocCount = 0;
     
     GlobalRenderer->CursorPosition = tempPoint;
+
+    if (usedHeapCount != _usedHeapCount)
+    {
+        _usedHeapCount = usedHeapCount;
+        Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
+        Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
+    }
+
+    if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages)
+    {
+        _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
+
+        Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
+    }
 
     // TestSetSpeakerPosition(speakA);
     // speakA = !speakA;
@@ -643,8 +663,22 @@ void MapMemoryOfCurrentTask(osTask* task)
     // TODO MAP IT AAAA
 }
 
+bool InterruptGoingOn = false;
+
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
+    AddToStack();
+    //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+
+    if (InterruptGoingOn)
+    {
+        Serial::Writelnf("WAAAA> INT STOPPED!!!");
+        for (int i = 0; i < 100000; i++)
+            asm("nop");
+        //return;
+    }
+    InterruptGoingOn = true;
+
     int rnd = RND::RandomInt();
 
     if (Scheduler::CurrentRunningTask != NULL)
@@ -671,13 +705,23 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writeln();
         PrintRegisterDump(GlobalRenderer);
         Serial::Writeln();
-        
 
-        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+        {
+            Serial::Writeln("> Resetting MStackPointer");
+            MStackData::stackPointer = 1;
+            for (int i = 1; i < 1000; i++)
+                MStackData::stackArr[i] = MStack();
+        }
+
+        if (Scheduler::CurrentRunningTask != NULL)
+            Scheduler::CurrentRunningTask->removeMe = true;
         Scheduler::CurrentRunningTask = NULL;
 
+        Serial::Writelnf("> END OF INT");
+        InterruptGoingOn = false;
         Scheduler::SchedulerInterrupt(frame);
-        
+        RemoveFromStack();
+        return;
     }
 
     for (int i = 0; i < 20; i++)
@@ -685,19 +729,31 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             break;
 
     if (Scheduler::CurrentRunningTask == NULL)
+    {
+        InterruptGoingOn = false;
+        RemoveFromStack();
         return;
+    }
 
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 
     //Serial::Writelnf("> END OF INTERRUPT");
+
+    InterruptGoingOn = false;
+    RemoveFromStack();
 }
 
 
 extern "C" void CloseCurrentTask()
 {
     Serial::Writelnf("> PROGRAM REACHED END");
-    Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
-    Scheduler::CurrentRunningTask = NULL;
+    if (Scheduler::CurrentRunningTask != NULL)
+    {
+        Scheduler::CurrentRunningTask->removeMe = true;
+        Scheduler::CurrentRunningTask = NULL;
+    }
+    // Scheduler::RemoveTask();
+    // Scheduler::CurrentRunningTask = NULL;
 }
 
 #include <libm/syscallList.h>
@@ -707,6 +763,8 @@ void Syscall_handler(interrupt_frame* frame)
     //Serial::Writelnf("> Syscall: %d", frame->rax);
     if (Scheduler::CurrentRunningTask == NULL)
         return;
+
+    AddToStack();
 
     int syscall = frame->rax;
     frame->rax = 0;
@@ -732,11 +790,18 @@ void Syscall_handler(interrupt_frame* frame)
     {
         if (Scheduler::CurrentRunningTask != NULL)
         {
+            osTask* task = Scheduler::CurrentRunningTask;
             void* tempPage = GlobalAllocator->RequestPage();
-            //MEM_AREA_USER_PROGRAM_REQUEST_START
-            //int count = 
-            // frame->rax = (uint64_t)Scheduler::CurrentRunningTask->RequestNextPage();
-            Serial::Writelnf("> Requested next page %d", frame->rax);
+            int count = task->requestedPages->GetCount();
+
+            task->requestedPages->Add(tempPage);
+            
+            void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
+            PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
+            manager.MapMemory((void*)tempPage, newAddr);
+            
+            frame->rax = (uint64_t)newAddr;
+            Serial::Writelnf("> Requested next page to %d", frame->rax);
         }
         else
             frame->rax = 0;
@@ -794,16 +859,25 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_EXIT)
     {
         Serial::Writelnf("> EXITING PROGRAM %d", frame->rbx);
-        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
-        Scheduler::CurrentRunningTask = NULL;
+        if (Scheduler::CurrentRunningTask != NULL)
+        {
+            Scheduler::CurrentRunningTask->removeMe = true;
+            Scheduler::CurrentRunningTask = NULL;
+        }
+
+        // Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
+        // Scheduler::CurrentRunningTask = NULL;
 
         Scheduler::SchedulerInterrupt(frame);
     }
     else if (syscall == SYSCALL_CRASH)
     {
         Serial::Writelnf("> EXITING PROGRAM bc it CRASHED");
-        Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
-        Scheduler::CurrentRunningTask = NULL;
+        if (Scheduler::CurrentRunningTask != NULL)
+        {
+            Scheduler::CurrentRunningTask->removeMe = true;
+            Scheduler::CurrentRunningTask = NULL;
+        }
 
         Scheduler::SchedulerInterrupt(frame);
     }
@@ -846,9 +920,24 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = RND::RandomInt();
     }
+    else if (syscall == SYSCALL_LAUNCH_TEST_ELF_USER)
+    {
+        Serial::Writelnf("> Launching User Test Elf");
+        osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
+        Scheduler::AddTask(task);
+    }
+    else if (syscall == SYSCALL_LAUNCH_TEST_ELF_KERNEL)
+    {
+        Serial::Writelnf("> Launching Kernel Test Elf");
+        osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, false);
+        Scheduler::AddTask(task);
+    }
     else
     {
         Serial::Writelnf("> Unknown Syscall: %d", syscall);
     }
     //Scheduler::SchedulerInterrupt(frame);
+
+
+    RemoveFromStack();
 }

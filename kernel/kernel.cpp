@@ -17,6 +17,8 @@
 
 void boot(void* _bootInfo)
 {
+    
+
     BootInfo* bootInfo = (BootInfo*)_bootInfo;
 
     osData.NO_INTERRUPTS = false;
@@ -78,6 +80,11 @@ void boot(void* _bootInfo)
             Scheduler::AddTask(task);
             Serial::Writelnf("> ADDED MODULE");
 
+            if (i == 1)
+            {
+                Scheduler::testElfFile = elf;
+                Serial::Writelnf("> SET TEST ELF");
+            }
         }
 
         SAF::saf_node_folder_t* programNode = (SAF::saf_node_folder_t*)SAF::initrd_find("programs/", topNode, (SAF::saf_node_hdr_t*)topNode);
@@ -116,7 +123,7 @@ void boot(void* _bootInfo)
 
 
  
-void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAssetStruct* assets, void* freeMemStart, void* extraMemStart, uint64_t freeMemSize, void* kernelStart, uint64_t kernelSize, void* kernelStartV, limineSmpResponse* smpData)
+volatile void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAssetStruct* assets, void* freeMemStart, void* extraMemStart, uint64_t freeMemSize, void* kernelStart, uint64_t kernelSize, void* kernelStartV, limineSmpResponse* smpData)
 {
     //MStackData::BenchmarkEnabled = false;
     BootInfo tempBootInfo;
