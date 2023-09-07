@@ -129,5 +129,6 @@ extern "C" void intr_stub_254(void);
 extern "C" void intr_stub_255(void);
 
 extern "C" void task_entry(void);
+extern "C" void nothing_task_entry(void);
 
 void Syscall_handler(interrupt_frame* frame);

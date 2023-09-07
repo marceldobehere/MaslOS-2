@@ -177,6 +177,7 @@ namespace Scheduler
         task->requestedPages = new List<void*>();
         task->doExit = false;
         task->active = true;
+        task->priority = 0;
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);

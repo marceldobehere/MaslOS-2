@@ -155,3 +155,9 @@ task_entry:
 	call CloseCurrentTask ; if the task ever returns just exit
 	
 	jmp $
+
+
+
+[global nothing_task_entry]
+nothing_task_entry:
+	jmp $

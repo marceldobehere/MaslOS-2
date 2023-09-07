@@ -10,7 +10,7 @@ char buffer[512];
 
 int main()
 {
-    globalCls();
+    //globalCls();
 
     int argc = getArgC();
     char **argv = getArgV();

@@ -36,6 +36,8 @@ struct osTask
 
 	int taskTimeoutDone;
 
+	int priority;
+
 	List<void*>* requestedPages;
 
 	//int requestedPages;

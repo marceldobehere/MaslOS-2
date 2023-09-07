@@ -13,6 +13,7 @@
 
 #include "saf/saf.h"
 
+#include "interrupts/interrupts.h"
 
 void boot(void* _bootInfo)
 {
@@ -45,6 +46,14 @@ void boot(void* _bootInfo)
     Scheduler::SchedulerEnabled = false;
 
     {
+        Serial::Writelnf("> Adding Nothing Doer Task");
+        Elf::LoadedElfFile elf;
+        elf.entryPoint = (void*)nothing_task_entry;
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+        Scheduler::AddTask(task);
+    }
+
+    {
         uint8_t* data = (uint8_t*)bootInfo->programs->fileData;
         //Serial::Writelnf("data: %X", data);
 
@@ -66,10 +75,11 @@ void boot(void* _bootInfo)
             Serial::Writelnf("> Adding ELF");
 
             osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
-            if (i == 0)
-                Scheduler::NothingDoerTask = task;
-            else
-                Scheduler::AddTask(task);
+            Scheduler::AddTask(task);
+            // if (i == 0)
+            //     Scheduler::NothingDoerTask = task;
+            // else
+            //     Scheduler::AddTask(task);
             Serial::Writelnf("> ADDED MODULE");
 
         }
