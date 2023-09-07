@@ -6,6 +6,7 @@
 int getArgC();
 char** getArgV();
 ENV_DATA* getEnvData();
+void* requestNextPage();
 
 void serialPrint(const char* str);
 void serialPrintLn(const char* str);

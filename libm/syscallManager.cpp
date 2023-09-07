@@ -28,6 +28,15 @@ ENV_DATA* getEnvData()
     return env;
 }
 
+void* requestNextPage()
+{
+    int syscall = SYSCALL_REQUEST_NEXT_PAGE;
+    void* page;
+
+    asm("int $0x31" : "=a"(page): "a"(syscall));
+    return page;
+}
+
 void serialPrint(const char* str)
 {
     int syscall = SYSCALL_SERIAL_PRINT;

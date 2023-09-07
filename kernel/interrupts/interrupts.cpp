@@ -638,9 +638,17 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
 }
 
 
+void MapMemoryOfCurrentTask(osTask* task)
+{
+    // TODO MAP IT AAAA
+}
+
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
     int rnd = RND::RandomInt();
+
+    if (Scheduler::CurrentRunningTask != NULL)
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
     
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
     if (frame->interrupt_number == 32)
@@ -719,6 +727,19 @@ void Syscall_handler(interrupt_frame* frame)
         char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
         frame->rax = (uint64_t)((int*)(stack - 12 - sizeof(ENV_DATA)));
         Serial::Writelnf("> Get env %d", frame->rax);
+    }
+    else if (syscall == SYSCALL_REQUEST_NEXT_PAGE)
+    {
+        if (Scheduler::CurrentRunningTask != NULL)
+        {
+            void* tempPage = GlobalAllocator->RequestPage();
+            //MEM_AREA_USER_PROGRAM_REQUEST_START
+            //int count = 
+            // frame->rax = (uint64_t)Scheduler::CurrentRunningTask->RequestNextPage();
+            Serial::Writelnf("> Requested next page %d", frame->rax);
+        }
+        else
+            frame->rax = 0;
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
