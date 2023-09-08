@@ -36,7 +36,7 @@ int main()
 
     programWait(2000);
     globalPrintLn("> USER ELF");
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 1000; i++)
     {
         //programWait(50);
         launchTestElfUser();

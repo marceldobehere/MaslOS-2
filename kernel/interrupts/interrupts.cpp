@@ -667,14 +667,16 @@ bool InterruptGoingOn = false;
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
+    Serial::Writelnf("INT> INT %d", frame->interrupt_number);
+
     AddToStack();
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
     if (InterruptGoingOn)
     {
-        Serial::Writelnf("WAAAA> INT STOPPED!!!");
-        for (int i = 0; i < 100000; i++)
-            asm("nop");
+        Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT!", frame->interrupt_number);
+        Panic("INT IN INT", true);
+        
         //return;
     }
     InterruptGoingOn = true;
@@ -730,6 +732,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     if (Scheduler::CurrentRunningTask == NULL)
     {
+        Serial::Writelnf("> END OF INTERRUPT");
         InterruptGoingOn = false;
         RemoveFromStack();
         return;
@@ -737,8 +740,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 
-    //Serial::Writelnf("> END OF INTERRUPT");
-
+    Serial::Writelnf("> END OF INTERRUPT");
     InterruptGoingOn = false;
     RemoveFromStack();
 }
@@ -760,7 +762,7 @@ extern "C" void CloseCurrentTask()
 
 void Syscall_handler(interrupt_frame* frame)
 {
-    //Serial::Writelnf("> Syscall: %d", frame->rax);
+    Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
     if (Scheduler::CurrentRunningTask == NULL)
         return;
 
@@ -859,11 +861,8 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_EXIT)
     {
         Serial::Writelnf("> EXITING PROGRAM %d", frame->rbx);
-        if (Scheduler::CurrentRunningTask != NULL)
-        {
-            Scheduler::CurrentRunningTask->removeMe = true;
-            Scheduler::CurrentRunningTask = NULL;
-        }
+        Scheduler::CurrentRunningTask->removeMe = true;
+        Scheduler::CurrentRunningTask = NULL;
 
         // Scheduler::RemoveTask(Scheduler::CurrentRunningTask);
         // Scheduler::CurrentRunningTask = NULL;
@@ -873,44 +872,38 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_CRASH)
     {
         Serial::Writelnf("> EXITING PROGRAM bc it CRASHED");
-        if (Scheduler::CurrentRunningTask != NULL)
-        {
-            Scheduler::CurrentRunningTask->removeMe = true;
-            Scheduler::CurrentRunningTask = NULL;
-        }
+        Scheduler::CurrentRunningTask->removeMe = true;
+        Scheduler::CurrentRunningTask = NULL;
 
         Scheduler::SchedulerInterrupt(frame);
     }
     else if (syscall == SYSCALL_YIELD)
     {
         Serial::Writelnf("> YIELDING PROGRAM");
-        if (Scheduler::CurrentRunningTask != NULL)
-            Scheduler::CurrentRunningTask->justYielded = true;
+        Scheduler::CurrentRunningTask->justYielded = true;
+
         Scheduler::SchedulerInterrupt(frame);
     }
     else if (syscall == SYSCALL_WAIT)
     {
         Serial::Writelnf("> WAITING PROGRAM %d ms", frame->rbx);
-        if (Scheduler::CurrentRunningTask != NULL)
-            Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + frame->rbx;
+        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + frame->rbx;
+
         Scheduler::SchedulerInterrupt(frame);
     }
     else if (syscall == SYSCALL_SET_PRIORITY)
     {
-        if (Scheduler::CurrentRunningTask != NULL)
-        {
-            int prio = frame->rbx;
-            if (prio < 0)
-                prio = 0;
+        int prio = frame->rbx;
+        if (prio < 0)
+            prio = 0;
 
-            // user space programs cant get a prio of 1-4          
-            if (prio != 0 && prio < 5 && !Scheduler::CurrentRunningTask->isKernelModule)
-                prio = 5;
-     
-            Serial::Writelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
-            Scheduler::CurrentRunningTask->priority = prio;
-            frame->rax = prio;
-        }
+        // user space programs cant get a prio of 1-4          
+        if (prio != 0 && prio < 5 && !Scheduler::CurrentRunningTask->isKernelModule)
+            prio = 5;
+    
+        Serial::Writelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
+        Scheduler::CurrentRunningTask->priority = prio;
+        frame->rax = prio;
     }
     else if (syscall == SYSCALL_ENV_GET_TIME_MS)
     {

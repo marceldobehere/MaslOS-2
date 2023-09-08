@@ -40,12 +40,13 @@ template <typename T> void List<T>::Free()
     RemoveFromStack();
 }
 
+
 template <typename T>void List<T>::ExpandArr()
 {
     AddToStack();
     Array<T> newArr = Array<T>(arr.GetSize());
     arr.Copy(newArr);
-    
+
     cap *= 2;
     arr.ReInit(cap);
     
@@ -328,7 +329,7 @@ template <typename T> Array<T> Array<T>::Clone()
 template <typename T> void Array<T>::Copy(Array<T> target)
 {
     AddToStack();
-    for (uint64_t i = 0; i < size; i++)
+    for (int64_t i = 0; i < size; i++)
         target.arr[i] = arr[i];
     RemoveFromStack();
 }

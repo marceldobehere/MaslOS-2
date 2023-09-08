@@ -326,15 +326,15 @@ namespace Scheduler
         _memset(frame, 0, sizeof(interrupt_frame));
         task->frame = frame;
 
-        userStackEnd -= - sizeof(uint64_t);
-        kernelStackEnd -= sizeof(uint64_t);
+        userStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
+        kernelStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
 
         if (isUserMode)
         {
             frame->rip = (uint64_t)module.entryPoint;
             frame->cr3 = (uint64_t)tempManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
-            frame->rax = (uint64_t)module.entryPoint;
+            //frame->rax = (uint64_t)0;
             frame->cs = 0x28 | 0x03;
             frame->ss = 0x20 | 0x03;
 
@@ -345,7 +345,7 @@ namespace Scheduler
             frame->rip = (uint64_t)module.entryPoint;
             frame->cr3 = (uint64_t)tempManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
-            frame->rax = (uint64_t)module.entryPoint;
+            //frame->rax = (uint64_t)module.entryPoint;
             frame->cs = 0x8;
             frame->ss = 0x10;
 
