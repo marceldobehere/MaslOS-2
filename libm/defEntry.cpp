@@ -12,7 +12,8 @@ extern "C" void _start()
     RND::RandomInit(a, b);
 
     int res = main();
-    proramExit(res);
+    while (true)
+        proramExit(res);
 }
 
 #endif

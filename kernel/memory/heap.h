@@ -20,7 +20,7 @@ struct HeapSegHdr
     void CombineForward();
     void CombineBackward();
     HeapSegHdr* Split(size_t splitLength);
-    uint32_t magicNum;
+    uint64_t magicNum;
 };
 
 

@@ -371,7 +371,10 @@ namespace Serial
                 if (str[i] == 's')
                 {
                     char* argStr = va_arg(arg, char*);
-                    Write(argStr);
+                    if (argStr != NULL)
+                        Write(argStr);
+                    else
+                        Write("(null)");
                 }
                 else if (str[i] == 'c')
                 {

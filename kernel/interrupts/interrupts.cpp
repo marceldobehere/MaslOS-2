@@ -667,7 +667,7 @@ bool InterruptGoingOn = false;
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
-    Serial::Writelnf("INT> INT %d", frame->interrupt_number);
+    //Serial::Writelnf("INT> INT %d", frame->interrupt_number);
 
     AddToStack();
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
@@ -732,7 +732,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     if (Scheduler::CurrentRunningTask == NULL)
     {
-        Serial::Writelnf("> END OF INTERRUPT");
+        //Serial::Writelnf("> END OF INTERRUPT");
         InterruptGoingOn = false;
         RemoveFromStack();
         return;
@@ -740,7 +740,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 
-    Serial::Writelnf("> END OF INTERRUPT");
+    //Serial::Writelnf("> END OF INTERRUPT");
     InterruptGoingOn = false;
     RemoveFromStack();
 }
@@ -897,9 +897,11 @@ void Syscall_handler(interrupt_frame* frame)
         if (prio < 0)
             prio = 0;
 
+        #define BEST_USERMODE_PRIO 2
+
         // user space programs cant get a prio of 1-4          
-        if (prio != 0 && prio < 5 && !Scheduler::CurrentRunningTask->isKernelModule)
-            prio = 5;
+        if (prio != 0 && prio < BEST_USERMODE_PRIO && !Scheduler::CurrentRunningTask->isKernelModule)
+            prio = BEST_USERMODE_PRIO;
     
         Serial::Writelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
         Scheduler::CurrentRunningTask->priority = prio;
@@ -917,12 +919,14 @@ void Syscall_handler(interrupt_frame* frame)
     {
         Serial::Writelnf("> Launching User Test Elf");
         osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
+        //task->active = false;
         Scheduler::AddTask(task);
     }
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_KERNEL)
     {
         Serial::Writelnf("> Launching Kernel Test Elf");
         osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, false);
+        //task->active = false;
         Scheduler::AddTask(task);
     }
     else

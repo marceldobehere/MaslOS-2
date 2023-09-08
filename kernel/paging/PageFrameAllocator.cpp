@@ -13,8 +13,8 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress)
 {
     PageBitMap.Size = bitmapSize;
     PageBitMap.Buffer = (uint8_t*) bufferAddress;
-    for (uint64_t i = 0; i < bitmapSize; i++)
-        *(uint8_t*)((uint64_t)PageBitMap.Buffer + i) = 0;
+    for (int64_t i = 0; i < bitmapSize; i++)
+        PageBitMap.Buffer[i] = 0;
     pageBitmapIndex = 0;
 }
 
@@ -106,9 +106,9 @@ void PageFrameAllocator::FreePage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (!PageBitMap[index])
-        return;
+        Panic("Cant free already free page!", true);//return;
     if(!PageBitMap.Set(index, false))
-        return;
+        Panic("Freeing page failed!", true);//return;
     if (pageBitmapIndex > index)
         pageBitmapIndex = index;
     freeMemory += 4096;
@@ -129,7 +129,7 @@ void* PageFrameAllocator::RequestPages(int count)
         }
         {
             tCount--;
-            if (tCount == 0)
+            if (tCount <= 0)
             {
                 LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096), count);
                 return(void*)((pageBitmapIndex - (count - 1)) * 4096);
@@ -147,7 +147,7 @@ void* PageFrameAllocator::RequestPages(int count)
         }
         {
             tCount--;
-            if (tCount == 0)
+            if (tCount <= 0)
             {
                 LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096), count);
                 return(void*)((pageBitmapIndex - (count - 1)) * 4096);
@@ -176,9 +176,9 @@ void PageFrameAllocator::LockPage(void* address)
 {
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitMap[index])
-        return;
+        Panic("Cant lock already locked page!", true);//return;
     if(!PageBitMap.Set(index, true))
-        return;
+        Panic("Locking page failed!", true);//return;
     freeMemory -= 4096;
     usedMemory += 4096;
 }
@@ -202,28 +202,36 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
         return;
     Initialized = true;
 
+    size -= 0x4000;
+
     void* largestFreeMemSeg = start;
     size_t largestFreeMemSegSize = size;
+    uint64_t memStart = (uint64_t)largestFreeMemSeg;
 
 
     uint64_t memorySize = size;
     freeMemory = memorySize;
     reservedMemory = 0;
     usedMemory = 0;
-    uint64_t bitmapSize =  (memorySize / 4096 / 8) + 1;
+    uint64_t bitmapSize =  ((memorySize / 0x1000) / 8) + 1;
 
     PrintMsgStartLayer("Info");
     PrintMsgCol("Largest Mem Size: {} Bytes.", to_string(largestFreeMemSegSize), Colors.yellow);
+    PrintMsgCol("Larget Mem Loc: 0x{}", ConvertHexToString(memStart), Colors.yellow);
     PrintMsgCol("Bitmap Size:      {} Bytes.", to_string(bitmapSize + sizeof(Bitmap)), Colors.yellow);
     PrintMsgEndLayer("Info");
 
     PrintMsg("> Initing Bitmap");
     InitBitmap(bitmapSize, largestFreeMemSeg);
 
+    
+    int resPageCount = (memStart + 0xFFF) / 0x1000;
+    PrintMsg("> Reserving first {} Pages", to_string(resPageCount));
+    ReservePages(0, resPageCount);
+    
+    PrintMsg("> Reserving Pages for the Bitmap buffer starting at 0x{}", ConvertHexToString((uint64_t)PageBitMap.Buffer));
+    ReservePages(PageBitMap.Buffer, bitmapSize / 0x1000 + 1);
 
-    ReservePages(0, 0x200);
-
-    LockPages(PageBitMap.Buffer, bitmapSize / 4096 + 1);
 
     PrintMsgStartLayer("Info");
     PrintMsgCol("Bitmap ADDR:      {}", ConvertHexToString((uint64_t)PageBitMap.Buffer), Colors.yellow);

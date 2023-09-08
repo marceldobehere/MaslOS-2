@@ -9,7 +9,13 @@
 #include <libm/cstrTools.h>
 
 
-const uint32_t HeapMagicNum = 2406789212;
+const uint64_t HeapMagicNum = 0xABCD12DEAD9654AA;//0;// 0xFFFFFFFFFFFFFFFF;//0xABCD12DEAD9654AA;
+
+// const uint64_t breakAnd = 0xFFF0000003410FE3;
+// const uint64_t breakNand = ~breakAnd;
+// const uint64_t breakOr = 0x0000000003410003;
+
+// const uint64_t brokenHeapMagicNum = ((HeapMagicNum & breakNand) | breakOr);
 
 int64_t lastFreeSize = 0;
 int64_t heapCount = 0;
@@ -48,6 +54,16 @@ void HeapSegHdr::CombineForward()
         return;   
     }
     //GlobalRenderer->Print("B2");
+
+    if (next->last != this)
+    {
+        Panic("COMBINING FORWARD BUT ACTUALLY NOT???", true);
+    }
+
+    if (!free)
+    {
+        Panic("COMBINING FORWARD BUT THE HDR IS NOT FREE???", true);
+    }
     
     //GlobalRenderer->Print("<");
     if (next == lastHdr) 
@@ -238,11 +254,18 @@ void SwitchToBackupHeap()
 void InitializeHeap(void* heapAddress, int pageCount)
 {
     AddToStack();
-    RAM_START_ADDR = heapAddress;
     
     uint64_t backupAddr = (uint64_t)heapAddress;
-    backupAddr -= 0x1000 * backupHeapPageCount;
+    backupAddr -=  0x1000 * backupHeapPageCount;
     InitBackup((void*)backupAddr, backupHeapPageCount);
+
+    RAM_START_ADDR = heapAddress;
+    
+    // uint64_t backupAddr = (uint64_t)heapAddress;
+    // InitBackup((void*)backupAddr, backupHeapPageCount);
+
+    // heapAddress += 0x1000 * backupHeapPageCount;
+    // RAM_START_ADDR = heapAddress;
     
     void* pos = heapAddress;
     for (int i = 0; i < pageCount; i++)
@@ -447,11 +470,26 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
     while(true)
     {
 
-        if ((uint64_t)current < 10000)
+        if ((int64_t)current < 10000)
             Panic("CURRENT IS NULL BRO", true); 
 
         if (current->magicNum != HeapMagicNum)
         {
+            Serial::Writelnf("BRUH PRE ERR: start: %X, end: %X, this %X, magic: %X, actual: %X, time: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum, PIT::TimeSinceBootMS());
+            
+            Serial::Writelnf("current heap info:");
+            Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)current, current->magicNum, current->length, current->time, current->text);
+
+            Serial::Writelnf("last heap info:");
+            Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)lastHdr, lastHdr->magicNum, lastHdr->length, lastHdr->time, lastHdr->text); 
+            
+            
+            Serial::Writelnf("BRUH AFTER ERR: start: %X, end: %X, this %X, magic: %X, actual: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum);
+            
+            HeapCheck(false);
+            
+
+
             TrySwitchToBackupHeap();
             Panic("Trying to access invalid HeapSegment Header!", true);
             RemoveFromStack();
@@ -508,11 +546,17 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
     }
     //GlobalRenderer->Println("Requesting more RAM.");
 
+    Serial::Writelnf("> Gotta expand Heap");
     if (ExpandHeap(size))
     {
-        void* res = _Malloc(size, text);
+        Serial::Writelnf("> Heap expanded");
+        AddToStack();
+        Serial::Writelnf("> Doing Sub Malloc");
+        void* res = _Xmalloc(size, text, "SUB MALLOC", "prolly heap.cpp", 555);
+        RemoveFromStack();
         //mallocCount++;
         RemoveFromStack();
+        Serial::Writelnf("> Sub Malloc Done");
 
         return res;
     }
@@ -643,6 +687,12 @@ bool ExpandHeap(size_t length)
         Panic("Trying to expand heap while using backup heap!", true);
     }
 
+    if (lastHdr->next != NULL)
+    {
+        Panic("LAST HDR NEXT IS NOT NULL!", true);
+    }
+
+    length += sizeof(HeapSegHdr) + 0x100;
 
     if (length % 0x1000)
     {
@@ -651,15 +701,12 @@ bool ExpandHeap(size_t length)
     }
 
     size_t pageCount = length / 0x1000;
-    HeapSegHdr* newSegment = (HeapSegHdr*) heapEnd;
     void* tHeapEnd = heapEnd;
 
     //GlobalRenderer->Println("Page Count  {}", to_string(pageCount), Colors.white);
     //GlobalRenderer->Println("free RAM 1: {}", to_string(GlobalAllocator->GetFreeRAM()), Colors.white);
 
-
-
-    for (size_t i = 0; i < pageCount; i++)
+    for (int i = 0; i < pageCount; i++)
     {
         void* tempAddr = GlobalAllocator->RequestPage();
         if (tempAddr == NULL)
@@ -669,27 +716,37 @@ bool ExpandHeap(size_t length)
         }
         
         GlobalPageTableManager.MapMemory(tHeapEnd, tempAddr);
-        tHeapEnd = (void*)((size_t)tHeapEnd + 0x1000);
+        tHeapEnd = (void*)((uint64_t)tHeapEnd + 0x1000);
     }
 
+    HeapSegHdr* newSegment = (HeapSegHdr*) heapEnd;
 
-
-    newSegment->free = true;
+    
     newSegment->last = lastHdr;
     lastHdr->next = newSegment;
     lastHdr = newSegment;
-    newSegment->magicNum = HeapMagicNum;
     
     newSegment->next = NULL;
+    newSegment->length = length - sizeof(HeapSegHdr);
+    newSegment->free = true;
+
+    newSegment->magicNum = HeapMagicNum;
+    newSegment->activeMemFlagVal = activeMemFlagVal;
+    newSegment->time = 0;
+
     newSegment->text = "<FREE>";
-    newSegment->length = (pageCount * 0x1000) - sizeof(HeapSegHdr);
+    newSegment->file = "<NO FILE GIVEN>";
+    newSegment->func = "<NO FUNC GIVEN>";
+    newSegment->line = 0;
+    
+    
     heapCount++;
     
     heapEnd = tHeapEnd;
 
 
 
-
+    Serial::Writelnf("BRUH: start: %X, end %X, this: %X, magic: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)newSegment, newSegment->magicNum);
 
 
 
@@ -751,7 +808,7 @@ bool ExpandHeap(size_t length)
 
     // newSegment->next = NULL;
     // newSegment->text = "<FREE>";
-    newSegment->length = length - sizeof(HeapSegHdr);
+    //newSegment->length = length - sizeof(HeapSegHdr);
     // heapCount++;
     newSegment->CombineBackward();
     RemoveFromStack();

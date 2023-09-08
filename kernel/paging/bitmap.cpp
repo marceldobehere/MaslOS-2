@@ -15,11 +15,14 @@ bool Bitmap::operator[](uint64_t index)
         RemoveFromStack();
         return false;
     }
-    uint8_t temp = Buffer[index / 8];
-    temp = (temp << (index % 8));
-    temp = (temp >> 7);
+
+    uint64_t index2 = index >> 3;
+    uint8_t bitIndexer = 0b10000000;
+    bitIndexer = bitIndexer >> (index & 7);
+    bool temp = (Buffer[index2] & bitIndexer) != 0;
+
     RemoveFromStack();
-    return temp != 0;
+    return temp;
 }
 
 bool Bitmap::Set(uint64_t index, bool value)
@@ -30,14 +33,14 @@ bool Bitmap::Set(uint64_t index, bool value)
         RemoveFromStack();
         return false;
     }
-    uint64_t index2 = index / 8;
-    
+
+    uint64_t index2 = index >> 3;
     uint8_t bitIndexer = 0b10000000;
-    bitIndexer = bitIndexer >> (index % 8);
-    Buffer[index2] = Buffer[index2] & (~bitIndexer);
+    bitIndexer = bitIndexer >> (index & 7);
+    Buffer[index2] &= (~bitIndexer);
 
     if (value)
-        Buffer[index2] = Buffer[index2] | bitIndexer;
+        Buffer[index2] |= bitIndexer;
         
     RemoveFromStack();
     return true;

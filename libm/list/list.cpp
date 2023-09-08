@@ -11,8 +11,8 @@ template <typename T> void List<T>::Init(uint64_t capacity)
     freed = false;
     count = 0;
     cap = capacity;
-    //Serial::Writelnf("LIST Init: %X, %X, %X", capacity, sizeof(T), capacity * sizeof(T));
     arr.ReInit(capacity);
+    //Serial::Writelnf("LIST Init: %X, %X, %X", capacity, sizeof(T), capacity * sizeof(T));
     RemoveFromStack();
 }
 
@@ -93,13 +93,13 @@ template <typename T> int64_t List<T>::GetIndexOf(T item)
 
 template <typename T> void List<T>::Add(T item)
 {
-    //AddToStack();
+    AddToStack();
     if (count >= cap)
         ExpandArr();
 
     arr[count] = item;
     count++;
-    //RemoveFromStack();
+    RemoveFromStack();
 }
 
 template <typename T> void List<T>::Set(int64_t index, T item)
@@ -261,6 +261,7 @@ template <typename T> Array<T>::Array(uint64_t size)
     this->size = size;
     //Serial::Writelnf("Init: %X, %X, %X", size, sizeof(T), size * sizeof(T));
     arr = (T*)_Malloc(size * sizeof(T), "Array Constructor");
+    //Serial::Writelnf("ARR Init: %X, %X, %X at %X", size, sizeof(T), size * sizeof(T), (uint64_t)arr);
     freed = false;
     RemoveFromStack();
 }
@@ -276,7 +277,7 @@ template <typename T> void Array<T>::ReInit(uint64_t size)
     Free();
     //Serial::Writelnf("Reinit: %X, %X, %X", size, sizeof(T), size * sizeof(T));
     arr = (T*)_Malloc(size * sizeof(T), "Array re-init");
-
+    //Serial::Writelnf("ARR ReInit: %X, %X, %X at %X", size, sizeof(T), size * sizeof(T), (uint64_t)arr);
     freed = false;
     RemoveFromStack();
 }

@@ -273,6 +273,9 @@ namespace Scheduler
         else
             GlobalPageTableManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
 
+        _memset(kernelStack, 0, KERNEL_STACK_PAGE_SIZE * 0x1000);
+        _memset(userStack, 0, USER_STACK_PAGE_SIZE * 0x1000);
+        
         task->kernelStack = kernelStack;
         task->userStack = userStack;
 
@@ -302,6 +305,7 @@ namespace Scheduler
 
         uint8_t* kernelStackEnd = (uint8_t*)kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
         uint8_t* userStackEnd = (uint8_t*)userStack + USER_STACK_PAGE_SIZE * 0x1000;
+
 
         {
             task->kernelEnvStack = kernelStackEnd;     
@@ -333,7 +337,9 @@ namespace Scheduler
         {
             frame->rip = (uint64_t)module.entryPoint;
             frame->cr3 = (uint64_t)tempManager.PML4->entries;
+            frame->cr0 = (uint64_t)GlobalPageTableManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
+            //frame->rbp = (uint64_t)userStackEnd - 0x2000;
             //frame->rax = (uint64_t)0;
             frame->cs = 0x28 | 0x03;
             frame->ss = 0x20 | 0x03;
@@ -344,7 +350,9 @@ namespace Scheduler
         {
             frame->rip = (uint64_t)module.entryPoint;
             frame->cr3 = (uint64_t)tempManager.PML4->entries;
+            frame->cr0 = (uint64_t)GlobalPageTableManager.PML4->entries;
             frame->rsp = (uint64_t)userStackEnd;
+            //frame->rbp = (uint64_t)userStackEnd - 0x2000;
             //frame->rax = (uint64_t)module.entryPoint;
             frame->cs = 0x8;
             frame->ss = 0x10;
@@ -428,7 +436,7 @@ namespace Scheduler
             AddToStack();
             if (task->kernelStack != NULL)
             {
-                Serial::Writelnf("> Freeing kernel stack");
+                //Serial::Writelnf("> Freeing kernel stack");
                 GlobalAllocator->FreePages(task->kernelStack, KERNEL_STACK_PAGE_SIZE);
                 task->kernelStack = NULL;
             }
@@ -437,7 +445,7 @@ namespace Scheduler
             AddToStack();
             if (task->userStack != NULL)
             {
-                Serial::Writelnf("> Freeing user stack");
+                //Serial::Writelnf("> Freeing user stack");
                 GlobalAllocator->FreePages(task->userStack, USER_STACK_PAGE_SIZE);
                 task->userStack = NULL;
             }
@@ -446,7 +454,7 @@ namespace Scheduler
             AddToStack();
             if (task->pageTableContext != NULL)
             {
-                Serial::Writelnf("> Freeing page table");
+                //Serial::Writelnf("> Freeing page table");
                 GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
                 task->pageTableContext = NULL;
             }

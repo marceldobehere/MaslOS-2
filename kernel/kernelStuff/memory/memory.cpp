@@ -45,8 +45,10 @@ void PrintEFIMemData(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t
 
 void _memset(void* start, uint8_t value, uint64_t num)
 {
-    for (uint64_t i = 0; i < num; i++)
-        *(uint8_t*)((uint64_t)start + i) = value;
+    uint8_t* curr = (uint8_t*)start;
+    
+    for (int64_t rem = num; rem > 0; rem--)
+        *curr++ = value;
 }
 
 void _memcpy(const void* src, void* dest, uint64_t size)
