@@ -475,16 +475,16 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
 
         if (current->magicNum != HeapMagicNum)
         {
-            Serial::Writelnf("BRUH PRE ERR: start: %X, end: %X, this %X, magic: %X, actual: %X, time: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum, PIT::TimeSinceBootMS());
+            //Serial::Writelnf("BRUH PRE ERR: start: %X, end: %X, this %X, magic: %X, actual: %X, time: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum, PIT::TimeSinceBootMS());
             
-            Serial::Writelnf("current heap info:");
-            Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)current, current->magicNum, current->length, current->time, current->text);
+            //Serial::Writelnf("current heap info:");
+            //Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)current, current->magicNum, current->length, current->time, current->text);
 
-            Serial::Writelnf("last heap info:");
-            Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)lastHdr, lastHdr->magicNum, lastHdr->length, lastHdr->time, lastHdr->text); 
+            //Serial::Writelnf("last heap info:");
+            //Serial::Writelnf("this %X, magic: %X, len: %d, time: %X, \"%X\"", (uint64_t)lastHdr, lastHdr->magicNum, lastHdr->length, lastHdr->time, lastHdr->text); 
             
             
-            Serial::Writelnf("BRUH AFTER ERR: start: %X, end: %X, this %X, magic: %X, actual: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum);
+            //Serial::Writelnf("BRUH AFTER ERR: start: %X, end: %X, this %X, magic: %X, actual: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)current, current->magicNum, HeapMagicNum);
             
             HeapCheck(false);
             
@@ -546,17 +546,17 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
     }
     //GlobalRenderer->Println("Requesting more RAM.");
 
-    Serial::Writelnf("> Gotta expand Heap");
+    //Serial::Writelnf("> Gotta expand Heap");
     if (ExpandHeap(size))
     {
-        Serial::Writelnf("> Heap expanded");
+        //Serial::Writelnf("> Heap expanded");
         AddToStack();
-        Serial::Writelnf("> Doing Sub Malloc");
+        //Serial::Writelnf("> Doing Sub Malloc");
         void* res = _Xmalloc(size, text, "SUB MALLOC", "prolly heap.cpp", 555);
         RemoveFromStack();
         //mallocCount++;
         RemoveFromStack();
-        Serial::Writelnf("> Sub Malloc Done");
+        //Serial::Writelnf("> Sub Malloc Done");
 
         return res;
     }
@@ -746,7 +746,7 @@ bool ExpandHeap(size_t length)
 
 
 
-    Serial::Writelnf("BRUH: start: %X, end %X, this: %X, magic: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)newSegment, newSegment->magicNum);
+    //Serial::Writelnf("BRUH: start: %X, end %X, this: %X, magic: %X", (uint64_t)heapStart, (uint64_t)heapEnd, (uint64_t)newSegment, newSegment->magicNum);
 
 
 

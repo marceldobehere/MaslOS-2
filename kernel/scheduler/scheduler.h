@@ -5,6 +5,9 @@
 #include <libm/interrupt_frame.h>
 #include <libm/lock/lock_list_task.h>
 
+#define KERNEL_STACK_PAGE_SIZE 8
+#define USER_STACK_PAGE_SIZE 4
+
 namespace Scheduler
 {
     extern Lockable<List<osTask*>*> osTasks;

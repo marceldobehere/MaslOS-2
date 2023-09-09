@@ -131,4 +131,7 @@ extern "C" void intr_stub_255(void);
 extern "C" void task_entry(void);
 extern "C" void nothing_task_entry(void);
 
+#include <libm/osTask.h>
+
+bool IsAddressValidForTask(void* addr, osTask* task);
 void Syscall_handler(interrupt_frame* frame);

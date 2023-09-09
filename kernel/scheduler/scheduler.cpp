@@ -75,7 +75,7 @@ namespace Scheduler
                 }
                 else if (CurrentRunningTask == currentTask)
                 {
-                    Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
+                    //Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
                     *currentTask->frame = *currFrame;
                 }
             }
@@ -252,9 +252,6 @@ namespace Scheduler
         return currFrame;      
     }
 
-    #define KERNEL_STACK_PAGE_SIZE 8
-    #define USER_STACK_PAGE_SIZE 4
-
     osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, char** argv, bool isUserMode)
     {
         bool tempEnabled = SchedulerEnabled;
@@ -403,7 +400,7 @@ namespace Scheduler
         osTasks.Lock();
         RemoveFromStack();
 
-        Serial::Writelnf("> Trying to remove task at %X", (uint64_t)task);
+        //Serial::Writelnf("> Trying to remove task at %X", (uint64_t)task);
 
         AddToStack();
         int index = osTasks.obj->GetIndexOf(task);
@@ -411,9 +408,9 @@ namespace Scheduler
         if (index != -1)
         {
             AddToStack();
-            Serial::Writelnf("> Removing task at index %d", index);
+            //Serial::Writelnf("> Removing task at index %d", index);
             osTasks.obj->RemoveAt(index);
-            Serial::Writelnf("> Removed task at index %d", index);
+            //Serial::Writelnf("> Removed task at index %d", index);
             RemoveFromStack();
 
             // free task
@@ -423,13 +420,13 @@ namespace Scheduler
                 AddToStack();
                 for (int i = 0; i < task->requestedPages->GetCount(); i++)
                 {
-                    Serial::Writelnf("> Freeing page %X", (uint64_t)task->requestedPages->ElementAt(i));
+                    //Serial::Writelnf("> Freeing page %X", (uint64_t)task->requestedPages->ElementAt(i));
                     GlobalAllocator->FreePage((void*)task->requestedPages->ElementAt(i));
                 }
                 RemoveFromStack();
 
                 AddToStack();
-                Serial::Writelnf("> Freeing requested pages");
+                //Serial::Writelnf("> Freeing requested pages");
                 task->requestedPages->Free();
                 _Free(task->requestedPages);
                 task->requestedPages = NULL;
@@ -474,7 +471,7 @@ namespace Scheduler
         RemoveFromStack();
 
         AddToStack();
-        Serial::Writelnf("> Freeing task");
+        //Serial::Writelnf("> Freeing task");
         _Free(task);
         RemoveFromStack();
 
@@ -483,7 +480,7 @@ namespace Scheduler
 
         RemoveFromStack();
         SchedulerEnabled = tempEnabled;
-        Serial::Writelnf("> Done");
+        //Serial::Writelnf("> Done");
     }
 
 }

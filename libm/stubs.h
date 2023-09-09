@@ -9,72 +9,74 @@
 #include "../kernel/interrupts/panic.h"
 #include "../kernel/osData/MStack/MStackM.h"
 #include "../kernel/devices/serial/serial.h"
+#include "../kernel/devices/pit/pit.h"
 
 #endif
 
 #ifdef _KERNEL_MODULE
 
+#include "heap/heap.h"
+#include "syscallManager.h"
+
+#define AddToStack()
+#define RemoveFromStack()
+
 inline void Panic(const char* message, bool stop = false)
 {
-    asm("cli");
-    asm("hlt");
-}
-inline void* _Malloc(uint64_t size, const char* name)
-{
-    return NULL;
-}
-inline void* _Malloc(uint64_t size)
-{
-    return NULL;
-}
-
-inline void _Free(void* ptr)
-{
-
+    serialPrintLn("PROGRAM PANIC AAAA");
+    serialPrintLn(message);
+    programCrash();
 }
 
 namespace Serial
 {
     inline void Writelnf(const char* format, ...)
     {
-
+        // cant format shit yet so gg
+        serialPrintLn(format);
     }
 }
 
-#define AddToStack()
-#define RemoveFromStack()
-
+namespace PIT
+{
+    inline uint64_t TimeSinceBootMS()
+    {
+        return envGetTimeMs();
+    }
+}
 #endif
+
+
 
 #ifdef _USER_MODULE
 
+#include "heap/heap.h"
+#include "syscallManager.h"
+
+#define AddToStack()
+#define RemoveFromStack()
+
 inline void Panic(const char* message, bool stop = false)
 {
-    asm("cli");
-    asm("hlt");
-}
-inline void* _Malloc(uint64_t size, const char* name)
-{
-    return NULL;
-}
-inline void* _Malloc(uint64_t size)
-{
-    return NULL;
-}
-
-inline void _Free(void* ptr)
-{
-
+    serialPrintLn("PROGRAM PANIC AAAA");
+    serialPrintLn(message);
+    programCrash();
 }
 
 namespace Serial
 {
     inline void Writelnf(const char* format, ...)
     {
-
+        // cant format shit yet so gg
+        serialPrintLn(format);
     }
 }
 
-#define AddToStack()
-#define RemoveFromStack()
+namespace PIT
+{
+    inline uint64_t TimeSinceBootMS()
+    {
+        return envGetTimeMs();
+    }
+}
 #endif

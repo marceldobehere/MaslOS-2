@@ -335,9 +335,11 @@ void TempPitRoutine(interrupt_frame* frame)
     }
     //GlobalRenderer->Print("  - ", Colors.white);
 
-    if (mallocCount > 0)
+    #define PRINT_MEM_STATS_TO_SERIAL false
+
+    if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
         Serial::Writelnf("MEM> Malloced %d times", mallocCount);
-    if (freeCount > 0)
+    if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
         Serial::Writelnf("MEM> Freed %d times", freeCount);
 
     freeCount = 0;
@@ -345,14 +347,14 @@ void TempPitRoutine(interrupt_frame* frame)
     
     GlobalRenderer->CursorPosition = tempPoint;
 
-    if (usedHeapCount != _usedHeapCount)
+    if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
     {
         _usedHeapCount = usedHeapCount;
         Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
         Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
     }
 
-    if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages)
+    if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
     {
         _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
 
@@ -660,7 +662,19 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
 
 void MapMemoryOfCurrentTask(osTask* task)
 {
-    // TODO MAP IT AAAA
+    if (task == NULL)
+        return;
+    
+    if (task->pageTableContext == NULL)
+        return;
+
+    // we map the requested pages into the global space so we can access em rn
+    for (int i = 0; i < task->requestedPages->GetCount(); i++)
+    {
+        void* realPageAddr = task->requestedPages->ElementAt(i);
+        void* virtPageAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * i);
+        GlobalPageTableManager.MapMemory(virtPageAddr, realPageAddr);
+    }
 }
 
 bool InterruptGoingOn = false;
@@ -677,7 +691,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     if (InterruptGoingOn)
     {
         Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT!", frame->interrupt_number);
-        Panic("INT IN INT", true);
+        //Panic("INT IN INT", true);
         
         //return;
     }
@@ -730,10 +744,6 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Serial::Writelnf("Task->active: %B", task->active);
             Serial::Writelnf("Task->doExit: %B", task->doExit);
             Serial::Writelnf("Task->isUserMode: %B", !task->isKernelModule);
-            
-            
-            
-            
         }
 
         {
@@ -788,9 +798,39 @@ extern "C" void CloseCurrentTask()
 
 #include <libm/syscallList.h>
 
+bool IsAddressValidForTask(void* addr, osTask* task)
+{
+    if (task == NULL)
+        return false;
+    
+    if (addr == NULL)
+        return false;
+
+    if (task->pageTableContext == NULL)
+        return false;
+
+
+    if (addr >= task->kernelStack && addr < task->kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000)
+        return true;
+
+    if (addr >= task->userStack && addr < task->userStack + USER_STACK_PAGE_SIZE * 0x1000)
+        return true;
+
+    if (addr >= (void*)MEM_AREA_USER_PROGRAM_REQUEST_START && addr < (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * task->requestedPages->GetCount()))
+        return true;
+
+    if (addr >= task->elfFile.offset && addr < (char*)task->elfFile.offset + task->elfFile.size * 0x1000)
+        return true;
+
+    if (task->isKernelModule)
+        return true;
+
+    return false;
+}
+
 void Syscall_handler(interrupt_frame* frame)
 {
-    Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
+    //Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
     if (Scheduler::CurrentRunningTask == NULL)
         return;
 
@@ -834,12 +874,18 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
         char* str = (char*)frame->rbx;
-        Serial::Write(str);
+        if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
+            Serial::Write(str);
+        else
+            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_SERIAL_PRINTLN)
     {
         char* str = (char*)frame->rbx;
-        Serial::Writeln(str);
+        if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
+            Serial::Writeln(str);
+        else
+            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if(syscall ==SYSCALL_SERIAL_PRINT_CHAR)
     {
@@ -861,19 +907,22 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_GLOBAL_PRINT)
     {
         char* str = (char*)frame->rbx;
-        Serial::Writelnf("> Printing: \"%s\"", str);
-        GlobalRenderer->Print(str);
+        if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
+            GlobalRenderer->Print(str);
+        else
+            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINTLN)
     {
         char* str = (char*)frame->rbx;
-        Serial::Writelnf("> Printing: \"%s\"", str);
-        GlobalRenderer->Println(str);
+        if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
+            GlobalRenderer->Println(str);
+        else
+            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINT_CHAR)
     {
         char ch = (char)frame->rbx;
-        //Serial::Writelnf("> Printing: \"%d\"", frame->rbx);
         GlobalRenderer->Print(ch);
     }
     else if (syscall == SYSCALL_GLOBAL_CLS)

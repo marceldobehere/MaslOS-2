@@ -91,7 +91,7 @@ namespace Elf
         
 
         Elf64_Phdr* ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
-        Serial::Writelnf("ELF> ph: %x\n", ph);
+        //Serial::Writelnf("ELF> ph: %x\n", ph);
 
         void* last_dest;
 
@@ -106,7 +106,7 @@ namespace Elf
         void* offset = GlobalAllocator->RequestPages((uint64_t) last_dest / 0x1000 + 1);
         GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, (uint64_t) last_dest / 0x1000 + 1, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
-        Serial::Writelnf("offset: %x\n", offset);
+        //Serial::Writelnf("offset: %x\n", offset);
 
         ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
         for (int i = 0; i < header->e_phnum; i++, ph++)
