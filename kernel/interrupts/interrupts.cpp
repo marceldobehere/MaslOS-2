@@ -664,12 +664,14 @@ void MapMemoryOfCurrentTask(osTask* task)
 }
 
 bool InterruptGoingOn = false;
+int currentInterruptCount = 0;
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
     //Serial::Writelnf("INT> INT %d", frame->interrupt_number);
 
     AddToStack();
+    currentInterruptCount++;
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
     if (InterruptGoingOn)
@@ -695,11 +697,12 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writelnf("> Generic Interrupt");
     else
     {
-        Serial::Writelnf("> Interrupt/Exception: %d -> Closing Task...", frame->interrupt_number);
+        Serial::Writelnf("> Interrupt/Exception: %d (Count %d) -> Closing Task...", frame->interrupt_number, currentInterruptCount);
         Serial::Writeln();
 
         GlobalRenderer->Clear(Colors.black);
-        GlobalRenderer->Println("Interrupt/Exception: {}", to_string(frame->interrupt_number), Colors.bred);
+        GlobalRenderer->Print("Interrupt/Exception: {}", to_string(frame->interrupt_number), Colors.bred);
+        GlobalRenderer->Println(" (Count: {})", to_string(currentInterruptCount), Colors.bred);
         GlobalRenderer->Println();   
         
         PrintMStackTrace(MStackData::stackArr, MStackData::stackPointer);
@@ -707,6 +710,31 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writeln();
         PrintRegisterDump(GlobalRenderer);
         Serial::Writeln();
+
+        if (Scheduler::CurrentRunningTask != NULL)
+        {
+            Serial::Writeln("Task info:");
+            osTask* task = Scheduler::CurrentRunningTask;
+            Serial::Writelnf("Task: %X", (uint64_t)task);
+            Serial::Writelnf("Task->kernelStack: %X", (uint64_t)task->kernelStack);
+            Serial::Writelnf("Task->userStack: %X", (uint64_t)task->userStack);
+            Serial::Writelnf("Task->kernelEnvStack: %X", (uint64_t)task->kernelEnvStack);
+            Serial::Writelnf("Task->pageTableContext: %X", (uint64_t)task->pageTableContext);
+            Serial::Writelnf("Task->frame: %X", (uint64_t)task->frame);
+            
+            Serial::Writelnf("Task->requestedPages: %d", task->requestedPages->GetCount());
+            Serial::Writelnf("Task->Priority: %d/%d", task->priorityStep, task->priority);
+            Serial::Writelnf("Task->Timeout: %d", task->taskTimeoutDone);
+
+            Serial::Writelnf("Task->removeMe: %B", task->removeMe);
+            Serial::Writelnf("Task->active: %B", task->active);
+            Serial::Writelnf("Task->doExit: %B", task->doExit);
+            Serial::Writelnf("Task->isUserMode: %B", !task->isKernelModule);
+            
+            
+            
+            
+        }
 
         {
             Serial::Writeln("> Resetting MStackPointer");
@@ -790,23 +818,18 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_REQUEST_NEXT_PAGE)
     {
-        if (Scheduler::CurrentRunningTask != NULL)
-        {
-            osTask* task = Scheduler::CurrentRunningTask;
-            void* tempPage = GlobalAllocator->RequestPage();
-            int count = task->requestedPages->GetCount();
+        osTask* task = Scheduler::CurrentRunningTask;
+        void* tempPage = GlobalAllocator->RequestPage();
+        int count = task->requestedPages->GetCount();
 
-            task->requestedPages->Add(tempPage);
-            
-            void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
-            PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
-            manager.MapMemory((void*)tempPage, newAddr);
-            
-            frame->rax = (uint64_t)newAddr;
-            Serial::Writelnf("> Requested next page to %d", frame->rax);
-        }
-        else
-            frame->rax = 0;
+        task->requestedPages->Add(tempPage);
+        
+        void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
+        PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
+        manager.MapMemory(newAddr, (void*)tempPage);
+        
+        frame->rax = (uint64_t)newAddr;
+        Serial::Writelnf("> Requested next page to %d", frame->rax);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
@@ -897,9 +920,9 @@ void Syscall_handler(interrupt_frame* frame)
         if (prio < 0)
             prio = 0;
 
-        #define BEST_USERMODE_PRIO 2
+        #define BEST_USERMODE_PRIO 5
 
-        // user space programs cant get a prio of 1-4          
+        // user space programs cant get a prio of 1 to (BEST_USERMODE_PRIO - 1)       
         if (prio != 0 && prio < BEST_USERMODE_PRIO && !Scheduler::CurrentRunningTask->isKernelModule)
             prio = BEST_USERMODE_PRIO;
     
@@ -918,14 +941,26 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_USER)
     {
         Serial::Writelnf("> Launching User Test Elf");
-        osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
+        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::testElfFile);
+        if (!elf.works)
+            Panic("FILE NO WORK :(", true);
+
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, true);
+
+        //osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
         //task->active = false;
         Scheduler::AddTask(task);
     }
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_KERNEL)
     {
         Serial::Writelnf("> Launching Kernel Test Elf");
-        osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, false);
+        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::testElfFile);
+        if (!elf.works)
+            Panic("FILE NO WORK :(", true);
+
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+
+        //osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
         //task->active = false;
         Scheduler::AddTask(task);
     }

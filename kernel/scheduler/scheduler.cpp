@@ -15,7 +15,7 @@ namespace Scheduler
     osTask* NothingDoerTask;
     bool SchedulerEnabled = false;
     int CurrentTaskIndex = 0;
-    Elf::LoadedElfFile testElfFile;
+    void* testElfFile;
 
     void InitScheduler()
     {
@@ -213,7 +213,7 @@ namespace Scheduler
             nowTask = osTasks.obj->ElementAt(CurrentTaskIndex);
         
 
-        if (nowTask->doExit)
+        if (nowTask->doExit || !nowTask->active || nowTask->removeMe)
         {
             Panic("YOU SHOULD NOT BE HERE!!!", true);
             // osTasks.Unlock();
@@ -265,13 +265,16 @@ namespace Scheduler
         RemoveFromStack();
 
         uint8_t* kernelStack = (uint8_t*)GlobalAllocator->RequestPages(KERNEL_STACK_PAGE_SIZE);
-        GlobalPageTableManager.MapMemories(kernelStack, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        GlobalPageTableManager.MapMemories(kernelStack + MEM_AREA_TASK_KERNEL_STACK_OFFSET, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        kernelStack += MEM_AREA_TASK_KERNEL_STACK_OFFSET;
 
         uint8_t* userStack = (uint8_t*)GlobalAllocator->RequestPages(USER_STACK_PAGE_SIZE);
         if (isUserMode)
-            GlobalPageTableManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+            GlobalPageTableManager.MapMemories(userStack + MEM_AREA_TASK_USER_STACK_OFFSET, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         else
-            GlobalPageTableManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+            GlobalPageTableManager.MapMemories(userStack + MEM_AREA_TASK_USER_STACK_OFFSET, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        userStack += MEM_AREA_TASK_USER_STACK_OFFSET;
+
 
         _memset(kernelStack, 0, KERNEL_STACK_PAGE_SIZE * 0x1000);
         _memset(userStack, 0, USER_STACK_PAGE_SIZE * 0x1000);
@@ -291,6 +294,7 @@ namespace Scheduler
         task->isKernelModule = !isUserMode;
         task->justYielded = false;
         task->removeMe = false;
+        task->elfFile = module;
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
@@ -298,13 +302,13 @@ namespace Scheduler
         CopyPageTable(GlobalPageTableManager.PML4, tempManager.PML4);
 
         if (isUserMode)
-            tempManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+            tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         else
-            tempManager.MapMemories(userStack, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+            tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
 
 
-        uint8_t* kernelStackEnd = (uint8_t*)kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
-        uint8_t* userStackEnd = (uint8_t*)userStack + USER_STACK_PAGE_SIZE * 0x1000;
+        uint8_t* kernelStackEnd = kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
+        uint8_t* userStackEnd = userStack + USER_STACK_PAGE_SIZE * 0x1000;
 
 
         {
@@ -437,7 +441,7 @@ namespace Scheduler
             if (task->kernelStack != NULL)
             {
                 //Serial::Writelnf("> Freeing kernel stack");
-                GlobalAllocator->FreePages(task->kernelStack, KERNEL_STACK_PAGE_SIZE);
+                GlobalAllocator->FreePages(task->kernelStack - MEM_AREA_TASK_KERNEL_STACK_OFFSET, KERNEL_STACK_PAGE_SIZE);
                 task->kernelStack = NULL;
             }
             RemoveFromStack();
@@ -446,7 +450,7 @@ namespace Scheduler
             if (task->userStack != NULL)
             {
                 //Serial::Writelnf("> Freeing user stack");
-                GlobalAllocator->FreePages(task->userStack, USER_STACK_PAGE_SIZE);
+                GlobalAllocator->FreePages(task->userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE);
                 task->userStack = NULL;
             }
             RemoveFromStack();
@@ -459,6 +463,10 @@ namespace Scheduler
                 task->pageTableContext = NULL;
             }
             RemoveFromStack();
+        }
+
+        {
+            Elf::FreeElf(task->elfFile);
         }
 
         AddToStack();

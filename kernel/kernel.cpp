@@ -82,7 +82,7 @@ void boot(void* _bootInfo)
 
             if (i == 1)
             {
-                Scheduler::testElfFile = elf;
+                Scheduler::testElfFile = file->driver_specific_data;
                 Serial::Writelnf("> SET TEST ELF");
             }
         }

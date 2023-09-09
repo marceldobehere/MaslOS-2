@@ -209,7 +209,9 @@ void PageTableManager::UnmapMemories(void* virtualMemory, int c)
 PageTable* PageTableManager::CreatePageTableContext()
 {
     PageTable* table = (PageTable*)GlobalAllocator->RequestPage();
-    MapMemory(table, table, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    MapMemory((void*)((uint64_t)table + MEM_AREA_TASK_PAGE_TABLE_OFFSET), table, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    table = (PageTable*)((uint64_t)table + MEM_AREA_TASK_PAGE_TABLE_OFFSET);
+    
     _memset(table, 0, 0x1000);
 
     return table;
@@ -223,6 +225,7 @@ void PageTableManager::SwitchPageTable(PageTable* table)
 
 void PageTableManager::FreePageTable(PageTable* table)
 {
+    table = (PageTable*)((uint64_t)table - MEM_AREA_TASK_PAGE_TABLE_OFFSET);
     GlobalAllocator->FreePage((void*)((uint64_t)table));
     UnmapMemory(table);
 }

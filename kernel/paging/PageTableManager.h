@@ -22,8 +22,20 @@
 // kernel heap starts here
 #define MEM_AREA_KERNEL_HEAP_START 0x0000100000000000
 
+// where elfs will be mapped into
+#define MEM_AREA_ELF_MAP_OFFSET 0x0000200000000000
+
+// where the program kernel stacks will be mapped into
+#define MEM_AREA_TASK_KERNEL_STACK_OFFSET 0x0000300000000000
+
+// where the program user stacks will be mapped into
+#define MEM_AREA_TASK_USER_STACK_OFFSET 0x0000400000000000
+
+// where the program page tables will be mapped into
+#define MEM_AREA_TASK_PAGE_TABLE_OFFSET 0x0000500000000000
+
 // when a user program requests a page it will be allocated here
-#define MEM_AREA_USER_PROGRAM_REQUEST_START 0x0000200000000000
+#define MEM_AREA_USER_PROGRAM_REQUEST_START 0x0000600000000000
 
 // when the kernel needs to get the memory from the current program it will be loaded here
 //#define MEM_AREA_KERNEL_USER_COMMON_AREA_START 0x0000200000000000

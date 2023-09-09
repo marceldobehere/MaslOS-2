@@ -22,6 +22,8 @@
 #include "interrupt_frame.h"
 #include <libm/list/list_basics.h>
 
+#include <libm/elf/elfDefines.h>
+
 struct osTask
 {
 	interrupt_frame* frame;
@@ -43,6 +45,8 @@ struct osTask
 	int priorityStep;
 
 	List<void*>* requestedPages;
+
+	Elf::LoadedElfFile elfFile;
 
 	//int requestedPages;
 
