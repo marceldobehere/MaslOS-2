@@ -4,10 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/masl/MaslOS2",
-                "/home/masl/MaslOS-2"
+                "${workspaceFolder}/../"
             ],
-            "defines": [],
+            "defines": ["_KERNEL_SRC"],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++14",

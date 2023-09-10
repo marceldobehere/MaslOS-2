@@ -673,7 +673,7 @@ void MapMemoryOfCurrentTask(osTask* task)
     {
         void* realPageAddr = task->requestedPages->ElementAt(i);
         void* virtPageAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * i);
-        GlobalPageTableManager.MapMemory(virtPageAddr, realPageAddr);
+        GlobalPageTableManager.MapMemory(virtPageAddr, realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
     }
 }
 
@@ -685,7 +685,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     //Serial::Writelnf("INT> INT %d", frame->interrupt_number);
 
     AddToStack();
-    currentInterruptCount++;
+    
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
     if (InterruptGoingOn)
@@ -711,6 +711,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writelnf("> Generic Interrupt");
     else
     {
+        currentInterruptCount++;
         Serial::Writelnf("> Interrupt/Exception: %d (Count %d) -> Closing Task...", frame->interrupt_number, currentInterruptCount);
         Serial::Writeln();
 
@@ -760,6 +761,8 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writelnf("> END OF INT");
         InterruptGoingOn = false;
         Scheduler::SchedulerInterrupt(frame);
+        if (Scheduler::CurrentRunningTask != NULL)
+            MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
         RemoveFromStack();
         return;
     }
@@ -776,6 +779,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         return;
     }
 
+    MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 
     //Serial::Writelnf("> END OF INTERRUPT");
@@ -828,6 +832,8 @@ bool IsAddressValidForTask(void* addr, osTask* task)
     return false;
 }
 
+#include <libm/heap/heap.h>
+
 void Syscall_handler(interrupt_frame* frame)
 {
     //Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
@@ -846,9 +852,11 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_GET_ARGV)
     {
+        Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
+        char* futureRes = (char*)taskHeap->_Xmalloc(1230, "test Malloc");
         char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
         frame->rax = *((int*)(stack - 12));
-        Serial::Writelnf("> Get argv %d", frame->rax);
+        Serial::Writelnf("> Get argv %X, (%X), (%X)", frame->rax, futureRes, taskHeap);
     }
     else if (syscall == SYSCALL_GET_ENV)
     {
@@ -866,10 +874,11 @@ void Syscall_handler(interrupt_frame* frame)
         
         void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
         PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
-        manager.MapMemory(newAddr, (void*)tempPage);
-        
+        manager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        GlobalPageTableManager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+
         frame->rax = (uint64_t)newAddr;
-        Serial::Writelnf("> Requested next page to %d", frame->rax);
+        Serial::Writelnf("> Requested next page to %X", frame->rax);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {

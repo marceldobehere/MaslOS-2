@@ -21,7 +21,7 @@ void globalPrintChar(char chr);
 
 void globalCls();
 
-void proramExit(int code);
+void programExit(int code);
 void programCrash();
 void programWait(int timeMs);
 void programYield();

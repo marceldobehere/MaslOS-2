@@ -17,16 +17,7 @@ int main()
     char **argv = getArgV();
     ENV_DATA *env = getEnvData();
 
-    for (int i = 0; i < 10; i++)
-    {
-        void* newPage = requestNextPage();
-        uint64_t newPageAddr = (uint64_t)newPage;
-        globalPrint("> New page: ");
-        globalPrintLn(ConvertHexToString(newPageAddr));
-    }
-
     globalPrintLn("Hello from a test (2) program!");
-
     
     int prio = programSetPriority(1);
     globalPrint("> Priority: ");

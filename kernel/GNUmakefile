@@ -40,15 +40,15 @@ $(OUTPUT): $(OBJ)
 
 $(OBJDIR)/./interrupts/interrupts.o: interrupts/interrupts.cpp
 	@mkdir -p $(@D)
-	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../
+	$(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -fno-omit-frame-pointer -c $< -o $@ -I ../ -D _KERNEL_SRC
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) -c $^ -o $@
+	$(CC) $(CPPFLAGS) -c $^ -o $@ -D _KERNEL_SRC
 	
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@ -D _KERNEL_SRC
 
 $(OBJDIR)/%_asm.o: %.asm
 	@mkdir -p $(@D)

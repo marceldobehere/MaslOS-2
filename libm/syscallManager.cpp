@@ -28,13 +28,40 @@ ENV_DATA* getEnvData()
     return env;
 }
 
+#ifdef _KERNEL_SRC
+#include "../kernel/paging/PageTableManager.h"
+#include "../kernel/scheduler/scheduler.h"
+#include "osTask.h"
+#include "../kernel/devices/serial/serial.h"
+#include "../kernel/interrupts/panic.h"
+#endif
+
 void* requestNextPage()
 {
+    #ifdef _KERNEL_SRC
+    osTask* task = Scheduler::CurrentRunningTask;
+    if (task == NULL)
+        Panic("REQUESTING PAGE BUT TASK IS NULL", true);
+    void* tempPage = GlobalAllocator->RequestPage();
+    int count = task->requestedPages->GetCount();
+
+    task->requestedPages->Add(tempPage);
+    
+    void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
+    PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
+    manager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    GlobalPageTableManager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+
+    Serial::Writelnf("> KERNEL Requested page for task: %X", newAddr);
+
+    return newAddr;
+    #else
     int syscall = SYSCALL_REQUEST_NEXT_PAGE;
     void* page;
 
     asm("int $0x31" : "=a"(page): "a"(syscall));
     return page;
+    #endif
 }
 
 void serialPrint(const char* str)
@@ -96,7 +123,7 @@ void globalCls()
     asm("int $0x31" : : "a"(syscall));
 }
 
-void proramExit(int code)
+void programExit(int code)
 {
     int syscall = SYSCALL_EXIT;
     asm("int $0x31" : : "a"(syscall), "b"(code));

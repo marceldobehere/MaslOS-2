@@ -223,15 +223,127 @@ void PageTableManager::SwitchPageTable(PageTable* table)
     asm volatile("mov %0, %%cr3" : : "r"(&table->entries));
 }
 
+#include "../osData/MStack/MStackM.h"
+
 void PageTableManager::FreePageTable(PageTable* table)
 {
+    AddToStack();
     table = (PageTable*)((uint64_t)table - MEM_AREA_TASK_PAGE_TABLE_OFFSET);
-    GlobalAllocator->FreePage((void*)((uint64_t)table));
-    UnmapMemory(table);
+    
+    // // go through every entry and free the pages
+    // for (int i = 0; i < 512; i++)
+    // {
+    //     AddToStack();
+    //     if (table->entries[i].GetFlag(PT_Flag::Present))
+    //     {
+    //         PageTable* PDP = (PageTable*)((uint64_t)table->entries[i].GetAddress() << 12);
+    //         for (int j = 0; j < 512; j++)
+    //         {
+    //             AddToStack();
+    //             if (PDP->entries[j].GetFlag(PT_Flag::Present))
+    //             {
+    //                 PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 for (int k = 0; k < 512; k++)
+    //                 {
+    //                     AddToStack();
+    //                     if (PD->entries[k].GetFlag(PT_Flag::Present))
+    //                     {
+    //                         PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
+    //                         // for (int l = 0; l < 512; l++)
+    //                         // {
+    //                         //     if (PT->entries[l].GetFlag(PT_Flag::Present))
+    //                         //     {
+    //                         //         //GlobalAllocator->FreePage((void*)((uint64_t)PT->entries[l].GetAddress() << 12));
+    //                         //     }
+    //                         // }
+    //                         GlobalAllocator->FreePage((void*)PT);
+    //                     }
+    //                     RemoveFromStack();
+    //                 }
+    //                 GlobalAllocator->FreePage((void*)PD);
+    //             }
+    //             RemoveFromStack();
+    //         }
+    //         GlobalAllocator->FreePage((void*)PDP);
+    //     }
+    //     RemoveFromStack();
+    // }
+     
+    AddToStack();
+    GlobalAllocator->FreePage((void*)table);
+    RemoveFromStack();
+    //UnmapMemory(table);
+
+    RemoveFromStack();
 }
 
 void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 {
+    // // do a deep copy not just a top level shallow copy
+    // for (int i = 0; i < 512; i++)
+    // {
+    //     if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present) && srcPML4Address->entries[i].GetFlag(PT_Flag::UserSuper))
+    //     {
+    //         PageTable* srcPDP = (PageTable*)((uint64_t)srcPML4Address->entries[i].GetAddress() << 12);
+    //         PageTable* destPDP = (PageTable*)GlobalAllocator->RequestPage();
+    //         //GlobalPageTableManager.MapMemory(destPDP, destPDP, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    //         _memset(destPDP, 0, 0x1000);
+    //         destPML4Address->entries[i].SetAddress((uint64_t)destPDP >> 12);
+    //         destPML4Address->entries[i].SetFlag(PT_Flag::Present, srcPML4Address->entries[i].GetFlag(PT_Flag::Present));
+    //         destPML4Address->entries[i].SetFlag(PT_Flag::ReadWrite, srcPML4Address->entries[i].GetFlag(PT_Flag::ReadWrite));
+    //         destPML4Address->entries[i].SetFlag(PT_Flag::CacheDisabled, srcPML4Address->entries[i].GetFlag(PT_Flag::CacheDisabled));
+    //         destPML4Address->entries[i].SetFlag(PT_Flag::WriteThrough, srcPML4Address->entries[i].GetFlag(PT_Flag::WriteThrough));
+    //         destPML4Address->entries[i].SetFlag(PT_Flag::UserSuper, srcPML4Address->entries[i].GetFlag(PT_Flag::UserSuper));
+    //         for (int j = 0; j < 512; j++)
+    //         {
+    //             if (srcPDP->entries[j].GetFlag(PT_Flag::Present) && srcPDP->entries[j].GetFlag(PT_Flag::UserSuper))
+    //             {
+    //                 PageTable* srcPD = (PageTable*)((uint64_t)srcPDP->entries[j].GetAddress() << 12);
+    //                 PageTable* destPD = (PageTable*)GlobalAllocator->RequestPage();
+    //                 //GlobalPageTableManager.MapMemory(destPD, destPD, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    //                 _memset(destPD, 0, 0x1000);
+    //                 destPDP->entries[j].SetAddress((uint64_t)destPD >> 12);
+    //                 destPDP->entries[j].SetFlag(PT_Flag::Present, srcPDP->entries[j].GetFlag(PT_Flag::Present));
+    //                 destPDP->entries[j].SetFlag(PT_Flag::ReadWrite, srcPDP->entries[j].GetFlag(PT_Flag::ReadWrite));
+    //                 destPDP->entries[j].SetFlag(PT_Flag::CacheDisabled, srcPDP->entries[j].GetFlag(PT_Flag::CacheDisabled));
+    //                 destPDP->entries[j].SetFlag(PT_Flag::WriteThrough, srcPDP->entries[j].GetFlag(PT_Flag::WriteThrough));
+    //                 destPDP->entries[j].SetFlag(PT_Flag::UserSuper, srcPDP->entries[j].GetFlag(PT_Flag::UserSuper));
+
+    //                 for (int k = 0; k < 512; k++)
+    //                 {
+    //                     if (srcPD->entries[k].GetFlag(PT_Flag::Present) && srcPD->entries[k].GetFlag(PT_Flag::UserSuper))
+    //                     {
+    //                         PageTable* srcPT = (PageTable*)((uint64_t)srcPD->entries[k].GetAddress() << 12);
+    //                         PageTable* destPT = (PageTable*)GlobalAllocator->RequestPage();
+    //                         //GlobalPageTableManager.MapMemory(destPT, destPT, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+    //                         _memset(destPT, 0, 0x1000);
+    //                         destPD->entries[k].SetAddress((uint64_t)destPT >> 12);
+    //                         destPD->entries[k].SetFlag(PT_Flag::Present, srcPD->entries[k].GetFlag(PT_Flag::Present));
+    //                         destPD->entries[k].SetFlag(PT_Flag::ReadWrite, srcPD->entries[k].GetFlag(PT_Flag::ReadWrite));
+    //                         destPD->entries[k].SetFlag(PT_Flag::CacheDisabled, srcPD->entries[k].GetFlag(PT_Flag::CacheDisabled));
+    //                         destPD->entries[k].SetFlag(PT_Flag::WriteThrough, srcPD->entries[k].GetFlag(PT_Flag::WriteThrough));
+    //                         destPD->entries[k].SetFlag(PT_Flag::UserSuper, srcPD->entries[k].GetFlag(PT_Flag::UserSuper));
+
+    //                         for (int l = 0; l < 512; l++)
+    //                         {
+    //                             if (srcPT->entries[l].GetFlag(PT_Flag::Present) && srcPT->entries[l].GetFlag(PT_Flag::UserSuper))
+    //                             {
+    //                                 destPT->entries[l].SetAddress(srcPT->entries[l].GetAddress());
+    //                                 destPT->entries[l].SetFlag(PT_Flag::Present, srcPT->entries[l].GetFlag(PT_Flag::Present));
+    //                                 destPT->entries[l].SetFlag(PT_Flag::ReadWrite, srcPT->entries[l].GetFlag(PT_Flag::ReadWrite));
+    //                                 destPT->entries[l].SetFlag(PT_Flag::CacheDisabled, srcPT->entries[l].GetFlag(PT_Flag::CacheDisabled));
+    //                                 destPT->entries[l].SetFlag(PT_Flag::WriteThrough, srcPT->entries[l].GetFlag(PT_Flag::WriteThrough));
+    //                                 destPT->entries[l].SetFlag(PT_Flag::UserSuper, srcPT->entries[l].GetFlag(PT_Flag::UserSuper));
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+
     for (int i = 0; i < 512; i++)
     {
         if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present))
@@ -253,7 +365,6 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
             // _memcpy(src, dest, 0x1000);
         }
     }
-    
 }
 
 void PageTableManager::MakeEveryEntryUserReadable()
