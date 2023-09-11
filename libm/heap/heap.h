@@ -6,11 +6,11 @@ namespace Heap
 {
     class HeapManager;
 
-    struct HeapSegHdr
+    struct _HeapSegHdr
     {
         size_t length;
-        HeapSegHdr* next;
-        HeapSegHdr* last;
+        _HeapSegHdr* next;
+        _HeapSegHdr* last;
         const char* text = "<DEF>";
         int64_t activeMemFlagVal = 0;
         const char* file = "<DEF>";
@@ -20,23 +20,23 @@ namespace Heap
         bool free;
         void CombineForward(HeapManager* manager);
         void CombineBackward(HeapManager* manager);
-        HeapSegHdr* Split(HeapManager* manager, size_t splitLength);
+        _HeapSegHdr* Split(HeapManager* manager, size_t splitLength);
         uint64_t magicNum;
     };
 
     class HeapManager
     {
         public:
-        int64_t heapCount;
+        int64_t _heapCount;
 
-        int64_t usedHeapCount;
-        int64_t usedHeapAmount;
-        int64_t activeMemFlagVal;
+        int64_t _usedHeapCount;
+        int64_t _usedHeapAmount;
+        int64_t _activeMemFlagVal;
 
         void* _heapStart;
         void* _heapEnd;
 
-        HeapSegHdr* lastHdr;
+        _HeapSegHdr* _lastHdr;
 
         void SubInitHeap(void* heapAddress, size_t pageCount);
         void InitializeHeap(int pageCount);
@@ -54,7 +54,7 @@ namespace Heap
         bool HeapCheck(bool wait);
     };
 
-    extern HeapManager GlobalHeapManager;
+    extern HeapManager* GlobalHeapManager;
 }
 
 
@@ -90,10 +90,10 @@ namespace Heap
 
 
 
-#define _Malloc1(size) Heap::GlobalHeapManager._Xmalloc(size, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define _Malloc2(size, text) Heap::GlobalHeapManager._Xmalloc(size, text, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define _Free(address) Heap::GlobalHeapManager._Xfree((void*)address, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#define _TryFree(address) Heap::GlobalHeapManager._XtryFree((void*)address, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define _Malloc1(size) Heap::GlobalHeapManager->_Xmalloc(size, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define _Malloc2(size, text) Heap::GlobalHeapManager->_Xmalloc(size, text, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define _Free(address) Heap::GlobalHeapManager->_Xfree((void*)address, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define _TryFree(address) Heap::GlobalHeapManager->_XtryFree((void*)address, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 
 #include "new.hpp"

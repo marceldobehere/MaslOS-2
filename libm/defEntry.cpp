@@ -6,6 +6,15 @@
 
 extern "C" int main();
 
+void _memset(void* start, uint8_t value, uint64_t num)
+{
+    uint8_t* curr = (uint8_t*)start;
+    
+    for (int64_t rem = num; rem > 0; rem--)
+        *curr++ = value;
+}
+
+
 extern "C" void _start()
 {
     uint64_t a = randomUint64();
@@ -13,9 +22,15 @@ extern "C" void _start()
     RND::RandomInit(a, b);
     
     void* tempMemStart = requestNextPage();
-    *((Heap::HeapManager**)tempMemStart) = &Heap::GlobalHeapManager;
+    _memset(tempMemStart, 0, 0x1000);
+    Heap::GlobalHeapManager = (Heap::HeapManager*)tempMemStart;//Heap::HeapManager();
+    //*((Heap::HeapManager**)tempMemStart) = &Heap::GlobalHeapManager;
 
-    Heap::GlobalHeapManager.InitializeHeap(4);
+    Heap::GlobalHeapManager->InitializeHeap(4);
+
+    getArgV();
+
+    //getArgV();
 
     int res = main();
     while (true)

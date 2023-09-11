@@ -104,7 +104,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
-            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PDE.SetFlag(PT_Flag::UserSuper, true);
             PML4->entries[indexer.PDP_i] = PDE;
         }
     }
@@ -130,7 +130,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
-            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PDE.SetFlag(PT_Flag::UserSuper, true);
             PDP->entries[indexer.PD_i] = PDE;
         }
     }
@@ -157,7 +157,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
-            PDE.SetFlag(PT_Flag::UserSuper, 1);
+            PDE.SetFlag(PT_Flag::UserSuper, true);
             PD->entries[indexer.PT_i] = PDE;
         }
     }

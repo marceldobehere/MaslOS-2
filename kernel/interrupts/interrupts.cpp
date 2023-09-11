@@ -366,6 +366,9 @@ void TempPitRoutine(interrupt_frame* frame)
     RemoveFromStack();
 
     Scheduler::SchedulerInterrupt(frame);
+
+    // if (Scheduler::CurrentRunningTask != NULL)
+    //     MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
 }
 
 __attribute__((interrupt)) void PITInt_handler(interrupt_frame* frame)
@@ -668,12 +671,19 @@ void MapMemoryOfCurrentTask(osTask* task)
     if (task->pageTableContext == NULL)
         return;
 
+    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+
+    //Serial::Writelnf("INT> Mapping memory of task %X", (uint64_t)task);
+    PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
+
     // we map the requested pages into the global space so we can access em rn
     for (int i = 0; i < task->requestedPages->GetCount(); i++)
     {
         void* realPageAddr = task->requestedPages->ElementAt(i);
         void* virtPageAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * i);
+        //Serial::Writelnf("    > Mapping %X to %X", (uint64_t)realPageAddr, (uint64_t)virtPageAddr);
         GlobalPageTableManager.MapMemory(virtPageAddr, realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        manager.MapMemory(virtPageAddr, (void*)realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
     }
 }
 
@@ -853,6 +863,8 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_GET_ARGV)
     {
         Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
+        //Serial::Writelnf("> ARGV AAA %X, (%X), (%X)", frame->rax, taskHeap, Scheduler::CurrentRunningTask);
+        //Serial::Writelnf("> ARGV BBB %X, (%X), (%X)", taskHeap->_heapStart, taskHeap->_heapEnd, taskHeap->_lastHdr);
         char* futureRes = (char*)taskHeap->_Xmalloc(1230, "test Malloc");
         char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
         frame->rax = *((int*)(stack - 12));
@@ -878,7 +890,7 @@ void Syscall_handler(interrupt_frame* frame)
         GlobalPageTableManager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
 
         frame->rax = (uint64_t)newAddr;
-        Serial::Writelnf("> Requested next page to %X", frame->rax);
+        //Serial::Writelnf("> Requested next page to %X", frame->rax);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
@@ -898,8 +910,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if(syscall ==SYSCALL_SERIAL_PRINT_CHAR)
     {
-        char* ch = (char*)frame->rbx;
-        Serial::Write(*ch);
+        char ch = (char)frame->rbx;
+        Serial::Write(ch);
     }
     else if(syscall == SYSCALL_SERIAL_READ_CHAR)
     {

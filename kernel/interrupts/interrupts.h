@@ -133,5 +133,6 @@ extern "C" void nothing_task_entry(void);
 
 #include <libm/osTask.h>
 
+void MapMemoryOfCurrentTask(osTask* task);
 bool IsAddressValidForTask(void* addr, osTask* task);
 void Syscall_handler(interrupt_frame* frame);

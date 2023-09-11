@@ -10,9 +10,9 @@ namespace Heap
 {
     const uint64_t HeapMagicNum = 0xABCD12DEAD9654AA;//0;// 0xFFFFFFFFFFFFFFFF;//0xABCD12DEAD9654AA;
     
-    HeapManager GlobalHeapManager;
+    HeapManager* GlobalHeapManager;
     
-    void HeapSegHdr::CombineForward(HeapManager* manager)
+    void _HeapSegHdr::CombineForward(HeapManager* manager)
     {
         AddToStack();
         if (next == NULL)
@@ -45,20 +45,20 @@ namespace Heap
             #endif
         }
         
-        if (next == manager->lastHdr) 
-            manager->lastHdr = this;
+        if (next == manager->_lastHdr) 
+            manager->_lastHdr = this;
 
         if (next->next != NULL)
             next->next->last = this;
         
-        length = length + next->length + sizeof(HeapSegHdr);
+        length = length + next->length + sizeof(_HeapSegHdr);
         next = next->next;
         text = "<FREE>";
-        manager->heapCount--;
+        manager->_heapCount--;
         RemoveFromStack();
     }
 
-    void HeapSegHdr::CombineBackward(HeapManager* manager)
+    void _HeapSegHdr::CombineBackward(HeapManager* manager)
     {
         AddToStack();
         if (last != NULL && last->free)
@@ -66,7 +66,7 @@ namespace Heap
         RemoveFromStack();
     }
 
-    HeapSegHdr* HeapSegHdr::Split(HeapManager* manager, size_t splitLength)
+    _HeapSegHdr* _HeapSegHdr::Split(HeapManager* manager, size_t splitLength)
     {
         AddToStack();
         if (splitLength < 0x10)
@@ -75,15 +75,15 @@ namespace Heap
             return NULL;
         }
 
-        int64_t splitSegLength = ((int64_t)length - (int64_t)splitLength) - (int64_t)sizeof(HeapSegHdr);
+        int64_t splitSegLength = ((int64_t)length - (int64_t)splitLength) - (int64_t)sizeof(_HeapSegHdr);
        if (splitSegLength < 0x10)
         {
             RemoveFromStack();
             return NULL;
         }
 
-        HeapSegHdr* newSplitHdr = (HeapSegHdr*)((uint64_t)this + splitLength + sizeof(HeapSegHdr));
-        *newSplitHdr = HeapSegHdr();
+        _HeapSegHdr* newSplitHdr = (_HeapSegHdr*)((uint64_t)this + splitLength + sizeof(_HeapSegHdr));
+        *newSplitHdr = _HeapSegHdr();
 
         if (next != NULL)
             next->last = newSplitHdr;
@@ -98,10 +98,10 @@ namespace Heap
         length = splitLength;
         newSplitHdr->text = "<FREE>";
 
-        if (manager->lastHdr == this) 
-            manager->lastHdr = newSplitHdr;
+        if (manager->_lastHdr == this) 
+            manager->_lastHdr = newSplitHdr;
 
-        manager->heapCount++;
+        manager->_heapCount++;
         RemoveFromStack();
         return newSplitHdr;
     }
@@ -109,18 +109,18 @@ namespace Heap
     void HeapManager::SubInitHeap(void* heapAddress, size_t pageCount)
     {
         AddToStack();
-        activeMemFlagVal = 0;
+        _activeMemFlagVal = 0;
 
         uint64_t heapLength = pageCount * 0x1000;
         _heapStart = heapAddress;
         _heapEnd = (void*)((uint64_t)_heapStart + heapLength);
 
-        HeapSegHdr* startSeg = (HeapSegHdr*)heapAddress;
+        _HeapSegHdr* startSeg = (_HeapSegHdr*)heapAddress;
 
-        serialPrint("Start Seg: 0x");
-        serialPrintLn(ConvertHexToString((uint64_t)startSeg));
+        //serialPrint("Start Seg: 0x");
+        //serialPrintLn(ConvertHexToString((uint64_t)startSeg));
 
-        startSeg->length = heapLength - sizeof(HeapSegHdr);
+        startSeg->length = heapLength - sizeof(_HeapSegHdr);
         
         //return;
         startSeg->next = NULL;
@@ -128,11 +128,11 @@ namespace Heap
         startSeg->free = true;
         startSeg->text = "<FREE>";
         startSeg->magicNum = HeapMagicNum;
-        startSeg->activeMemFlagVal = activeMemFlagVal;
-        lastHdr = startSeg;
-        heapCount = 1;
-        usedHeapCount = 0;
-        usedHeapAmount = 0;
+        startSeg->activeMemFlagVal = _activeMemFlagVal;
+        _lastHdr = startSeg;
+        _heapCount = 1;
+        _usedHeapCount = 0;
+        _usedHeapAmount = 0;
         RemoveFromStack();
     }
 
@@ -171,7 +171,7 @@ namespace Heap
         }
         bool foundError = false;
 
-        HeapSegHdr* current = (HeapSegHdr*) _heapStart;
+        _HeapSegHdr* current = (_HeapSegHdr*) _heapStart;
         int counter = 0;
         while(true)
         {
@@ -195,7 +195,7 @@ namespace Heap
                 break;
             }
             
-            if (((uint64_t)(current->length + sizeof(HeapSegHdr) + (uint64_t)current)) != (uint64_t)current->next)
+            if (((uint64_t)(current->length + sizeof(_HeapSegHdr) + (uint64_t)current)) != (uint64_t)current->next)
             {
                 foundError = true;
                 break;
@@ -237,6 +237,7 @@ namespace Heap
     void* HeapManager::_Xmalloc(int64_t size, const char* text, const char* func, const char* file, int line)
     {
         AddToStack();
+        
         if (size <= 0)
             size = 0x10;
 
@@ -246,7 +247,7 @@ namespace Heap
             size += 0x10;
         }
 
-        HeapSegHdr* current = (HeapSegHdr*) _heapStart;
+        _HeapSegHdr* current = (_HeapSegHdr*) _heapStart;
         while(true)
         {
 
@@ -274,7 +275,7 @@ namespace Heap
 
             if (current->free)
             {
-                if (current->length > (size + sizeof(HeapSegHdr) + 0x10))
+                if (current->length > (size + sizeof(_HeapSegHdr) + 0x10))
                 {
                     if (current->Split(this, size) == NULL)
                     {
@@ -286,29 +287,29 @@ namespace Heap
                     }
                     current->free = false;
                     current->text = text;
-                    current->activeMemFlagVal = activeMemFlagVal;
+                    current->activeMemFlagVal = _activeMemFlagVal;
                     current->file = file;
                     current->func = func;
                     current->line = line;
                     current->time = PIT::TimeSinceBootMS();
-                    usedHeapCount++;
-                    usedHeapAmount += size;
+                    _usedHeapCount++;
+                    _usedHeapAmount += size;
                     RemoveFromStack();
-                    return (void*)((uint64_t)current + sizeof(HeapSegHdr));
+                    return (void*)((uint64_t)current + sizeof(_HeapSegHdr));
                 }
                 if (current->length == size)
                 {
                     current->free = false;
                     current->text = text;
-                    current->activeMemFlagVal = activeMemFlagVal;
+                    current->activeMemFlagVal = _activeMemFlagVal;
                     current->file = file;
                     current->func = func;
                     current->line = line;
                     current->time = PIT::TimeSinceBootMS();
-                    usedHeapCount++;
-                    usedHeapAmount += size;
+                    _usedHeapCount++;
+                    _usedHeapAmount += size;
                     RemoveFromStack();
-                    return (void*)((uint64_t)current + sizeof(HeapSegHdr));
+                    return (void*)((uint64_t)current + sizeof(_HeapSegHdr));
                 }
             }
 
@@ -353,17 +354,17 @@ namespace Heap
             #endif
         }
         
-        HeapSegHdr* segment = ((HeapSegHdr*)address) - 1;
+        _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
         if (segment->magicNum == HeapMagicNum)
         {
             if (!segment->free)
             {
                 segment->free = true;
                 segment->text = "<FREE>";
-                usedHeapAmount -= segment->length;
+                _usedHeapAmount -= segment->length;
                 segment->CombineForward(this);
                 segment->CombineBackward(this);
-                usedHeapCount--;
+                _usedHeapCount--;
                 RemoveFromStack();
                 return;
             }
@@ -394,7 +395,7 @@ namespace Heap
     bool HeapManager::ExpandHeap(size_t length)
     {
         AddToStack();
-        if (lastHdr->next != NULL)
+        if (_lastHdr->next != NULL)
         {
             #ifdef _KERNEL_SRC
             return false;
@@ -403,7 +404,7 @@ namespace Heap
             #endif
         }
 
-        length += sizeof(HeapSegHdr) + 0x100;
+        length += sizeof(_HeapSegHdr) + 0x100;
 
         if (length % 0x1000)
         {
@@ -431,19 +432,19 @@ namespace Heap
             tHeapEnd = (void*)((uint64_t)tHeapEnd + 0x1000);
         }
 
-        HeapSegHdr* newSegment = (HeapSegHdr*) _heapEnd;
+        _HeapSegHdr* newSegment = (_HeapSegHdr*) _heapEnd;
 
         
-        newSegment->last = lastHdr;
-        lastHdr->next = newSegment;
-        lastHdr = newSegment;
+        newSegment->last = _lastHdr;
+        _lastHdr->next = newSegment;
+        _lastHdr = newSegment;
         
         newSegment->next = NULL;
-        newSegment->length = length - sizeof(HeapSegHdr);
+        newSegment->length = length - sizeof(_HeapSegHdr);
         newSegment->free = true;
 
         newSegment->magicNum = HeapMagicNum;
-        newSegment->activeMemFlagVal = activeMemFlagVal;
+        newSegment->activeMemFlagVal = _activeMemFlagVal;
         newSegment->time = 0;
 
         newSegment->text = "<FREE>";
@@ -451,7 +452,7 @@ namespace Heap
         newSegment->func = "<NO FUNC GIVEN>";
         newSegment->line = 0;
         
-        heapCount++;
+        _heapCount++;
         
         _heapEnd = tHeapEnd;
 
@@ -476,7 +477,7 @@ namespace Heap
 
         AddToStack();
 
-        HeapSegHdr* segment = ((HeapSegHdr*)address) - 1;
+        _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
 
         if (segment->magicNum == HeapMagicNum)
         {
@@ -484,10 +485,10 @@ namespace Heap
             {
                 segment->free = true;
                 segment->text = "<FREE>";
-                usedHeapAmount -= segment->length;
+                _usedHeapAmount -= segment->length;
                 segment->CombineForward(this);
                 segment->CombineBackward(this);
-                usedHeapCount--;
+                _usedHeapCount--;
                 
                 RemoveFromStack();
                 return true;

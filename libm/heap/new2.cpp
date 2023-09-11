@@ -5,7 +5,7 @@
 
 void* _Ymalloc(size_t size, const char* func, const char* file, int line)
 {
-    return Heap::GlobalHeapManager._Xmalloc(size, func, file, line);
+    return Heap::GlobalHeapManager->_Xmalloc(size, func, file, line);
 }
 
 #endif

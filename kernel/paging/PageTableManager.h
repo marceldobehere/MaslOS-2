@@ -38,7 +38,7 @@
 #define MEM_AREA_USER_PROGRAM_REQUEST_START 0x0000600000000000
 
 // when a user program requests a page it will be allocated here
-#define MEM_AREA_USER_PROGRAM_HEAP *((Heap::HeapManager**)0x0000600000000000)
+#define MEM_AREA_USER_PROGRAM_HEAP ((Heap::HeapManager*)0x0000600000000000)
 
 // when the kernel needs to get the memory from the current program it will be loaded here
 //#define MEM_AREA_KERNEL_USER_COMMON_AREA_START 0x0000200000000000
