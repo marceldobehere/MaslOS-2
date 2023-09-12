@@ -22,7 +22,7 @@ namespace Scheduler
     // maybe save more registers yes
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
-    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, char** argv, bool isUserMode);
+    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, const char** argv, bool isUserMode);
 
     void AddTask(osTask* task);
 

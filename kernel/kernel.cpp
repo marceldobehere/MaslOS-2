@@ -55,6 +55,8 @@ void boot(void* _bootInfo)
         Scheduler::NothingDoerTask = task;
     }
 
+    const char* bleh = "BLEH TEST";
+
     {
         uint8_t* data = (uint8_t*)bootInfo->programs->fileData;
         //Serial::Writelnf("data: %X", data);
@@ -75,6 +77,8 @@ void boot(void* _bootInfo)
                 Panic("FILE NO WORK :(", true);
 
             Serial::Writelnf("> Adding ELF");
+
+            
 
             osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
             Scheduler::AddTask(task);
@@ -100,7 +104,7 @@ void boot(void* _bootInfo)
 
             Serial::Writelnf("> Adding ELF");
 
-            Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 0, NULL, true));
+            Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 1, &bleh, true));
             Serial::Writelnf("> ADDED PROGRAM");
 
         }

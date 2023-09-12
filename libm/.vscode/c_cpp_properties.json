@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/../"
             ],
-            "defines": ["_KERNEL_MODULE"],
+            "defines": ["_USER_MODULE"],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c17",
             "cppStandard": "gnu++14",

@@ -28,9 +28,20 @@ extern "C" void _start()
 
     Heap::GlobalHeapManager->InitializeHeap(4);
 
-    getArgV();
+    // int argc = getArgC();
+    // char **argv = getArgV();
 
-    //getArgV();
+    // globalPrintLn("GETTING ARGVS:");
+    // for (int i = 0; i < argc; i++)
+    // {
+    //     globalPrint(" - ");
+    //     globalPrintLn(argv[i]);
+    //     _Free(argv[i]);
+    // }
+    // globalPrintLn("DONE GETTING ARGVS");
+    // if (argv != NULL)
+    //     _Free(argv);
+
 
     int res = main();
     while (true)

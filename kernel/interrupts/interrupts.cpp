@@ -743,7 +743,6 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Serial::Writelnf("Task: %X", (uint64_t)task);
             Serial::Writelnf("Task->kernelStack: %X", (uint64_t)task->kernelStack);
             Serial::Writelnf("Task->userStack: %X", (uint64_t)task->userStack);
-            Serial::Writelnf("Task->kernelEnvStack: %X", (uint64_t)task->kernelEnvStack);
             Serial::Writelnf("Task->pageTableContext: %X", (uint64_t)task->pageTableContext);
             Serial::Writelnf("Task->frame: %X", (uint64_t)task->frame);
             
@@ -843,6 +842,7 @@ bool IsAddressValidForTask(void* addr, osTask* task)
 }
 
 #include <libm/heap/heap.h>
+#include <libm/cstrTools.h>
 
 void Syscall_handler(interrupt_frame* frame)
 {
@@ -856,25 +856,56 @@ void Syscall_handler(interrupt_frame* frame)
     frame->rax = 0;
     if (syscall == SYSCALL_GET_ARGC)
     {
-        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
-        frame->rax = *((int*)(stack - 4));
+        frame->rax = Scheduler::CurrentRunningTask->argC;
         Serial::Writelnf("> Get argc %d", frame->rax);
     }
     else if (syscall == SYSCALL_GET_ARGV)
     {
         Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
-        //Serial::Writelnf("> ARGV AAA %X, (%X), (%X)", frame->rax, taskHeap, Scheduler::CurrentRunningTask);
-        //Serial::Writelnf("> ARGV BBB %X, (%X), (%X)", taskHeap->_heapStart, taskHeap->_heapEnd, taskHeap->_lastHdr);
-        char* futureRes = (char*)taskHeap->_Xmalloc(1230, "test Malloc");
-        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
-        frame->rax = *((int*)(stack - 12));
-        Serial::Writelnf("> Get argv %X, (%X), (%X)", frame->rax, futureRes, taskHeap);
+        
+        int argC = Scheduler::CurrentRunningTask->argC;
+        char** argV = (char**)taskHeap->_Xmalloc(sizeof(const char*) * argC, "Malloc for argV");
+        //Serial::Writelnf("> Malloced argV %X, (argc: %d, argv: %X)", argV, argC, Scheduler::CurrentRunningTask->argV);
+        if (argV != NULL)
+            for (int i = 0; i < argC; i++)
+            {
+                const char* cV = Scheduler::CurrentRunningTask->argV[i];
+                int len = StrLen(cV);
+                //Serial::Writelnf("> ArgV %d: %s", i, cV);
+
+                argV[i] = (char*)taskHeap->_Xmalloc(len + 1, "Malloc argV Str");
+                //Serial::Writelnf("> Malloced argV %X", argV[i]);
+                if (argV[i] != NULL)
+                {
+                    //Serial::Writelnf("> Copying argV %X", argV[i]);
+                    _memcpy((void*)cV, (void*)argV[i], len);
+                    argV[i][len] = 0;
+                }
+            }
+
+        frame->rax = (uint64_t)argV;
+        Serial::Writelnf("> Get argv %X, (%X), (%X)", argV, taskHeap, Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GET_ENV)
     {
-        char* stack = (char*)Scheduler::CurrentRunningTask->kernelEnvStack;
-        frame->rax = (uint64_t)((int*)(stack - 12 - sizeof(ENV_DATA)));
-        Serial::Writelnf("> Get env %d", frame->rax);
+        if (!Scheduler::CurrentRunningTask->isKernelModule)
+        {
+            frame->rax = 0;
+            Serial::Writelnf("> Get env (userspace prg) %d", frame->rax);
+        }
+        else
+        {
+            Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
+
+            ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
+            if (env != NULL)
+            {
+                env->globalFont = GlobalRenderer->psf1_font;
+                env->globalFrameBuffer = GlobalRenderer->framebuffer;
+            }
+            frame->rax = (uint64_t)env;
+            Serial::Writelnf("> Get env (kernel module) %d", frame->rax);
+        }
     }
     else if (syscall == SYSCALL_REQUEST_NEXT_PAGE)
     {

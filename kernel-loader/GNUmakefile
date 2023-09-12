@@ -40,7 +40,7 @@ $(OUTPUT): $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) -c $^ -o $@
+	$(CC) $(CPPFLAGS) -c $^ -o $@ -D _KERNEL_SRC
 
 
 .PHONY: clean

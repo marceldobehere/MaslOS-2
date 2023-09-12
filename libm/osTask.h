@@ -34,7 +34,6 @@ struct osTask
 	bool justYielded;
 
     uint8_t* kernelStack;
-    uint8_t* kernelEnvStack;
     uint8_t* userStack;
 
     void* pageTableContext;
@@ -47,6 +46,9 @@ struct osTask
 	List<void*>* requestedPages;
 
 	Elf::LoadedElfFile elfFile;
+
+	const char** argV;
+	int argC;
 
 	//int requestedPages;
 

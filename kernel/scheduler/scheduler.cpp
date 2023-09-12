@@ -8,6 +8,8 @@
 #include "../interrupts/panic.h"
 #include "../devices/pit/pit.h"
 
+#include <libm/cstrTools.h>
+
 namespace Scheduler
 {
     Lockable<List<osTask*>*> osTasks;
@@ -252,7 +254,7 @@ namespace Scheduler
         return currFrame;      
     }
 
-    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, char** argv, bool isUserMode)
+    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argC, const char** argV, bool isUserMode)
     {
         bool tempEnabled = SchedulerEnabled;
         SchedulerEnabled = false;
@@ -293,6 +295,13 @@ namespace Scheduler
         task->removeMe = false;
         task->elfFile = module;
 
+        {
+            task->argC = argC;
+            task->argV = (const char**)_Malloc(sizeof(const char*) * argC);
+            for (int i = 0; i < argC; i++)
+                task->argV[i] = StrCopy(argV[i]);
+        }
+
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
         
@@ -306,25 +315,6 @@ namespace Scheduler
 
         uint8_t* kernelStackEnd = kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
         uint8_t* userStackEnd = userStack + USER_STACK_PAGE_SIZE * 0x1000;
-
-
-        {
-            task->kernelEnvStack = kernelStackEnd;     
-            //write argc, argv, env to stack
-        
-            ENV_DATA env;
-            env.globalFrameBuffer = GlobalRenderer->framebuffer;
-            env.globalFont = GlobalRenderer->psf1_font;
-
-            kernelStackEnd -= 4;
-            *((int*)kernelStackEnd) = argc;
-            
-            kernelStackEnd -= 8;
-            *((uint64_t*)kernelStackEnd) = (uint64_t)argv;
-            
-            kernelStackEnd -= sizeof(ENV_DATA);
-            *((ENV_DATA*)kernelStackEnd) = env;
-        }
 
         kernelStackEnd -= sizeof(interrupt_frame);
         interrupt_frame* frame = (interrupt_frame*)kernelStackEnd;
@@ -412,6 +402,20 @@ namespace Scheduler
             osTasks.obj->RemoveAt(index);
             //Serial::Writelnf("> Removed task at index %d", index);
             RemoveFromStack();
+
+            if (task->argV != NULL)
+            {
+                for (int i = 0; i < task->argC; i++)
+                {
+                    AddToStack();
+                    _Free((void*)task->argV[i]);
+                    RemoveFromStack();
+                }
+
+                AddToStack();
+                _Free(task->argV);
+                RemoveFromStack();
+            }
 
             // free task
             AddToStack();

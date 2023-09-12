@@ -38,6 +38,7 @@ $(OUTPUT): $(OBJ)
 	$(LD)  $(OBJ1) $(LDFLAGS) -o $(OBJDIR)/$@.user_module
 	@$(LD) $(OBJ2) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_src
 	@$(LD) $(OBJ3) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_module
+	@echo foo > $@
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
@@ -68,6 +69,7 @@ clean:
 	
 	@rm -rf $(HEADER_DEPS)
 	
+	@rm -rf $(OUTPUT) || true
 	@rm -rf $(OUTPUT).kernel_src
 	@rm -rf $(OUTPUT).kernel_module
 	@rm -rf $(OUTPUT).user_module
