@@ -1,7 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include "../stubs.h"
+//#include "../stubs.h"
+#include "../heap/heap.h"
 
 enum MessagePacketType : uint8_t
 {

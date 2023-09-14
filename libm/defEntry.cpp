@@ -3,16 +3,9 @@
 #include <libm/syscallManager.h>
 #include <libm/rnd/rnd.h>
 #include <libm/heap/heap.h>
+#include <libm/memStuff.h>
 
 extern "C" int main();
-
-void _memset(void* start, uint8_t value, uint64_t num)
-{
-    uint8_t* curr = (uint8_t*)start;
-    
-    for (int64_t rem = num; rem > 0; rem--)
-        *curr++ = value;
-}
 
 
 extern "C" void _start()

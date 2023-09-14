@@ -1,6 +1,6 @@
 #include "msgPacket.h"
 #include "../memStuff.h"
-
+#include "../stubs.h"
 
 GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size)
 {
