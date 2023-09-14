@@ -340,7 +340,10 @@ namespace Heap
     }
 
 
-
+    void HeapManager::_Xfree(void* address)
+    {
+        _Xfree(address, "<NO FUNC GIVEN>", "<NO FILE GIVEN>", 0);
+    }
 
     void HeapManager::_Xfree(void* address, const char* func, const char* file, int line)
     {

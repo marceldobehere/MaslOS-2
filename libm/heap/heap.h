@@ -46,6 +46,7 @@ namespace Heap
         void* _Xmalloc(int64_t size, const char* func, const char* file, int line);
         void* _Xmalloc(int64_t size, const char* text, const char* func, const char* file, int line);
 
+        void _Xfree(void* address);
         void _Xfree(void* address, const char* func, const char* file, int line);
         bool _XtryFree(void* address, const char* func, const char* file, int line);
 

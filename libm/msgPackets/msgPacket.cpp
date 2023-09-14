@@ -1,0 +1,47 @@
+#include "msgPacket.h"
+#include "../memStuff.h"
+
+
+GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size)
+{
+    Type = type;
+    Size = size;
+    Data = (uint8_t*)_Malloc(size, "Generic Message Data");
+    _memcpy(data, Data, size);
+}
+GenericMessagePacket GenericMessagePacket::Copy()
+{
+    GenericMessagePacket packet = GenericMessagePacket(Type, Data, Size);
+    return packet;   
+}    
+void GenericMessagePacket::Free()
+{
+    if (Data != NULL)
+    {
+        _Free(Data);    
+        Data = NULL;
+    }
+}
+
+GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size, Heap::HeapManager* manager)
+{
+    Type = type;
+    Size = size;
+    Data = (uint8_t*)manager->_Xmalloc(size, "Generic Message Data");
+    _memcpy(data, Data, size);
+}
+
+GenericMessagePacket GenericMessagePacket::Copy(Heap::HeapManager* manager)
+{
+    GenericMessagePacket packet = GenericMessagePacket(Type, Data, Size, manager);
+    return packet;
+}
+
+void GenericMessagePacket::Free(Heap::HeapManager* manager)
+{
+    if (Data != NULL)
+    {
+        manager->_Xfree((void*)Data);
+        Data = NULL;
+    }
+}
