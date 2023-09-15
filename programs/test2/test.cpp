@@ -6,6 +6,7 @@
 #include <libm/experimental/RelocatableAllocator.h>
 #include <libm/experimental/AutoFree.h>
 #include <libm/cstr.h>
+#include <libm/cstrTools.h>
 
 char buffer[512];
 
@@ -24,34 +25,85 @@ int main()
     globalPrintLn(to_string(prio));
 
 
-    globalPrintLn("> Goofy ah Scheduler Test:");
+    uint64_t pid = getPid();
+    globalPrint("A> PID: ");
+    globalPrintLn(to_string(pid));
 
-    programWait(2000);
-    globalPrintLn("> USER ELF");
-    for (int i = 0; i < 150; i++)
-        launchTestElfUser();
-    programWait(1000);
+    programWait(5000);
 
-    //return 0;
-    globalPrintLn("> KERNEL ELF");
-    for (int i = 0; i < 200; i++)
-        launchTestElfKernel();
-    programWait(1000);
-    globalPrintLn("> Test Done!");
-    
-    return 0;
-
-    for (int i = 0; i < 10;)
+    int packetCount = 0;
+        
+    for (int i = 0; i < 5; i++)
     {
-        if (serialCanReadChar())
+        packetCount = msgGetCount();
+        globalPrint("A> Packet Count: ");
+        globalPrintLn(to_string(packetCount));
+
         {
-            char c = serialReadChar();
-            serialPrintChar(c);
-            globalPrintChar(c);
-            i++;
+            globalPrintLn("A> Sending Message");
+            GenericMessagePacket* packet = (GenericMessagePacket*)_Malloc(sizeof(GenericMessagePacket), "Test Packet");
+            const char* str = "Hello from a test program!";
+            *packet = GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str)+1);
+            msgSendMessage(packet, pid);
+            packet->Free();
+            _Free(packet);
         }
-        else
-            programWait(500);//programYield();
+
+        packetCount = msgGetCount();
+        globalPrint("A> Packet Count: ");
+        globalPrintLn(to_string(packetCount));
+
+        {
+            GenericMessagePacket* packet = msgGetMessage();
+            if (packet != NULL)
+            {
+                globalPrintLn("A> Got Message");
+                globalPrint("A> Message: \"");
+                globalPrint((char*)packet->Data);
+                globalPrintLn("\"");
+                packet->Free();
+                _Free(packet);
+            }
+        }
+
+        programWait(100);
     }
+
+    packetCount = msgGetCount();
+    globalPrint("A> Packet Count: ");
+    globalPrintLn(to_string(packetCount));
+
+    programWait(5000);
+    
+
+    // globalPrintLn("> Goofy ah Scheduler Test:");
+
+    // programWait(2000);
+    // globalPrintLn("> USER ELF");
+    // for (int i = 0; i < 150; i++)
+    //     launchTestElfUser();
+    // programWait(1000);
+
+    // //return 0;
+    // globalPrintLn("> KERNEL ELF");
+    // for (int i = 0; i < 200; i++)
+    //     launchTestElfKernel();
+    // programWait(1000);
+    // globalPrintLn("> Test Done!");
+    
+    // return 0;
+
+    // for (int i = 0; i < 10;)
+    // {
+    //     if (serialCanReadChar())
+    //     {
+    //         char c = serialReadChar();
+    //         serialPrintChar(c);
+    //         globalPrintChar(c);
+    //         i++;
+    //     }
+    //     else
+    //         programWait(500);//programYield();
+    // }
     return 0;
 }
