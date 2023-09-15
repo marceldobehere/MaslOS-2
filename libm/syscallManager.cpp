@@ -28,6 +28,15 @@ ENV_DATA* getEnvData()
     return env;
 }
 
+uint64_t getPid()
+{
+    int syscall = SYSCALL_GET_PID;
+    uint64_t pid;
+
+    asm("int $0x31" : "=a"(pid): "a"(syscall));
+    return pid;
+}
+
 #ifdef _KERNEL_SRC
 #include "../kernel/paging/PageTableManager.h"
 #include "../kernel/scheduler/scheduler.h"
@@ -181,4 +190,28 @@ void launchTestElfKernel()
 {
     int syscall = SYSCALL_LAUNCH_TEST_ELF_KERNEL;
     asm("int $0x31" : : "a"(syscall));
+}
+
+int msgGetCount()
+{
+    int syscall = SYSCALL_MSG_GET_COUNT;
+    int count;
+    asm("int $0x31" : "=a"(count) : "a"(syscall));
+    return count;
+}
+
+GenericMessagePacket* msgGetMessage()
+{
+    int syscall = SYSCALL_MSG_GET_MSG;
+    GenericMessagePacket* packet;
+    asm("int $0x31" : "=a"(packet) : "a"(syscall));
+    return packet;
+}
+
+bool msgSendMessage(GenericMessagePacket* packet, uint64_t targetPid)
+{
+    int syscall = SYSCALL_MSG_SEND_MSG;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(packet), "c"(targetPid));
+    return success;
 }

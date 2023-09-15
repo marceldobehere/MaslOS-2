@@ -21,10 +21,10 @@ public:
     uint64_t Size;
 
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size);
-    GenericMessagePacket Copy();
+    GenericMessagePacket* Copy();
     void Free();
 
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size, Heap::HeapManager* manager);
-    GenericMessagePacket Copy(Heap::HeapManager* manager);
+    GenericMessagePacket* Copy(Heap::HeapManager* manager);
     void Free(Heap::HeapManager* manager);
 };

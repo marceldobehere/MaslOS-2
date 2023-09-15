@@ -5,7 +5,7 @@
 #include <libm/interrupt_frame.h>
 #include <libm/lock/lock_list_task.h>
 
-#define KERNEL_STACK_PAGE_SIZE 8
+#define KERNEL_STACK_PAGE_SIZE 4
 #define USER_STACK_PAGE_SIZE 4
 
 namespace Scheduler
@@ -27,5 +27,7 @@ namespace Scheduler
     void AddTask(osTask* task);
 
     void RemoveTask(osTask* task);
+
+    osTask* GetTask(uint64_t pid);
 };
 

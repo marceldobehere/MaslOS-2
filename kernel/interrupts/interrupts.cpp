@@ -1035,6 +1035,10 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = PIT::TimeSinceBootMS();
     }
+    else if (syscall == SYSCALL_GET_PID)
+    {
+        frame->rax = Scheduler::CurrentRunningTask->pid;
+    }
     else if (syscall == SYSCALL_RNG_UINT64)
     {
         frame->rax = RND::RandomInt();
@@ -1064,6 +1068,49 @@ void Syscall_handler(interrupt_frame* frame)
         //osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
         //task->active = false;
         Scheduler::AddTask(task);
+    }
+    else if (syscall == SYSCALL_MSG_GET_COUNT)
+    {
+        Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;
+        frame->rax = 0;
+        if (queue != NULL)
+            frame->rax = queue->GetCount();
+    }
+    else if (syscall == SYSCALL_MSG_GET_MSG)
+    {
+        Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;
+        frame->rax = 0;
+        if (queue != NULL && queue->GetCount() > 0)
+        {
+            Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
+            GenericMessagePacket* oldPacket = queue->Dequeue();
+            if (oldPacket != NULL && taskHeap != NULL)
+            {
+                GenericMessagePacket* newPacket = oldPacket->Copy(taskHeap);
+                oldPacket->Free();
+                _Free(oldPacket);
+                frame->rax = (uint64_t)newPacket;
+            }
+        }
+    }
+    else if (syscall == SYSCALL_MSG_SEND_MSG)
+    {
+        GenericMessagePacket* oldPacket = (GenericMessagePacket*)frame->rbx;
+        if (oldPacket != NULL)
+        {
+            osTask* task = Scheduler::CurrentRunningTask;
+            if (task != NULL)
+            {
+                uint64_t targetPid = frame->rcx;
+                osTask* otherTask = Scheduler::GetTask(targetPid);
+                if (otherTask != NULL)
+                {
+                    GenericMessagePacket* newPacket = oldPacket->Copy();
+                    otherTask->messages->Enqueue(newPacket);
+                    frame->rax = 1;
+                }
+            }
+        }
     }
     else
     {

@@ -21,7 +21,7 @@
 
 #include "interrupt_frame.h"
 #include <libm/list/list_basics.h>
-
+#include <libm/queue/queue_basic_msg.h>
 #include <libm/elf/elfDefines.h>
 
 struct osTask
@@ -32,6 +32,8 @@ struct osTask
 	bool active;
 	bool isKernelModule;
 	bool justYielded;
+
+	uint64_t pid;
 
     uint8_t* kernelStack;
     uint8_t* userStack;
@@ -44,6 +46,7 @@ struct osTask
 	int priorityStep;
 
 	List<void*>* requestedPages;
+	Queue<GenericMessagePacket*>* messages;
 
 	Elf::LoadedElfFile elfFile;
 

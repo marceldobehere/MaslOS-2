@@ -6,6 +6,7 @@
 int getArgC();
 char** getArgV();
 ENV_DATA* getEnvData();
+uint64_t getPid();
 void* requestNextPage();
 
 void serialPrint(const char* str);
@@ -34,3 +35,8 @@ uint64_t randomUint64();
 void launchTestElfUser();
 void launchTestElfKernel();
 
+#include "msgPackets/msgPacket.h"
+
+int msgGetCount();
+GenericMessagePacket* msgGetMessage();
+bool msgSendMessage(GenericMessagePacket* packet, uint64_t targetPid);

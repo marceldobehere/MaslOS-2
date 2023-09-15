@@ -7,6 +7,7 @@
 #include "../devices/serial/serial.h"
 #include "../interrupts/panic.h"
 #include "../devices/pit/pit.h"
+#include "../rnd/rnd.h"
 
 #include <libm/cstrTools.h>
 
@@ -285,6 +286,7 @@ namespace Scheduler
         task->taskTimeoutDone = 0;
         AddToStack();
         task->requestedPages = new List<void*>(4);
+        task->messages = new Queue<GenericMessagePacket*>(4);
         RemoveFromStack();
         task->doExit = false;
         task->active = true;
@@ -294,6 +296,8 @@ namespace Scheduler
         task->justYielded = false;
         task->removeMe = false;
         task->elfFile = module;
+        task->pid = RND::RandomInt();
+        Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
 
         {
             task->argC = argC;
@@ -485,6 +489,27 @@ namespace Scheduler
         RemoveFromStack();
         SchedulerEnabled = tempEnabled;
         //Serial::Writelnf("> Done");
+    }
+
+    osTask* GetTask(uint64_t pid)
+    {
+        bool tempEnabled = SchedulerEnabled;
+        SchedulerEnabled = false;
+
+        osTasks.Lock();
+        for (int i = 0; i < osTasks.obj->GetCount(); i++)
+        {
+            osTask* task = osTasks.obj->ElementAt(i);
+            if (task->pid == pid)
+            {
+                osTasks.Unlock();
+                SchedulerEnabled = tempEnabled;
+                return task;
+            }
+        }
+        osTasks.Unlock();
+        SchedulerEnabled = tempEnabled;
+        return NULL;
     }
 
 }
