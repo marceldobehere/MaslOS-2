@@ -16,15 +16,20 @@ namespace Scheduler
     Lockable<List<osTask*>*> osTasks;
     osTask* CurrentRunningTask;
     osTask* NothingDoerTask;
+    osTask* DesktopTask;
     bool SchedulerEnabled = false;
     int CurrentTaskIndex = 0;
-    void* testElfFile;
+    void* TestElfFile;
+    void* DesktopElfFile;
 
     void InitScheduler()
     {
         CurrentRunningTask = NULL;
         CurrentTaskIndex = 0;
         NothingDoerTask = NULL;
+        DesktopTask = NULL;
+        DesktopElfFile = NULL;
+        TestElfFile = NULL;
 
         osTasks = Lockable<List<osTask*>*>(new List<osTask*>());
 
@@ -61,6 +66,17 @@ namespace Scheduler
 
         osTasks.Lock();
 
+        if (DesktopTask == NULL && DesktopElfFile != NULL)
+        {
+            Serial::Writelnf("SCHEDULER> CREATING DESKTOP TASK");
+            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)DesktopElfFile);
+            DesktopTask = CreateTaskFromElf(elf, 0, NULL, false);
+            
+            osTasks.Unlock();
+            AddTask(DesktopTask);
+            osTasks.Lock();
+        }
+
         {
             osTask* currentTask = NULL;
             if (CurrentRunningTask != NULL && (int64_t)osTasks.obj->GetCount() > 0 && CurrentTaskIndex <  (int64_t)osTasks.obj->GetCount())
@@ -79,7 +95,9 @@ namespace Scheduler
                 else if (CurrentRunningTask == currentTask)
                 {
                     //Serial::Writelnf("SCHEDULER> SAVING PREV DATA");
+                    uint64_t tCr3 = currentTask->frame->cr3;
                     *currentTask->frame = *currFrame;
+                    currentTask->frame->cr3 = tCr3;
                 }
             }
         }
@@ -107,26 +125,24 @@ namespace Scheduler
         {
             osTask* bruhTask = osTasks.obj->ElementAt(i);
 
+            if (bruhTask->priority == 0)
+                continue;
+            
             if (bruhTask->removeMe)
                 continue;
             
-
             if (bruhTask->doExit)
                 continue;
-            
-                
+             
             if (bruhTask->taskTimeoutDone != 0)
                 continue;
 
             if (!bruhTask->active)
                 continue;
 
-            if (bruhTask->priority == 0)
-                continue;
-
             if (bruhTask->justYielded)
             {
-                bruhTask->justYielded = false;
+                //bruhTask->justYielded = false;
                 continue;
             }
 
@@ -182,15 +198,16 @@ namespace Scheduler
             if (currentTask->removeMe)
                 continue;
 
-            if (currentTask->priority != 0)
-                continue;
-
             if (currentTask->justYielded)
             {
+                //Serial::Writelnf("SCHEDULER> UNYIELDING TASK");
                 currentTask->justYielded = false;
+                cycleDone = false;
                 continue;
             }
-
+            
+            if (currentTask->priority != 0)
+                continue;
 
             cycleDone = false;
             break;
@@ -232,13 +249,20 @@ namespace Scheduler
 
         //Serial::Writelnf("SCHEDULER> LOADING NEXT DATA");
         outFrame = *nowTask->frame;
+        if (outFrame.cr3 != (uint64_t)nowTask->pageTableContext)
+        {
+            Serial::Writelnf("> CR3 MISMATCH! %X != %X", outFrame.cr3, (uint64_t)nowTask->pageTableContext);
+            Panic("WAAAAAAAAAAA", true);
+        }
+        else
+            ;//Serial::Writelnf("> CR3 OK");
 
 
         if (CurrentRunningTask != nowTask)
         {
             CurrentRunningTask = nowTask;
             if (nowTask != NothingDoerTask)
-                Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d / %d", CurrentTaskIndex, osTasks.obj->GetCount());
+                ;//Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d / %d", CurrentTaskIndex, osTasks.obj->GetCount());
             //Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
         }
 
@@ -308,7 +332,12 @@ namespace Scheduler
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
+        Serial::Writelnf("SCHEDULER> Creating Page Table Context at %X (%X)", task->pageTableContext, tempManager.PML4);
         
+
+
+        if (!isUserMode)
+            ;
         CopyPageTable(GlobalPageTableManager.PML4, tempManager.PML4);
 
         if (isUserMode)
@@ -328,11 +357,15 @@ namespace Scheduler
         userStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
         kernelStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
 
+        //task->pageTableContext = (void*)GlobalPageTableManager.PML4;
+
         if (isUserMode)
         {
             frame->rip = (uint64_t)module.entryPoint;
-            frame->cr3 = (uint64_t)tempManager.PML4->entries;
-            frame->cr0 = (uint64_t)GlobalPageTableManager.PML4->entries;
+            frame->cr3 = (uint64_t)tempManager.PML4;
+            frame->cr0 = 0x80000000;
+            
+            //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
             frame->rsp = (uint64_t)userStackEnd;
             //frame->rbp = (uint64_t)userStackEnd - 0x2000;
             //frame->rax = (uint64_t)0;
@@ -344,8 +377,9 @@ namespace Scheduler
         else
         {
             frame->rip = (uint64_t)module.entryPoint;
-            frame->cr3 = (uint64_t)tempManager.PML4->entries;
-            frame->cr0 = (uint64_t)GlobalPageTableManager.PML4->entries;
+            frame->cr3 = (uint64_t)tempManager.PML4;
+            frame->cr0 = 0x80000000;
+            //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
             frame->rsp = (uint64_t)userStackEnd;
             //frame->rbp = (uint64_t)userStackEnd - 0x2000;
             //frame->rax = (uint64_t)module.entryPoint;
@@ -477,6 +511,11 @@ namespace Scheduler
         AddToStack();
         osTasks.Unlock();
         RemoveFromStack();
+
+        if (task == DesktopTask)
+        {
+            DesktopTask = NULL;
+        }
 
         AddToStack();
         //Serial::Writelnf("> Freeing task");

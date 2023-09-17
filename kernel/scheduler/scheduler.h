@@ -13,9 +13,11 @@ namespace Scheduler
     extern Lockable<List<osTask*>*> osTasks;
     extern osTask* CurrentRunningTask;
     extern osTask* NothingDoerTask;
+    extern osTask* DesktopTask;
     extern bool SchedulerEnabled;
     extern int CurrentTaskIndex; 
-    extern void* testElfFile;
+    extern void* TestElfFile;
+    extern void* DesktopElfFile;
 
     void InitScheduler();
 

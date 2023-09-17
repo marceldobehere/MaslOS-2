@@ -8,6 +8,7 @@ char** getArgV();
 ENV_DATA* getEnvData();
 uint64_t getPid();
 void* requestNextPage();
+void* requestNextPages(int count);
 
 void serialPrint(const char* str);
 void serialPrintLn(const char* str);

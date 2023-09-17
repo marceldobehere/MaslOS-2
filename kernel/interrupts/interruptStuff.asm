@@ -127,8 +127,10 @@ intr_common_handler:
 
 	pop rax
 	pop rax
+	mov cr3, rax
 	pop rax
 	pop rax
+	;mov cr0, rax
 	popa
 
 	add rsp, 16
@@ -160,4 +162,7 @@ task_entry:
 
 [global nothing_task_entry]
 nothing_task_entry:
-	jmp $
+	nothing_loop:
+	mov rax, 132
+	int 31h
+	jmp nothing_loop

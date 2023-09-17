@@ -74,6 +74,9 @@ int main()
     globalPrintLn(to_string(packetCount));
 
     programWait(5000);
+
+    globalPrintLn("> Done!");
+    return 0;
     
 
     // globalPrintLn("> Goofy ah Scheduler Test:");

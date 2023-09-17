@@ -275,6 +275,8 @@ bool speakA = false;
 int _usedHeapCount = 0;
 int _usedPages = 0;
 
+int _pitCount = 0;
+
 void TempPitRoutine(interrupt_frame* frame)
 {
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
@@ -288,81 +290,88 @@ void TempPitRoutine(interrupt_frame* frame)
     // AudioDeviceStuff::play(PIT::FreqAdder);
     // if (osData.serialManager != NULL)
     //     osData.serialManager->DoStuff();
-    
-
-    Point tempPoint = GlobalRenderer->CursorPosition;
-    GlobalRenderer->CursorPosition.x = 0;
-    GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - 16;
-
-    GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
-
-    uint32_t currCol = 0;
-    
-    currCol = Colors.orange;
-    GlobalRenderer->Print("DATE: ", currCol);
-    GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
-    GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
-    GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
-    GlobalRenderer->Print(" - ", Colors.white);
-
-    currCol = Colors.yellow;
-    GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
-    GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
-    GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
-    GlobalRenderer->Print(" - ", Colors.white);
-
-    currCol = Colors.bgreen;
-    GlobalRenderer->Print("HEAP: ", currCol);
-    GlobalRenderer->Print("Used Count: {}, ", to_string(usedHeapCount), currCol);
-    GlobalRenderer->Print("Used Amount: {} Bytes", to_string(usedHeapAmount), currCol);
-    // GlobalRenderer->Print("Malloc Count: {}", to_string((int)mallocCount), currCol);
-    GlobalRenderer->Print(" - ", Colors.white);
 
 
-    currCol = Colors.cyan;
-    GlobalRenderer->Print("GLOB ALLOC: ", currCol);
-    GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
-    GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
-    GlobalRenderer->Print("  - ", Colors.white);
-
-    currCol = Colors.lime;
-    GlobalRenderer->Print("Runnings Tasks: ", currCol);
-    if (!Scheduler::osTasks.IsLocked())
+    if (_pitCount++ >= 20)   
     {
-        Scheduler::osTasks.Lock();
-        GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
-        Scheduler::osTasks.Unlock();
+        _pitCount = 0;
+        
+        Point tempPoint = GlobalRenderer->CursorPosition;
+        GlobalRenderer->CursorPosition.x = 0;
+        GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - 16;
+
+        GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
+
+        uint32_t currCol = 0;
+        
+        currCol = Colors.orange;
+        GlobalRenderer->Print("DATE: ", currCol);
+        GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
+        GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
+        GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
+        GlobalRenderer->Print(" - ", Colors.white);
+
+        currCol = Colors.yellow;
+        GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
+        GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
+        GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
+        GlobalRenderer->Print(" - ", Colors.white);
+
+        currCol = Colors.bgreen;
+        GlobalRenderer->Print("HEAP: ", currCol);
+        GlobalRenderer->Print("Used Count: {}, ", to_string(usedHeapCount), currCol);
+        GlobalRenderer->Print("Used Amount: {} Bytes", to_string(usedHeapAmount), currCol);
+        // GlobalRenderer->Print("Malloc Count: {}", to_string((int)mallocCount), currCol);
+        GlobalRenderer->Print(" - ", Colors.white);
+
+
+        currCol = Colors.cyan;
+        GlobalRenderer->Print("GLOB ALLOC: ", currCol);
+        GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
+        GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
+        GlobalRenderer->Print("  - ", Colors.white);
+
+        currCol = Colors.lime;
+        GlobalRenderer->Print("Runnings Tasks: ", currCol);
+        if (!Scheduler::osTasks.IsLocked())
+        {
+            Scheduler::osTasks.Lock();
+            GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
+            Scheduler::osTasks.Unlock();
+        }
+        //GlobalRenderer->Print("  - ", Colors.white);
+
+        #define PRINT_MEM_STATS_TO_SERIAL false
+
+        if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
+            Serial::Writelnf("MEM> Malloced %d times", mallocCount);
+        if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
+            Serial::Writelnf("MEM> Freed %d times", freeCount);
+
+        freeCount = 0;
+        mallocCount = 0;
+        
+        GlobalRenderer->CursorPosition = tempPoint;
+
+        if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
+        {
+            _usedHeapCount = usedHeapCount;
+            Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
+            Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
+        }
+
+        if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
+        {
+            _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
+
+            Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
+        }
+
+        // TestSetSpeakerPosition(speakA);
+        // speakA = !speakA;
     }
-    //GlobalRenderer->Print("  - ", Colors.white);
 
-    #define PRINT_MEM_STATS_TO_SERIAL false
 
-    if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-        Serial::Writelnf("MEM> Malloced %d times", mallocCount);
-    if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-        Serial::Writelnf("MEM> Freed %d times", freeCount);
-
-    freeCount = 0;
-    mallocCount = 0;
-    
-    GlobalRenderer->CursorPosition = tempPoint;
-
-    if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
-    {
-        _usedHeapCount = usedHeapCount;
-        Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
-        Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
-    }
-
-    if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
-    {
-        _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
-
-        Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
-    }
-
-    // TestSetSpeakerPosition(speakA);
-    // speakA = !speakA;
     RemoveFromStack();
 
     Scheduler::SchedulerInterrupt(frame);
@@ -671,10 +680,10 @@ void MapMemoryOfCurrentTask(osTask* task)
     if (task->pageTableContext == NULL)
         return;
 
-    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+    //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
-    //Serial::Writelnf("INT> Mapping memory of task %X", (uint64_t)task);
-    PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
+    Serial::Writelnf("INT> Mapping %d pages of task %X", task->requestedPages->GetCount(), (uint64_t)task);
+    //PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
 
     // we map the requested pages into the global space so we can access em rn
     for (int i = 0; i < task->requestedPages->GetCount(); i++)
@@ -683,7 +692,7 @@ void MapMemoryOfCurrentTask(osTask* task)
         void* virtPageAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * i);
         //Serial::Writelnf("    > Mapping %X to %X", (uint64_t)realPageAddr, (uint64_t)virtPageAddr);
         GlobalPageTableManager.MapMemory(virtPageAddr, realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
-        manager.MapMemory(virtPageAddr, (void*)realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        //manager.MapMemory(virtPageAddr, (void*)realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
     }
 }
 
@@ -692,25 +701,28 @@ int currentInterruptCount = 0;
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
-    //Serial::Writelnf("INT> INT %d", frame->interrupt_number);
+    //asm volatile("mov %0, %%cr3" : : "r"((uint64_t)GlobalPageTableManager.PML4) : "memory");
+    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+    
+    //Serial::Writelnf("INT> INT %d, (%X, %X)", frame->interrupt_number, frame->cr3, frame->cr0);
 
     AddToStack();
     
-    //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+    
 
     if (InterruptGoingOn)
     {
         Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT!", frame->interrupt_number);
         //Panic("INT IN INT", true);
         
+        for (int i = 0; i < 20; i++)
+            GlobalRenderer->ClearButDont();
+
         //return;
     }
     InterruptGoingOn = true;
 
     int rnd = RND::RandomInt();
-
-    if (Scheduler::CurrentRunningTask != NULL)
-        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
     
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
     if (frame->interrupt_number == 32)
@@ -767,11 +779,12 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Scheduler::CurrentRunningTask->removeMe = true;
         Scheduler::CurrentRunningTask = NULL;
 
-        Serial::Writelnf("> END OF INT");
+        //Serial::Writelnf("> END OF INT (%X, %X)", frame->cr3, frame->cr0);
         InterruptGoingOn = false;
         Scheduler::SchedulerInterrupt(frame);
-        if (Scheduler::CurrentRunningTask != NULL)
-            MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+        //frame.cr3 = (uint64_t)Scheduler::CurrentRunningTask->pageTableContext;
+        // if (Scheduler::CurrentRunningTask != NULL)
+        //     MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
         RemoveFromStack();
         return;
     }
@@ -788,10 +801,12 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         return;
     }
 
-    MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+    //frame->cr3 = (uint64_t)Scheduler::CurrentRunningTask->pageTableContext;
+
+    //MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
     //Panic("WAAAAAAAAA {}", to_string(regs->interrupt_number), true);
 
-    //Serial::Writelnf("> END OF INTERRUPT");
+    //Serial::Writelnf("> END OF INT (%X, %X)", frame->cr3, frame->cr0);
     InterruptGoingOn = false;
     RemoveFromStack();
 }
@@ -861,6 +876,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_GET_ARGV)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
         
         int argC = Scheduler::CurrentRunningTask->argC;
@@ -884,18 +901,22 @@ void Syscall_handler(interrupt_frame* frame)
             }
 
         frame->rax = (uint64_t)argV;
-        Serial::Writelnf("> Get argv %X, (%X), (%X)", argV, taskHeap, Scheduler::CurrentRunningTask);
+        Serial::Writelnf("> Get argv %X, %X, (%X - %X), %X", argV, taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd, Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GET_ENV)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         if (!Scheduler::CurrentRunningTask->isKernelModule)
         {
             frame->rax = 0;
-            Serial::Writelnf("> Get env (userspace prg) %d", frame->rax);
+            Serial::Writelnf("> Get env (userspace prg) %X", frame->rax);
         }
         else
         {
             Heap::HeapManager* taskHeap = MEM_AREA_USER_PROGRAM_HEAP;
+
+            Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
 
             ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
             if (env != NULL)
@@ -904,27 +925,38 @@ void Syscall_handler(interrupt_frame* frame)
                 env->globalFrameBuffer = GlobalRenderer->framebuffer;
             }
             frame->rax = (uint64_t)env;
-            Serial::Writelnf("> Get env (kernel module) %d", frame->rax);
+            Serial::Writelnf("> Get env (kernel module) %X", frame->rax);
         }
     }
-    else if (syscall == SYSCALL_REQUEST_NEXT_PAGE)
+    else if (syscall == SYSCALL_REQUEST_NEXT_PAGES)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
+        int pageCount = frame->rbx;
         osTask* task = Scheduler::CurrentRunningTask;
-        void* tempPage = GlobalAllocator->RequestPage();
-        int count = task->requestedPages->GetCount();
-
-        task->requestedPages->Add(tempPage);
-        
-        void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
         PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
-        manager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
-        GlobalPageTableManager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
 
-        frame->rax = (uint64_t)newAddr;
-        //Serial::Writelnf("> Requested next page to %X", frame->rax);
+        char* newAddr = (char*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * task->requestedPages->GetCount());
+        void* resAddr = (void*)newAddr;
+        
+        for (int i = 0; i < pageCount; i++)
+        {
+            void* tempPage = GlobalAllocator->RequestPage();
+            task->requestedPages->Add(tempPage);
+            
+            manager.MapMemory((void*)newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+            GlobalPageTableManager.MapMemory((void*)newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+
+            newAddr += 0x1000;
+        }
+
+        frame->rax = (uint64_t)resAddr;
+        Serial::Writelnf("> Requested next %d pages to %X", pageCount, frame->rax);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         char* str = (char*)frame->rbx;
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             Serial::Write(str);
@@ -933,6 +965,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_SERIAL_PRINTLN)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         char* str = (char*)frame->rbx;
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             Serial::Writeln(str);
@@ -958,6 +992,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_GLOBAL_PRINT)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+        
         char* str = (char*)frame->rbx;
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Print(str);
@@ -966,6 +1002,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_GLOBAL_PRINTLN)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         char* str = (char*)frame->rbx;
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Println(str);
@@ -1003,7 +1041,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_YIELD)
     {
-        Serial::Writelnf("> YIELDING PROGRAM");
+        Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask);
         Scheduler::CurrentRunningTask->justYielded = true;
 
         Scheduler::SchedulerInterrupt(frame);
@@ -1046,7 +1084,7 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_USER)
     {
         Serial::Writelnf("> Launching User Test Elf");
-        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::testElfFile);
+        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::TestElfFile);
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
 
@@ -1059,7 +1097,7 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_KERNEL)
     {
         Serial::Writelnf("> Launching Kernel Test Elf");
-        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::testElfFile);
+        Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::TestElfFile);
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
 
@@ -1095,6 +1133,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_MSG_SEND_MSG)
     {
+        frame->rax = 0;
         GenericMessagePacket* oldPacket = (GenericMessagePacket*)frame->rbx;
         if (oldPacket != NULL)
         {
@@ -1103,7 +1142,18 @@ void Syscall_handler(interrupt_frame* frame)
             {
                 uint64_t targetPid = frame->rcx;
                 osTask* otherTask = Scheduler::GetTask(targetPid);
-                if (otherTask != NULL)
+                bool allowSend = true;
+
+                if (allowSend && otherTask == NULL)
+                    allowSend = false;
+
+                if (allowSend && oldPacket->Type == MessagePacketType::KEY_EVENT && !task->isKernelModule)
+                    allowSend = false;
+
+                if (allowSend && oldPacket->Type == MessagePacketType::MOUSE_EVENT && !task->isKernelModule)
+                    allowSend = false;
+                
+                if (allowSend)
                 {
                     GenericMessagePacket* newPacket = oldPacket->Copy();
                     otherTask->messages->Enqueue(newPacket);

@@ -40,6 +40,7 @@ namespace SAF
         initrdMount* mount;
         int mode;
         void* driver_specific_data;
+        char name[256];
         char buffer[512];
         size_t size;
     };

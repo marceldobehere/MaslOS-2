@@ -139,9 +139,7 @@ namespace Heap
     void HeapManager::InitializeHeap(int pageCount)
     {
         AddToStack();
-        void* pos = requestNextPage();
-        for (int i = 0; i < pageCount - 1; i++)
-            requestNextPage();
+        void* pos = requestNextPages(pageCount);
         
         SubInitHeap(pos, pageCount);
         RemoveFromStack();
@@ -418,9 +416,8 @@ namespace Heap
         size_t pageCount = length / 0x1000;
         void* tHeapEnd = _heapEnd;
 
-        for (int i = 0; i < pageCount; i++)
         {
-            void* tempAddr =  requestNextPage();
+            void* tempAddr = requestNextPages(pageCount);
             if (tempAddr == NULL)
             {
                 #ifdef _KERNEL_SRC
@@ -429,10 +426,8 @@ namespace Heap
                 Panic("NO MORE RAM!!!!!!!", true);
                 #endif
             }
-            
-            //GlobalPageTableManager.MapMemory(tHeapEnd, tempAddr);
-            
-            tHeapEnd = (void*)((uint64_t)tHeapEnd + 0x1000);
+
+            tHeapEnd = (void*)((uint64_t)tHeapEnd + pageCount * 0x1000);
         }
 
         _HeapSegHdr* newSegment = (_HeapSegHdr*) _heapEnd;

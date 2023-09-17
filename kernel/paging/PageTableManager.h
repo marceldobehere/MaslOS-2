@@ -32,10 +32,15 @@
 #define MEM_AREA_TASK_USER_STACK_OFFSET 0x0000400000000000
 
 // where the program page tables will be mapped into
-#define MEM_AREA_TASK_PAGE_TABLE_OFFSET 0x0000500000000000
+#define MEM_AREA_TASK_PAGE_TABLE_OFFSET 0
+//0x0000500000000000
 
 // when a user program requests a page it will be allocated here
 #define MEM_AREA_USER_PROGRAM_REQUEST_START 0x0000600000000000
+
+#define MEM_AREA_USER_PROGRAM_REQUEST_START_1 MEM_AREA_USER_PROGRAM_REQUEST_START >> 12
+
+#define MEM_AREA_USER_PROGRAM_REQUEST_START_2 MEM_AREA_USER_PROGRAM_REQUEST_START_1 >> 12
 
 // when a user program requests a page it will be allocated here
 #define MEM_AREA_USER_PROGRAM_HEAP ((Heap::HeapManager*)0x0000600000000000)
@@ -52,6 +57,7 @@ class PageTableManager
 
     void* GetPhysicalAddressFromVirtualAddress(void* virtualAddress);
     void* GetVirtualAddressFromPhysicalAddress(void* physicalAddress);
+    int IsVirtualAddressMapped(void* virtualAddress);
 
     void MapMemory(void* virtualMemory, void* physicalMemory, int flags);
     void MapMemories(void* virtualMemory, void* physicalMemory, int c, int flags);
@@ -67,6 +73,8 @@ class PageTableManager
     void FreePageTable(PageTable* PML4Address);
 
     void MakeEveryEntryUserReadable();
+    void PrintPageTable();
+    void TrimPageTable();
 };
 
 void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address);

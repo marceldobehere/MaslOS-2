@@ -16,13 +16,12 @@ extern "C" void _start()
     
     void* tempMemStart = requestNextPage();
     _memset(tempMemStart, 0, 0x1000);
-    Heap::GlobalHeapManager = (Heap::HeapManager*)tempMemStart;//Heap::HeapManager();
-    //*((Heap::HeapManager**)tempMemStart) = &Heap::GlobalHeapManager;
+    Heap::GlobalHeapManager = (Heap::HeapManager*)tempMemStart;
 
     Heap::GlobalHeapManager->InitializeHeap(4);
 
-    // int argc = getArgC();
-    // char **argv = getArgV();
+    int argc = getArgC();
+    char **argv = getArgV();
 
     // globalPrintLn("GETTING ARGVS:");
     // for (int i = 0; i < argc; i++)
@@ -34,7 +33,6 @@ extern "C" void _start()
     // globalPrintLn("DONE GETTING ARGVS");
     // if (argv != NULL)
     //     _Free(argv);
-
 
     int res = main();
     while (true)

@@ -72,6 +72,8 @@ namespace SAF
         file_t* f = (file_t*)GlobalAllocator->RequestPages(1);
         f->mount = mount;
         f->size = file_node->size;
+        //f->name = file_node->hdr.name;
+        _memcpy(file_node->hdr.name, f->name, StrLen(file_node->hdr.name) + 1);
         f->driver_specific_data = (void*) ((uint64_t) mount->driver_specific_data + (uint64_t) file_node->addr);
 
         return f;

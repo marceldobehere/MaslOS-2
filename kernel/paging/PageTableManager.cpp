@@ -76,6 +76,35 @@ void* PageTableManager::GetVirtualAddressFromPhysicalAddress(void* physicalAddre
     return NULL;
 }
 
+int PageTableManager::IsVirtualAddressMapped(void* virtualAddress)
+{
+    PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualAddress);
+    PageDirectoryEntry PDE;
+
+    PDE = PML4->entries[indexer.PDP_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return 1;
+
+    PageTable* PDP = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PDP->entries[indexer.PD_i];
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return 2;
+
+    PageTable* PD = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PD->entries[indexer.PT_i];
+    if (PDE.GetFlag(PT_Flag::Custom1))
+        return 5;
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return 3;
+    
+    PageTable* PT = (PageTable*)((uint64_t)PDE.GetAddress() << 12);
+    PDE = PT->entries[indexer.P_i];    
+    if (!PDE.GetFlag(PT_Flag::Present))
+        return 4;
+
+    return 0;
+}
+
 void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int flags)
 {
     PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualMemory);
@@ -219,8 +248,10 @@ PageTable* PageTableManager::CreatePageTableContext()
 
 void PageTableManager::SwitchPageTable(PageTable* table)
 {
-    //this->PML4 = PML4Address;
-    asm volatile("mov %0, %%cr3" : : "r"(&table->entries));
+    if ((uint64_t)table > MEM_AREA_TASK_PAGE_TABLE_OFFSET)
+        table = (PageTable*)((uint64_t)table - MEM_AREA_TASK_PAGE_TABLE_OFFSET);
+
+    asm volatile("mov %0, %%cr3" : : "r"((uint64_t)table) : "memory");
 }
 
 #include "../osData/MStack/MStackM.h"
@@ -282,7 +313,7 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
     // // do a deep copy not just a top level shallow copy
     // for (int i = 0; i < 512; i++)
     // {
-    //     if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present) && srcPML4Address->entries[i].GetFlag(PT_Flag::UserSuper))
+    //     if (srcPML4Address->entries[i].GetFlag(PT_Flag::Present))
     //     {
     //         PageTable* srcPDP = (PageTable*)((uint64_t)srcPML4Address->entries[i].GetAddress() << 12);
     //         PageTable* destPDP = (PageTable*)GlobalAllocator->RequestPage();
@@ -296,7 +327,7 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
     //         destPML4Address->entries[i].SetFlag(PT_Flag::UserSuper, srcPML4Address->entries[i].GetFlag(PT_Flag::UserSuper));
     //         for (int j = 0; j < 512; j++)
     //         {
-    //             if (srcPDP->entries[j].GetFlag(PT_Flag::Present) && srcPDP->entries[j].GetFlag(PT_Flag::UserSuper))
+    //             if (srcPDP->entries[j].GetFlag(PT_Flag::Present))
     //             {
     //                 PageTable* srcPD = (PageTable*)((uint64_t)srcPDP->entries[j].GetAddress() << 12);
     //                 PageTable* destPD = (PageTable*)GlobalAllocator->RequestPage();
@@ -311,7 +342,7 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 
     //                 for (int k = 0; k < 512; k++)
     //                 {
-    //                     if (srcPD->entries[k].GetFlag(PT_Flag::Present) && srcPD->entries[k].GetFlag(PT_Flag::UserSuper))
+    //                     if (srcPD->entries[k].GetFlag(PT_Flag::Present))
     //                     {
     //                         PageTable* srcPT = (PageTable*)((uint64_t)srcPD->entries[k].GetAddress() << 12);
     //                         PageTable* destPT = (PageTable*)GlobalAllocator->RequestPage();
@@ -326,7 +357,7 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 
     //                         for (int l = 0; l < 512; l++)
     //                         {
-    //                             if (srcPT->entries[l].GetFlag(PT_Flag::Present) && srcPT->entries[l].GetFlag(PT_Flag::UserSuper))
+    //                             if (srcPT->entries[l].GetFlag(PT_Flag::Present))
     //                             {
     //                                 destPT->entries[l].SetAddress(srcPT->entries[l].GetAddress());
     //                                 destPT->entries[l].SetFlag(PT_Flag::Present, srcPT->entries[l].GetFlag(PT_Flag::Present));
@@ -365,6 +396,147 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
             // _memcpy(src, dest, 0x1000);
         }
     }
+}
+
+void PageTableManager::PrintPageTable()
+{
+    Serial::Writelnf("PML4: %X", PML4);
+    uint64_t virtualAddress;
+
+    for (uint64_t i = 0; i < 512; i++)
+    {
+        if (PML4->entries[i].GetFlag(PT_Flag::Present))
+        {
+            virtualAddress = (i << 39) | (0 << 30) | (0 << 21) | (0 << 12);
+            Serial::Writelnf("> PDP: %X -> %X", virtualAddress, (uint64_t)PML4->entries[i].GetAddress() << 12);
+            PageTable* PDP = (PageTable*)((uint64_t)PML4->entries[i].GetAddress() << 12);
+            for (uint64_t j = 0; j < 512; j++)
+            {
+                if (PDP->entries[j].GetFlag(PT_Flag::Present))
+                {
+                    virtualAddress = (i << 39) | (j << 30) | (0 << 21) | (0 << 12);
+                    Serial::Writelnf("  > PD: %X -> %X", virtualAddress, (uint64_t)PDP->entries[j].GetAddress() << 12);
+                    PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
+                    for (uint64_t k = 0; k < 512; k++)
+                    {
+                        if (PD->entries[k].GetFlag(PT_Flag::Present))
+                        {
+                            virtualAddress = (i << 39) | (j << 30) | (k << 21) | (0 << 12);
+                            Serial::Writelnf("    > PT: %X -> %X", virtualAddress, (uint64_t)PD->entries[k].GetAddress() << 12);
+                            PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
+                            for (uint64_t l = 0; l < 512; l++)
+                            {
+                                if (PT->entries[l].GetFlag(PT_Flag::Present))
+                                {
+                                    virtualAddress = (i << 39) | (j << 30) | (k << 21) | (l << 12);
+                                    Serial::Writelnf("      > P: %X -> %X", virtualAddress, (uint64_t)PT->entries[l].GetAddress() << 12);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void PageTableManager::TrimPageTable()
+{
+    uint64_t virtualAddress;
+
+    // repeatFromTop:
+
+    // for (uint64_t i = 0; i < 512; i++)
+    // {
+    //     if (PML4->entries[i].GetFlag(PT_Flag::Present))
+    //     {
+    //         virtualAddress = (i << 39) | (0 << 30) | (0 << 21) | (0 << 12);
+    //         Serial::Writelnf("  > PDP: %X -> %X", virtualAddress, (uint64_t)PML4->entries[i].GetAddress() << 12);
+    //         PageTable* PDP = (PageTable*)((uint64_t)PML4->entries[i].GetAddress() << 12);
+    //         //int PD_COUNT = 0;
+    //         for (uint64_t j = 0; j < 512; j++)
+    //         {
+    //             if (PDP->entries[j].GetFlag(PT_Flag::Present))
+    //             {
+    //                 //PD_COUNT++;
+    //                 virtualAddress = (i << 39) | (j << 30) | (0 << 21) | (0 << 12);
+    //                 Serial::Writelnf("    > PD: %X -> %X", virtualAddress, (uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 PageTable* PD = (PageTable*)((uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 // if (!IsVirtualAddressMapped(PD))
+    //                 // {
+    //                 //     Serial::Writelnf("      > UNMAPPED PD: %X -> %X", virtualAddress, (uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 //     PDP->entries[j].SetFlag(PT_Flag::Present, 0);
+    //                 //     continue;
+    //                 // }
+    //                 //int PT_COUNT = 0;
+    //                 for (uint64_t k = 0; k < 512; k++)
+    //                 {
+    //                     if (PD->entries[k].GetFlag(PT_Flag::Present))
+    //                     {
+    //                         //PT_COUNT++;
+    //                         virtualAddress = (i << 39) | (j << 30) | (k << 21) | (0 << 12);
+    //                         Serial::Writelnf("      > PT: %X -> %X", virtualAddress, (uint64_t)PD->entries[k].GetAddress() << 12);
+    //                         PageTable* PT = (PageTable*)((uint64_t)PD->entries[k].GetAddress() << 12);
+    //                         int mapState = IsVirtualAddressMapped(PT);
+    //                         if (mapState == 5)
+    //                         {
+    //                             Serial::Writelnf("      > UNMAPPED PT: %X (%d) -> %X", (uint64_t)PT, mapState, GetPhysicalAddressFromVirtualAddress(PT));
+    //                             //PD->entries[k].SetFlag(PT_Flag::Present, 0);
+    //                             continue;
+    //                         }
+    //                         int P_COUNT = 0;
+    //                         for (uint64_t l = 0; l < 512; l++)
+    //                         {
+    //                             PageDirectoryEntry P = PT->entries[l];
+    //                             if (P.GetFlag(PT_Flag::Present))
+    //                             {
+    //                                 virtualAddress = (i << 39) | (j << 30) | (k << 21) | (l << 12);
+    //                                 uint64_t addr = P.GetAddress();
+    //                                 if (addr == 0xFFFFFFFFFF || addr == 0)
+    //                                 {
+    //                                     //Serial::Writelnf("        > P: %X -> %X", virtualAddress, addr << 12);
+    //                                     P_COUNT++;
+    //                                 }
+                                    
+    //                                 //Serial::Writelnf("        > P: %X -> %X", virtualAddress, (uint64_t)PT->entries[l].GetAddress() << 12);
+    //                             }
+    //                             else if (P.GetAddress() != 0)
+    //                             {
+    //                                 virtualAddress = (i << 39) | (j << 30) | (k << 21) | (l << 12);
+    //                                 //Serial::Writelnf("        < P: %X -> %X", virtualAddress, (uint64_t)PT->entries[l].GetAddress() << 12);
+    //                             }
+    //                         }
+
+    //                         if (P_COUNT == 512)
+    //                         {
+    //                             virtualAddress = (i << 39) | (j << 30) | (k << 21) | (0 << 12);
+    //                             Serial::Writelnf("    RM> PT: %X -> %X, (%d, %d, %d)", virtualAddress, (uint64_t)PD->entries[k].GetAddress() << 12, i, j, k);
+    //                             PD->entries[k].SetFlag(PT_Flag::Custom1, 1);
+    //                             PD->entries[k].SetFlag(PT_Flag::Present, 0);
+    //                             //PD->entries[k] = PageDirectoryEntry();
+    //                         }
+    //                         else
+    //                             PD->entries[k].SetFlag(PT_Flag::Custom1, 0);
+    //                     }
+    //                 }
+
+    //                 // if (PT_COUNT == 0)
+    //                 // {
+    //                 //     // virtualAddress = (i << 39) | (j << 30) | (0 << 21) | (0 << 12);
+    //                 //     // Serial::Writelnf("  RM> PD: %X -> %X", virtualAddress, (uint64_t)PDP->entries[j].GetAddress() << 12);
+    //                 //     // PDP->entries[j].SetFlag(PT_Flag::Present, 0);
+    //                 // }
+    //             }
+    //         }
+
+    //         // if (PD_COUNT == 0)
+    //         // {
+    //         //     // virtualAddress = (i << 39) | (0 << 30) | (0 << 21) | (0 << 12);
+    //         //     // Serial::Writelnf("RM> PDP: %X -> %X", virtualAddress, (uint64_t)PML4->entries[i].GetAddress() << 12);
+    //         //     // PML4->entries[i].SetFlag(PT_Flag::Present, 0);
+    //         // }
+    //     }
+    // }
 }
 
 void PageTableManager::MakeEveryEntryUserReadable()

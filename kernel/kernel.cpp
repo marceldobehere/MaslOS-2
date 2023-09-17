@@ -14,11 +14,11 @@
 #include "saf/saf.h"
 
 #include "interrupts/interrupts.h"
+#include <libm/cstrTools.h>
+#include "paging/PageTableManager.h"
 
 void boot(void* _bootInfo)
 {
-    
-
     BootInfo* bootInfo = (BootInfo*)_bootInfo;
 
     osData.NO_INTERRUPTS = false;
@@ -44,6 +44,11 @@ void boot(void* _bootInfo)
     PIT::Sleep(100);
 
     GlobalRenderer->Clear(Colors.black);
+
+    // GlobalPageTableManager.PrintPageTable();
+
+    // while (true);
+    
     
     Scheduler::SchedulerEnabled = false;
 
@@ -70,7 +75,7 @@ void boot(void* _bootInfo)
         for (int i = 0; i < moduleNode->num_children; i++)
         {
             SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]));
-            Serial::Writelnf("MODULE> file: %d", file->size);
+            Serial::Writelnf("MODULE> file: \"%s\" %d", file->name, file->size);
 
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
             if (!elf.works)
@@ -78,16 +83,22 @@ void boot(void* _bootInfo)
 
             Serial::Writelnf("> Adding ELF");
 
-            
-
-            osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
-            Scheduler::AddTask(task);
-            Serial::Writelnf("> ADDED MODULE");
-
-            if (i == 1)
+            if (StrEquals(file->name, "test.elf"))
             {
-                Scheduler::testElfFile = file->driver_specific_data;
+                Scheduler::TestElfFile = file->driver_specific_data;
                 Serial::Writelnf("> SET TEST ELF");
+            }
+            else if (StrEquals(file->name, "desktop.elf"))
+            {
+                Scheduler::DesktopElfFile = file->driver_specific_data;
+                Serial::Writelnf("> SET DESKTOP ELF");
+            }
+            else
+            {
+                osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+                
+                Scheduler::AddTask(task);
+                Serial::Writelnf("> ADDED MODULE");
             }
         }
 

@@ -243,8 +243,9 @@ void PrepareMemory(BootInfo* bootInfo)
     GlobalPageTableManager = PageTableManager(PML4);
     PrintMsgEndLayer("Info");
 
-    GlobalPageTableManager.MakeEveryEntryUserReadable();
+    //GlobalPageTableManager.MakeEveryEntryUserReadable();
 
+    GlobalPageTableManager.TrimPageTable();
     
     uint64_t fbBase = (uint64_t)bootInfo->framebuffer->BaseAddress;
     uint64_t fbSize = (uint64_t)bootInfo->framebuffer->BufferSize;
