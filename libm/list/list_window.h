@@ -1,7 +1,7 @@
-// #pragma once
-// #include "./list.h"
+#pragma once
+#include "./list.h"
 
-// #include "../../WindowStuff/Window/window.h"
+#include "../window/window.h"
 
-// template class Array<Window*>;
-// template class List<Window*>;
+template class Array<Window*>;
+template class List<Window*>;

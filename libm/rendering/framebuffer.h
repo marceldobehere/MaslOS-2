@@ -12,3 +12,10 @@ struct Framebuffer
 	unsigned int PixelsPerScanLine;
 };
 
+struct PointerBuffer
+{
+	uint32_t** BaseAddress;
+	size_t BufferSize;
+	unsigned int Width;
+	unsigned int Height;
+};

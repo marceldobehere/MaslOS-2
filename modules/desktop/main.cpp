@@ -4,6 +4,9 @@
 #include <libm/rendering/Cols.h>
 #include <libm/rnd/rnd.h>
 #include <libm/cstr.h>
+#include <libm/list/list_window.h>
+#include <libm/memStuff.h>
+
 
 
 void DrawFrame();
@@ -11,8 +14,10 @@ void DrawFrame();
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
 Framebuffer* mainBuffer;
-Framebuffer* backBuffer;
+PointerBuffer* pointerBuffer;
+uint32_t bgCol = Colors.gray;
 
+List<Window*>* windows;
 
 int main()
 {
@@ -22,7 +27,7 @@ int main()
 
     ENV_DATA* env = getEnvData();
 
-    programWait(1000);
+    programWait(500);
 
     actualScreenFramebuffer = env->globalFrameBuffer;
     actualScreenRenderer = new TempRenderer(actualScreenFramebuffer, env->globalFont);
@@ -34,16 +39,24 @@ int main()
         mainBuffer->PixelsPerScanLine = mainBuffer->Width;
         mainBuffer->BufferSize = mainBuffer->Width * mainBuffer->Height * 4;
         mainBuffer->BaseAddress = _Malloc(mainBuffer->BufferSize, "Main Buffer");
+        _memset(mainBuffer->BaseAddress, 0, mainBuffer->BufferSize);
     }
 
     {
-        backBuffer = new Framebuffer();
-        backBuffer->Width = actualScreenFramebuffer->Width;
-        backBuffer->Height = actualScreenFramebuffer->Height;
-        backBuffer->PixelsPerScanLine = backBuffer->Width;
-        backBuffer->BufferSize = backBuffer->Width * backBuffer->Height * 4;
-        backBuffer->BaseAddress = _Malloc(backBuffer->BufferSize, "Back Buffer");
+        pointerBuffer = new PointerBuffer();
+        pointerBuffer->Width = actualScreenFramebuffer->Width;
+        pointerBuffer->Height = actualScreenFramebuffer->Height;
+        pointerBuffer->BufferSize = pointerBuffer->Width * pointerBuffer->Height * sizeof(uint32_t*);
+        pointerBuffer->BaseAddress = (uint32_t**)_Malloc(pointerBuffer->BufferSize, "Pointer Buffer");
+        for (int y = 0; y < pointerBuffer->Height; y++)
+            for (int x = 0; x < pointerBuffer->Width; x++)
+                pointerBuffer->BaseAddress[x + y * pointerBuffer->Width] = &bgCol;
     }
+    
+    windows = new List<Window*>(5);
+
+    Window* window = new Window(50, 0, 200, 200, "Test Window 1");
+    windows->Add(window);
     
 
 
@@ -82,7 +95,6 @@ int main()
         );
 
         actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
-
     }
 
     return 0;
@@ -91,6 +103,22 @@ int main()
 void DrawFrame()
 {
     uint32_t rndCol = (uint32_t)RND::RandomInt();
+
+    uint32_t* mainData = (uint32_t*)mainBuffer->BaseAddress;
+    uint32_t* actualData = (uint32_t*)actualScreenFramebuffer->BaseAddress;
+    uint32_t** pointerData = (uint32_t**)pointerBuffer->BaseAddress;
+
+    for (int y = 0; y < pointerBuffer->Height; y++)
+        for (int x = 0; x < pointerBuffer->Width; x++)
+        {
+            uint32_t tempCol = *pointerData[x + y * pointerBuffer->Width];
+
+            if (tempCol != mainData[x + y * mainBuffer->PixelsPerScanLine])
+            {
+                actualData[x + y * actualScreenFramebuffer->PixelsPerScanLine] = tempCol;
+                mainData[x + y * mainBuffer->PixelsPerScanLine] = tempCol;
+            }
+        }
 
     actualScreenRenderer->Clear(0, 0, 200, 200, rndCol);
 }
