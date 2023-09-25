@@ -13,8 +13,11 @@ And it mostly works on real hardware.
  - Scheduler (working)
  - Elf loading (working)
  - User Space (working)
+ - Mouse/Keyboard interacting with stuff (in progress)
+ - MaslOS Desktop / WM (in progress)
+ - Inter Process Communication (in progress)
+ - MaslOS GUI Framework (not added yet)
  - SMP (not added yet)
- - MaslOS Desktop / WM
  - idk more stuff
 
 
@@ -31,6 +34,7 @@ Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
 ## Screenshots
 ![A Bootscreen yes](/images/img1.png)
+![Beginning to work on WM](/images/start%20of%20wm%201.png)
 
 
 
