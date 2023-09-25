@@ -3,6 +3,7 @@
 #include <libm/memStuff.h>
 #include <libm/math.h>
 #include <libm/cstrTools.h>
+#include <libm/rendering/Cols.h>
 
 Window::Window(int x, int y, int width, int height, const char* title)
 {
@@ -16,6 +17,19 @@ Window::Window(int x, int y, int width, int height, const char* title)
     
     Dimensions = WindowDimension(x, y, width, height);
     OldDimensions = Dimensions;
+
+    ShowTitleBar = true;
+    ShowBorder = true;
+    Hidden = false;
+    Moveable = true;
+    Resizeable = true;
+    Closeable = true;
+
+    DefaultBorderColor = Colors.dgray;
+    SelectedBorderColor = Colors.bgreen;
+    DefaultTitleColor = Colors.gray;
+    SelectedTitleColor = Colors.white;
+    DefaultTitleBackgroundColor = Colors.dgray;
 
     Updates = new List<WindowUpdate>();
     Buffer = NULL;
@@ -40,8 +54,8 @@ void Window::ResizeFramebuffer(int width, int height)
 
     if (oldBuffer != NULL)
     {
-        int minX = min(OldDimensions.x, Dimensions.x);
-        int minY = min(OldDimensions.y, Dimensions.y);
+        int minX = min(oldBuffer->Width, Buffer->Width);
+        int minY = min(oldBuffer->Height, Buffer->Height);
 
         uint32_t* oldData = (uint32_t*)oldBuffer->BaseAddress;
         uint32_t* newData = (uint32_t*)Buffer->BaseAddress;

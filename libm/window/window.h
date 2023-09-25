@@ -84,6 +84,20 @@ class Window
     const char* OldTitle;
     WindowDimension Dimensions = WindowDimension();
     WindowDimension OldDimensions = WindowDimension();
+
+    bool ShowTitleBar;
+    bool ShowBorder;
+    bool Hidden;
+    bool Moveable;
+    bool Resizeable;
+    bool Closeable;
+
+    uint32_t DefaultBorderColor;
+    uint32_t SelectedBorderColor;
+    uint32_t DefaultTitleColor;
+    uint32_t SelectedTitleColor;
+    uint32_t DefaultTitleBackgroundColor;
+
     
     List<WindowUpdate>* Updates;
 
