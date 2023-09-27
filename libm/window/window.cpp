@@ -4,6 +4,7 @@
 #include <libm/math.h>
 #include <libm/cstrTools.h>
 #include <libm/rendering/Cols.h>
+#include <libm/rnd/rnd.h>
 
 Window::Window(int x, int y, int width, int height, const char* title)
 {
@@ -33,6 +34,8 @@ Window::Window(int x, int y, int width, int height, const char* title)
 
     Updates = new List<WindowUpdate>();
     Buffer = NULL;
+
+    ID = RND::RandomInt();
 
     ResizeFramebuffer(width, height);
 }

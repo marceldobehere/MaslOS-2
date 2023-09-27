@@ -15,7 +15,7 @@
 #include "../../scheduler/scheduler.h"
 #include "../../devices/gdt/initialGdt.h"
 #include "../../devices/keyboard/keyboard.h"
-
+#include "../../devices/mouse/mouse.h"
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
 
@@ -94,10 +94,10 @@ void InitKernel(BootInfo* bootInfo)
 //     }
 //     StepDone();
     
-//     PrintMsg("> Initing PS/2 Mouse");
-//     InitPS2Mouse(bootInfo->mouseZIP, "default.mbif");
-//     //mouseImage = kernelFiles::ConvertFileToImage(kernelFiles::ZIP::GetFileFromFileName(bootInfo->mouseZIP, "default.mbif"));
-//     StepDone();
+    PrintMsg("> Initing PS/2 Mouse");
+    Mouse::InitPS2Mouse();//(bootInfo->mouseZIP, "default.mbif");
+    //mouseImage = kernelFiles::ConvertFileToImage(kernelFiles::ZIP::GetFileFromFileName(bootInfo->mouseZIP, "default.mbif"));
+    StepDone();
 
     PrintMsg("> Initing Keyboard");
     Keyboard::InitKeyboard();

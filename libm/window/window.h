@@ -98,6 +98,7 @@ class Window
     uint32_t SelectedTitleColor;
     uint32_t DefaultTitleBackgroundColor;
 
+    uint64_t ID;
     
     List<WindowUpdate>* Updates;
 

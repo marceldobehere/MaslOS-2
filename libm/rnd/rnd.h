@@ -16,4 +16,8 @@ namespace RND
     void RandomInit(uint64_t a, uint64_t b) __attribute__((optimize(0)));
 };
 
+#else
+
+#include "../../kernel/rnd/rnd.h"
+
 #endif

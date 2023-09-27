@@ -1,7 +1,10 @@
-// #pragma once
-// #include "./queue.h"
+#pragma once
+#include "./queue.h"
 
+#ifdef _KERNEL_SRC
 
-// #include "../../userinput/mousePacket.h"
+#include "../../kernel/devices/mouse/mousePacket.h"
 
-// template class Queue<MousePacket>;
+template class Queue<MousePacket>;
+
+#endif

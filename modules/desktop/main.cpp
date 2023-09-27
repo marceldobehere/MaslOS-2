@@ -5,6 +5,8 @@
 #include "mouseStuff.h"
 #include <libm/msgPackets/mousePacket/mousePacket.h>
 #include <libm/msgPackets/keyPacket/keyPacket.h>
+#include <libm/msgPackets/windowBufferUpdatePacket/windowBufferUpdatePacket.h>
+#include <libm/queue/queue_windowBufferUpdate.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -22,7 +24,9 @@ Window* activeWindow;
 Window* currentActionWindow;
 
 MPoint MousePosition;
+MPoint oldMousePos;
 
+Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 
 void InitStuff()
 {
@@ -70,12 +74,16 @@ void InitStuff()
 
     MousePosition.x = 0;
     MousePosition.y = 0;
+
+    oldMousePos = MousePosition;
     
 
     windows = new List<Window*>(5);
+
+    updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
 
-void PrintFPS(int fps)
+void PrintFPS(int fps, int frameTime, int breakTime)
 {
     actualScreenRenderer->CursorPosition.x = 0;
     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
@@ -84,13 +92,30 @@ void PrintFPS(int fps)
         0, 
         actualScreenRenderer->CursorPosition.y, 
 
-        160, 
+        300, 
         actualScreenRenderer->CursorPosition.y + 16, 
         Colors.black
     );
 
-    actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);  
+    actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
+    actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
+    actualScreenRenderer->Print(" {})", to_string(breakTime), Colors.yellow);
+
+    actualScreenRenderer->Clear(
+        300, 
+        actualScreenRenderer->CursorPosition.y, 
+
+        500, 
+        actualScreenRenderer->CursorPosition.y + 16, 
+        Colors.black
+    );
+
+    actualScreenRenderer->CursorPosition.x = 300;
+
+    actualScreenRenderer->Print("MALLOC: {}", to_string(Heap::GlobalHeapManager->_usedHeapCount), Colors.yellow);  
 }
+
+
 
 int main()
 {
@@ -105,6 +130,26 @@ int main()
     Window* window = new Window(50, 30, 200, 200, "Test Window 1");
     windows->Add(window);
 
+    _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
+
+    {
+        WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
+            0, 0, window->Buffer->Width, window->Buffer->Height, 
+            window->ID,
+            (uint32_t*)window->Buffer->BaseAddress
+        );
+
+        GenericMessagePacket* msg = packet->ToGenericMessagePacket();
+
+        msgSendMessage(msg, getPid());
+
+        msg->Free();
+        _Free(msg);
+
+        packet->Free();
+        _Free(packet);
+    }
+
     activeWindow = window;
 
     actualScreenRenderer->Clear(Colors.black);
@@ -114,6 +159,7 @@ int main()
 
     Clear(true);
     RenderWindows();
+    ActuallyRenderWindow(window);
 
     DrawFrame();
 
@@ -121,34 +167,52 @@ int main()
 
     serialPrintLn("Starting Main Loop");
     
-    const int frameCount = 30;
+    const int frameCount = 60;
     while (true)
     {
-        uint64_t startTime = envGetTimeMs();
+        uint64_t frameTime = 0;
+        uint64_t breakTime = 0;
+        
         
         for (int i = 0; i < frameCount; i++)
         {
+            uint64_t startTime = envGetTimeMs();
             DrawFrame();
+            uint64_t endTime = envGetTimeMs();
+
+            frameTime += endTime - startTime;
 
             programWait(10);
+
+            uint64_t endTime2 = envGetTimeMs();
+
+            breakTime += endTime2 - endTime;
+
             //programYield();
         }
 
-        uint64_t endTime = envGetTimeMs();
-        uint64_t frameTime = endTime - startTime;
+        if (frameTime == 0)
+            frameTime = 1;
         int fps = (int)((frameCount * 1000) / frameTime);
 
-        PrintFPS(fps);
+        frameTime = (frameTime * 1000) / frameCount;
+        breakTime = (breakTime * 1000) / frameCount;
+
+        PrintFPS(fps, frameTime, breakTime);
     }
 
     return 0;
 }
 
 
+
 void DrawFrame()
 {
     uint32_t rndCol = (uint32_t)RND::RandomInt();
 
+    updateFramePackets->Clear();
+
+    bool doUpdate = false;
     int msgCount = min(msgGetCount(), 10);
     for (int i = 0; i < msgCount; i++)
     {
@@ -194,30 +258,113 @@ void DrawFrame()
                 actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
             }
         }
+        else if (msg->Type == MessagePacketType::WINDOW_BUFFER_EVENT)
+        {
+            WindowBufferUpdatePacket* windowBufferUpdatePacket = new WindowBufferUpdatePacket(msg);
+
+            updateFramePackets->Enqueue(windowBufferUpdatePacket);
+        }
+
         msg->Free();
         _Free(msg);
     }
 
+    doUpdate |= updateFramePackets->GetCount() > 0;
+
     //Taskbar::RenderTaskbar();
 
-    // Handle kb
-    //HandleKeyboardList(20);
+
 
     // Handle mouse
     //ProcessMousePackets();
+    //MousePosition.x = (MousePosition.x + 5) % 600;
+    //MousePosition.y = (MousePosition.y + 7) % 400;
+
+    //doUpdate = true;
+
+    doUpdate |= MousePosition != oldMousePos;
+
+    if (!doUpdate)
+        return;
+
+    RenderActualSquare(
+        oldMousePos.x, 
+        oldMousePos.y, 
+        
+        oldMousePos.x + 16, 
+        oldMousePos.y + 16
+    );
 
     // Draw Mouse
     MPoint tempMousePos = MousePosition;
     DrawMousePointer(tempMousePos, pointerBuffer);
     
-    Render();
+    //Render();
+
+    while (updateFramePackets->GetCount() > 0)
+    {
+        WindowBufferUpdatePacket* packet = updateFramePackets->Dequeue();
+
+        // get actual window
+        Window* win = NULL;
+        for (int i = 0; i < windows->GetCount(); i++)
+            if (windows->ElementAt(i)->ID == packet->WindowId)
+            {
+                win = windows->ElementAt(i);
+                break;
+            }
+        
+
+        if (win != NULL)
+        {
+            uint32_t* winBuf = (uint32_t*)win->Buffer->BaseAddress;
+            // update actual window buffer
+            for (int y = 0; y < packet->Height; y++)
+                for (int x = 0; x < packet->Width; x++)
+                {
+                    int aX = packet->X + x;
+                    int aY = packet->Y + y;
+
+                    if (x < 0 || y < 0 || x >= win->Buffer->Width || 
+                        y >= win->Buffer->Height)
+                        continue;
+                    if (aX < 0 || aY < 0 || aX >= win->Buffer->Width || 
+                        aY >= win->Buffer->Height)
+                        continue;
+
+                    winBuf[aX + aY * win->Buffer->Width] = packet->Buffer[x + y * packet->Width];
+                }
+
+            // render changes to screen
+            RenderActualSquare(
+                win->Dimensions.x + packet->X, 
+                win->Dimensions.y + packet->Y, 
+                
+                win->Dimensions.x + packet->X + packet->Width - 1, 
+                win->Dimensions.y + packet->Y + packet->Height - 1
+            );
+        }
+
+        
+        packet->Free();
+        _Free(packet);
+    }
+
+    RenderActualSquare(
+        tempMousePos.x, 
+        tempMousePos.y, 
+        
+        tempMousePos.x + 16, 
+        tempMousePos.y + 16
+    );
+    oldMousePos = tempMousePos;
 
     // Remove Mouse
     UpdatePointerRect(tempMousePos.x - 32, tempMousePos.y - 32, tempMousePos.x + 64, tempMousePos.y + 64);
 
 
 
-    actualScreenRenderer->Clear(300, 300, 320, 320, rndCol);
+    //actualScreenRenderer->Clear(300, 300, 320, 320, rndCol);
 }
 
 

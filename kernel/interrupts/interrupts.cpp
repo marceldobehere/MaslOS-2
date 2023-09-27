@@ -231,25 +231,26 @@ __attribute__((interrupt)) void KeyboardInt_handler(interrupt_frame* frame)
 #define MOUSE_V_BIT  0x08
 // https://github.com/stevej/osdev/blob/master/kernel/devices/mouse.c
 
+#include "../devices/mouse/mouse.h"
 
 __attribute__((interrupt)) void MouseInt_handler(interrupt_frame* frame)
 { 
     AddToStack();
-    // //Panic("GENERIC INTERRUPT BRUH", true);   
-    // //osStats.lastMouseCall = PIT::TimeSinceBootMS();
-    // //io_wait();
-    // //Mousewait();
+    //Panic("GENERIC INTERRUPT BRUH", true);   
+    //osStats.lastMouseCall = PIT::TimeSinceBootMS();
+    //io_wait();
+    //Mousewait();
 
-	// uint8_t status = inb(MOUSE_STATUS);
-	// while (status & MOUSE_BBIT) 
-    // {
-    //     int8_t mouse_in = inb(MOUSE_PORT);
-	// 	if (status & MOUSE_F_BIT)
-    //     {
-    //         HandlePS2Mouse(mouse_in);
-    //     }
-    //     status = inb(MOUSE_STATUS);
-    // }
+	uint8_t status = inb(MOUSE_STATUS);
+	while (status & MOUSE_BBIT) 
+    {
+        int8_t mouse_in = inb(MOUSE_PORT);
+		if (status & MOUSE_F_BIT)
+        {
+            Mouse::HandlePS2Mouse(mouse_in);
+        }
+        status = inb(MOUSE_STATUS);
+    }
 
 
     // //uint8_t mousedata = inb(0x60);
@@ -292,7 +293,7 @@ void TempPitRoutine(interrupt_frame* frame)
     //     osData.serialManager->DoStuff();
 
 
-    if (_pitCount++ >= 20)   
+    if (_pitCount++ >= 80)   
     {
         _pitCount = 0;
         
@@ -818,7 +819,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     if (Scheduler::DesktopTask != NULL && !Scheduler::DesktopTask->removeMe)
     {
-        int keysToDo = min(20, Keyboard::KeysAvaiable());
+        int keysToDo = min(50, Keyboard::KeysAvaiable());
         for (int i = 0; i < keysToDo; i++)
         {
             Keyboard::MiniKeyInfo info = Keyboard::DoAndGetKey();
@@ -844,7 +845,32 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             
             packet->Free();
             _Free(packet);
-            Serial::Writelnf("INT> Sent key packet to desktop task");
+        }
+
+        int mouseToDo = min(50, Mouse::MousePacketsAvailable());
+        for (int i = 0; i < mouseToDo; i++)
+        {
+            MousePacket mPacket = Mouse::mousePackets->Dequeue();
+            //Serial::Writelnf("INT> Doing mouse packet");
+            Mouse::MiniMousePacket packet = Mouse::ProcessMousePacket(mPacket);
+            if (!packet.Valid)
+                continue;
+
+
+            // TODO: add hold and release stuff here
+            MouseMessagePacket mousePacket = MouseMessagePacket(packet.X, packet.Y);
+            
+            GenericMessagePacket* packet2 = new GenericMessagePacket(
+                MessagePacketType::MOUSE_EVENT,
+                (uint8_t*)&mousePacket,
+                sizeof(MouseMessagePacket)
+            );
+            
+            //Serial::Writelnf("INT> Sending mouse packet to desktop task");
+            SendMessageToTask(packet2, Scheduler::DesktopTask->pid);
+            
+            packet2->Free();
+            _Free(packet2);
         }
     }
     

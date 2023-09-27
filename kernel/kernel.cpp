@@ -37,6 +37,8 @@ void boot(void* _bootInfo)
     osData.booting = true;
     osData.verboseBoot = true;
 
+    osData.mouseSensitivity = 100;
+
     PrintAll = true;
     
     InitKernel(bootInfo);

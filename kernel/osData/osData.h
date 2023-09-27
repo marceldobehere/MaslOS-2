@@ -58,7 +58,7 @@ struct OSData
 //     Audio::AudioInputDevice* defaultAudioInputDevice = NULL;
 //     Audio::AudioOutputDevice* defaultAudioOutputDevice = NULL;
 
-//     double mouseSensitivity = 1;
+    int mouseSensitivity = 100;
 
 //     uint8_t port64Val;
 

@@ -31,11 +31,10 @@ extern Window* currentActionWindow;
 
 extern MPoint MousePosition;
 
-extern List<GenericMessagePacket*>* updateFramePackets;
 
 void InitStuff();
 
-void PrintFPS(int fps);
+void PrintFPS(int fps, int frameTime, int breakTime);
 
 int main();
 

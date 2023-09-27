@@ -369,6 +369,26 @@ void UpdateWindowRect(Window* window)
     UpdatePointerRect(window->Dimensions.x - 1, window->Dimensions.y - 24, window->Dimensions.x + window->Dimensions.width + 1, window->Dimensions.y + window->Dimensions.height + 1);
 }
 
+void ActuallyRenderWindow(Window *window)
+{
+    int x1 = max(0, window->Dimensions.x - 1);
+    int y1 = max(0, window->Dimensions.y - 24);
+    int x2 = min(pointerBuffer->Width - 1, window->Dimensions.x + window->Dimensions.width + 1);
+    int y2 = min(pointerBuffer->Height- 1, window->Dimensions.y + window->Dimensions.height + 1);
+
+    RenderWindowRect(window, 
+        x1, y1, 
+        x2, y2
+    );
+    
+    DrawTaskbarRect(x1, y1, x2, y2);
+
+    RenderActualSquare(
+        x1, y1, 
+        x2, y2
+    );
+}
+
 void RenderWindow(Window* window)
 {
     int x1 = max(0, window->Dimensions.x - 1);
@@ -418,7 +438,7 @@ void ClearPointerBuffer(PointerBuffer* buffer, uint32_t* col)
 }
 
 
-uint8_t testInterlace = 4;
+uint8_t testInterlace = 1;
 uint8_t testCounterX = 0;
 uint8_t testCounterY = 0;
 
@@ -831,20 +851,22 @@ uint64_t RenderActualSquare(int _x1, int _y1, int _x2, int _y2)
     uint64_t xdiff = _x2 - _x1;
     uint32_t** vPixel = (uint32_t**)pointerBuffer->BaseAddress + _x1 + w * _y1;
     uint32_t*  cPixel = (uint32_t*)  mainBuffer->BaseAddress + _x1 + w * _y1;
+    uint32_t* aPixel = (uint32_t*) actualScreenFramebuffer->BaseAddress;
 
     int64_t wMinusSomeStuff = w - (xdiff+1);
 
+    int64_t y1TimesBpl = (_y1 - 1) * bpl;
     // DRAW SQUARE
     for (int64_t y1 = _y1; y1 <= _y2; y1++)
     {
-        int64_t y1TimesBpl = y1 * bpl;
+        y1TimesBpl += bpl;
         for (int64_t x1 = _x1; x1 <= _x2; x1++)
         {
             uint32_t col = **vPixel;
             if (*cPixel != col)
             {
                 *cPixel = col;
-                *(((uint32_t*) actualScreenFramebuffer->BaseAddress) + (x1 + y1TimesBpl)) = col; //counta + 0xff111111;
+                *(aPixel + (x1 + y1TimesBpl)) = col; //counta + 0xff111111;
                 counta++;
                 //osData.currentDisplay->UpdatePixel(x1, y1);
             }

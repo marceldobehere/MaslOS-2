@@ -122,10 +122,10 @@ namespace Keyboard
         bool shift = Keyboard::IsKeyPressed(Key_GeneralShift);
         char chr = ScancodeTranslation::TranslateScancode(actualScancode, shift);
 
-        if ((scancode & KEY_RELEASED) == 0)
-            Serial::Writelnf("> Key %d (%c) pressed", actualScancode, chr);
-        else
-            Serial::Writelnf("> Key %d (%c) released", actualScancode, chr);
+        // if ((scancode & KEY_RELEASED) == 0)
+        //     Serial::Writelnf("> Key %d (%c) pressed", actualScancode, chr);
+        // else
+        //     Serial::Writelnf("> Key %d (%c) released", actualScancode, chr);
 
         return true;
     }
