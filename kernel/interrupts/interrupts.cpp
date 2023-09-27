@@ -671,6 +671,7 @@ void IRQGenericDriverHandler(int irq, interrupt_frame* frame)
         PIC_EndMaster();
 }
 
+void* currentMappedTask = NULL;
 
 void MapMemoryOfCurrentTask(osTask* task)
 {
@@ -679,6 +680,10 @@ void MapMemoryOfCurrentTask(osTask* task)
     
     if (task->pageTableContext == NULL)
         return;
+
+    if (currentMappedTask == task)
+        return;
+    currentMappedTask = task;
 
     //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
 
@@ -695,6 +700,24 @@ void MapMemoryOfCurrentTask(osTask* task)
         //manager.MapMemory(virtPageAddr, (void*)realPageAddr, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
     }
 }
+
+bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid)
+{
+    if (oldPacket == NULL)
+        return false;
+    
+    osTask* otherTask = Scheduler::GetTask(targetPid);
+
+    if (otherTask == NULL)
+        return false;
+
+    GenericMessagePacket* newPacket = oldPacket->Copy();
+    otherTask->messages->Enqueue(newPacket);
+    return true;
+}
+
+#include <libm/msgPackets/keyPacket/keyPacket.h>
+#include <libm/msgPackets/mousePacket/mousePacket.h>
 
 bool InterruptGoingOn = false;
 int currentInterruptCount = 0;
@@ -776,7 +799,10 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         }
 
         if (Scheduler::CurrentRunningTask != NULL)
+        {
+            Scheduler::CurrentRunningTask->active = false;
             Scheduler::CurrentRunningTask->removeMe = true;
+        }
         Scheduler::CurrentRunningTask = NULL;
 
         //Serial::Writelnf("> END OF INT (%X, %X)", frame->cr3, frame->cr0);
@@ -789,9 +815,39 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         return;
     }
 
-    for (int i = 0; i < 20; i++)
-        if (!Keyboard::DoKey())
-            break;
+
+    if (Scheduler::DesktopTask != NULL && !Scheduler::DesktopTask->removeMe)
+    {
+        int keysToDo = min(20, Keyboard::KeysAvaiable());
+        for (int i = 0; i < keysToDo; i++)
+        {
+            Keyboard::MiniKeyInfo info = Keyboard::DoAndGetKey();
+            if (info.Scancode == 0)
+                continue;
+
+            KeyMessagePacketType keyType;
+            if (info.IsPressed)
+                keyType = KeyMessagePacketType::KEY_PRESSED;
+            else
+                keyType = KeyMessagePacketType::KEY_RELEASE;
+
+            KeyMessagePacket keyPacket = KeyMessagePacket(keyType, info.Scancode, info.AsciiChar);
+            
+            GenericMessagePacket* packet = new GenericMessagePacket(
+                MessagePacketType::KEY_EVENT,
+                (uint8_t*)&keyPacket,
+                sizeof(KeyMessagePacket)
+            );
+            
+            Serial::Writelnf("INT> Sending key packet to desktop task");
+            SendMessageToTask(packet, Scheduler::DesktopTask->pid);
+            
+            packet->Free();
+            _Free(packet);
+            Serial::Writelnf("INT> Sent key packet to desktop task");
+        }
+    }
+    
 
     if (Scheduler::CurrentRunningTask == NULL)
     {
@@ -1117,6 +1173,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_MSG_GET_MSG)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+        
         Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;
         frame->rax = 0;
         if (queue != NULL && queue->GetCount() > 0)
@@ -1134,6 +1192,8 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_MSG_SEND_MSG)
     {
+        MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
+
         frame->rax = 0;
         GenericMessagePacket* oldPacket = (GenericMessagePacket*)frame->rbx;
         if (oldPacket != NULL)

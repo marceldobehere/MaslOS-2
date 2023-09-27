@@ -1,6 +1,10 @@
 #include "main.h"
 #include <libm/rendering/virtualRenderer.h>
 #include <libm/cstrTools.h>
+#include "wmStuff.h"
+#include "mouseStuff.h"
+#include <libm/msgPackets/mousePacket/mousePacket.h>
+#include <libm/msgPackets/keyPacket/keyPacket.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -20,15 +24,9 @@ Window* currentActionWindow;
 MPoint MousePosition;
 
 
-int main()
+void InitStuff()
 {
-    serialPrintLn("Starting Desktop");
-
-    programSetPriority(2);
-
     ENV_DATA* env = getEnvData();
-
-    programWait(100);
 
     actualScreenFramebuffer = env->globalFrameBuffer;
     actualScreenRenderer = new TempRenderer(actualScreenFramebuffer, env->globalFont);
@@ -75,29 +73,55 @@ int main()
     
 
     windows = new List<Window*>(5);
+}
+
+void PrintFPS(int fps)
+{
+    actualScreenRenderer->CursorPosition.x = 0;
+    actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
+    
+    actualScreenRenderer->Clear(
+        0, 
+        actualScreenRenderer->CursorPosition.y, 
+
+        160, 
+        actualScreenRenderer->CursorPosition.y + 16, 
+        Colors.black
+    );
+
+    actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);  
+}
+
+int main()
+{
+    serialPrintLn("Starting Desktop");
+
+    programSetPriority(2);
+
+    programWait(100);
+
+    InitStuff();
 
     Window* window = new Window(50, 30, 200, 200, "Test Window 1");
     windows->Add(window);
 
     activeWindow = window;
-    
 
     actualScreenRenderer->Clear(Colors.black);
     actualScreenRenderer->Println("WINDOW 0x{}", ConvertHexToString((uint64_t)window->Buffer), Colors.yellow);
     
 
+
     Clear(true);
     RenderWindows();
 
     DrawFrame();
-    //while (true);
 
-    
+
 
     serialPrintLn("Starting Main Loop");
     
     const int frameCount = 30;
-
     while (true)
     {
         uint64_t startTime = envGetTimeMs();
@@ -111,904 +135,373 @@ int main()
         }
 
         uint64_t endTime = envGetTimeMs();
-
         uint64_t frameTime = endTime - startTime;
-
         int fps = (int)((frameCount * 1000) / frameTime);
 
-        actualScreenRenderer->CursorPosition.x = 0;
-        actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
-        
-        actualScreenRenderer->Clear(
-            0, 
-            actualScreenRenderer->CursorPosition.y, 
-
-            160, 
-            actualScreenRenderer->CursorPosition.y + 16, 
-            Colors.black
-        );
-
-        actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
+        PrintFPS(fps);
     }
 
     return 0;
 }
 
+
 void DrawFrame()
 {
     uint32_t rndCol = (uint32_t)RND::RandomInt();
 
-    // uint32_t* mainData = (uint32_t*)mainBuffer->BaseAddress;
-    // uint32_t* actualData = (uint32_t*)actualScreenFramebuffer->BaseAddress;
-    // uint32_t** pointerData = (uint32_t**)pointerBuffer->BaseAddress;
+    int msgCount = min(msgGetCount(), 10);
+    for (int i = 0; i < msgCount; i++)
+    {
+        GenericMessagePacket* msg = msgGetMessage();
+        if (msg == NULL)
+            break;
+        if (msg->Type == MessagePacketType::MOUSE_EVENT)
+        {
+            MouseMessagePacket* mouseMsg = (MouseMessagePacket*)msg->Data;
+            if (mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE)
+            {
+                MousePosition.x = mouseMsg->MouseX;
+                MousePosition.y = mouseMsg->MouseY;
+            }
+        }
+        else if (msg->Type == MessagePacketType::KEY_EVENT)
+        {
+            KeyMessagePacket* keyMsg = (KeyMessagePacket*)msg->Data;
+            if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+            {
+                actualScreenRenderer->CursorPosition.x = 0;
+                actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
-    // for (int y = 0; y < pointerBuffer->Height; y++)
-    //     for (int x = 0; x < pointerBuffer->Width; x++)
-    //     {
-    //         uint32_t tempCol = *pointerData[x + y * pointerBuffer->Width];
+                actualScreenRenderer->Clear(
+                    0, actualScreenRenderer->CursorPosition.y, 
+                    160, actualScreenRenderer->CursorPosition.y + 16, 
+                    Colors.black
+                );
 
-    //         if (tempCol != mainData[x + y * mainBuffer->PixelsPerScanLine])
-    //         {
-    //             actualData[x + y * actualScreenFramebuffer->PixelsPerScanLine] = tempCol | (rndCol & 0xFF);
-    //             mainData[x + y * mainBuffer->PixelsPerScanLine] = tempCol;
-    //         }
-    //     }
+                actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
+            }
+            else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
+            {
+                actualScreenRenderer->CursorPosition.x = 0;
+                actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
+                actualScreenRenderer->Clear(
+                    0, actualScreenRenderer->CursorPosition.y, 
+                    160, actualScreenRenderer->CursorPosition.y + 16, 
+                    Colors.black
+                );
+
+                actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
+            }
+        }
+        msg->Free();
+        _Free(msg);
+    }
+
+    //Taskbar::RenderTaskbar();
+
+    // Handle kb
+    //HandleKeyboardList(20);
+
+    // Handle mouse
+    //ProcessMousePackets();
+
+    // Draw Mouse
+    MPoint tempMousePos = MousePosition;
+    DrawMousePointer(tempMousePos, pointerBuffer);
+    
     Render();
+
+    // Remove Mouse
+    UpdatePointerRect(tempMousePos.x - 32, tempMousePos.y - 32, tempMousePos.x + 64, tempMousePos.y + 64);
+
+
 
     actualScreenRenderer->Clear(300, 300, 320, 320, rndCol);
 }
 
-void UpdatePointerRect(int x1, int y1, int x2, int y2)
+
+/*
+HandleKeyboardList(20);
+
+
+
+if (bgm != osData.drawBackground)
 {
-    if (x1 < 0)
-        x1 = 0;
-    if (y1 < 0)
-        y1 = 0;
-    if (x1 >= pointerBuffer->Width)
-        x1 = pointerBuffer->Width - 1;
-    if (y1 >= pointerBuffer->Height)
-        y1 = pointerBuffer->Height - 1;
-
-    if (x2 < 0)
-        x2 = 0;
-    if (y2 < 0)
-        y2 = 0;
-    if (x2 >= pointerBuffer->Width)
-        x2 = pointerBuffer->Width - 1;
-    if (y2 >= pointerBuffer->Height)
-        y2 = pointerBuffer->Height - 1;
-
-
-    if (x1 > x2 || y1 > y2)
-        return;
-
-
-    DrawBGRect(x1, y1, x2, y2);
-    
-
-    int count = windows->GetCount();
-    for (int i = 0; i < count; i++)
-        RenderWindowRect(windows->ElementAt(i), x1, y1, x2, y2);
-
-    DrawTaskbarRect(x1, y1, x2, y2);
+    osData.windowPointerThing->RenderWindows();
+    bgm = osData.drawBackground;
 }
 
-
-void DrawBGRect(int x1, int y1, int x2, int y2)
+AddToStack();
+if (osData.windowsToGetActive.GetCount() > 0)
 {
-    if (drawBackground)
+    Window* w = osData.windowsToGetActive.Dequeue();
+
+    Window* oldActive = activeWindow;
+    activeWindow = w;          
+    if (w != NULL)
     {
-        for (int y = y1; y <= y2; y++)
+        w->moveToFront = true;
+        w->hidden = false;
+        if (w == osData.debugTerminalWindow)
+            osData.showDebugterminal = true;
+    }
+
+    if (oldActive != NULL)
+        osData.windowPointerThing->UpdateWindowBorder(oldActive);
+}
+
+RemoveFromStack();
+
+AddToStack();
+{
+    uint64_t tS = PIT::TimeSinceBootMicroS();
+
+    if (activeWindow != NULL)
+    {
+        updateBorder = true;
+        if (activeWindow->moveToFront)
         {
-            int64_t yIndex = (((y * backgroundImage->Height)/pointerBuffer->Height)*backgroundImage->Width);
-            for (int x = x1; x <= x2; x++)
+            activeWindow->moveToFront = false;
+            int index = osData.windows.GetIndexOf(activeWindow);
+            if (index == osData.windows.GetCount() - 1)
             {
-                int64_t index = x + y * pointerBuffer->Width;
-                int64_t index2 = ((x * backgroundImage->Width)/pointerBuffer->Width) + yIndex;
-                (((uint32_t**)pointerBuffer->BaseAddress)[index]) = &((uint32_t*)backgroundImage->BaseAddress)[index2];
+                osData.windowPointerThing->UpdateWindowBorder(activeWindow);
+                osData.windowPointerThing->RenderWindow(activeWindow);
+            }
+            else if (index != -1)
+            {
+                Window* oldActive = osData.windows[osData.windows.GetCount() - 1];
+                osData.windows.RemoveAt(index);
+                osData.windows.Add(activeWindow);
+                
+                osData.windowPointerThing->UpdateWindowBorder(oldActive);
+
+                osData.windowPointerThing->RenderWindow(activeWindow);
+                osData.windowPointerThing->UpdateWindowBorder(activeWindow);
             }
         }
     }
     else
     {
-        uint32_t* colPointer = &defaultBackgroundColor;
-        for (int y = y1; y <= y2; y++)
+        if (updateBorder)
         {
-            int64_t yIndex = y * pointerBuffer->Width;
-            for (int x = x1; x <= x2; x++)
-            {    
-                (((uint32_t**)pointerBuffer->BaseAddress)[x + yIndex]) = colPointer;
-            }   
-        } 
-    }
-}
-
-
-void RenderWindowRect(Window* window, int x1, int y1, int x2, int y2)
-{
-    if (window == NULL)
-        return;
-
-    if (window->Hidden)
-        return;
-    
-
-    // if (window == osData.debugTerminalWindow && !osData.showDebugterminal)
-    //     return;
-    
-
-    int64_t _x1 = window->Dimensions.x;
-    int64_t _y1 = window->Dimensions.y;
-    int64_t _x2 = _x1 + window->Dimensions.width - 1;
-    int64_t _y2 = _y1 + window->Dimensions.height - 1;
-
-    if ((_x1 - 1) > x2 || (_x2 + 1) < x1 || (_y1 - 23) > y2 || (_y2 + 1) < y1)
-        return;
-
-    { 
-        if (y1 > _y1)
-            _y1 = y1;
-
-        if (y2 < _y2)
-            _y2 = y2;
-
-        if (x1 > _x1)
-            _x1 = x1;
-
-        if (x2 < _x2)
-            _x2 = x2;
-
-        if (0 > _y1)
-            _y1 = 0;
-
-        if (pointerBuffer->Height <= _y2)
-            _y2 = pointerBuffer->Height - 1;
-
-        if (0 > _x1)
-            _x1 = 0;
-
-        if (pointerBuffer->Width <= _x2)
-            _x2 = pointerBuffer->Width - 1;
-
-
-        for (int64_t y = _y1; y <= _y2; y++)
-        {
-            for (int64_t x = _x1; x <= _x2; x++)
+            updateBorder = false;
             {
-                int64_t index = x + y * pointerBuffer->Width; 
-                int64_t index2 = (x - window->Dimensions.x) + (y - window->Dimensions.y) * window->Buffer->Width; 
+                Window* oldActive = osData.windows[osData.windows.GetCount() - 1];
                 
-                (((uint32_t**)pointerBuffer->BaseAddress)[index]) = &((uint32_t*)window->Buffer->BaseAddress)[index2];
+                osData.windowPointerThing->UpdateWindowBorder(oldActive);
             }
         }
-
-    }
-    //return;
-    
-
-    {
-        _x1 = window->Dimensions.x - 1;
-        _y1 = window->Dimensions.y - 23;
-        _x2 = _x1 + window->Dimensions.width + 2;//3;
-        _y2 = _y1 + window->Dimensions.height + 24;//25;
-    
-        if (y1 > _y1)
-            _y1 = y1;
-
-        if (y2 < _y2)
-            _y2 = y2;
-
-        if (x1 > _x1)
-            _x1 = x1;
-
-        if (x2 < _x2)
-            _x2 = x2;
-
-        if (0 > _y1)
-            _y1 = 0;
-
-        if (pointerBuffer->Height <= _y2)
-            _y2 = pointerBuffer->Height - 1;
-
-        if (0 > _x1)
-            _x1 = 0;
-
-        if (pointerBuffer->Width <= _x2)
-            _x2 = pointerBuffer->Width - 1;
     }
 
-    
+    for (int i = 0; i < osData.windows.GetCount(); i++)
+    {            
+        Window* window = osData.windows[i];
 
-    if (_x1 > _x2 || _y1 > _y2)
-        return;
-    
-    if (window->ShowTitleBar)
-    {
-        int64_t x = window->Dimensions.x;
-        int64_t y = window->Dimensions.y- 21;
-        VirtualRenderer::Clear(x,y, x + window->Dimensions.width-1, window->Dimensions.y-2, VirtualRenderer::Border(_x1, _y1, _x2, _y2), pointerBuffer, &window->DefaultTitleBackgroundColor);
-
-        const char* stitle = StrSubstr(window->Title, 0, (window->Dimensions.width - 60) / 8);
-
-
-        // if (window->instance != NULL)
-        // {
-        //     if (window->instance->instanceType == InstanceType::Terminal)
-        //     {
-        //         TerminalInstance* terminal = (TerminalInstance*)window->instance;
-        //         free((void*)stitle);
-        //         stitle = StrCopy(to_string(terminal->tasks.getCount()));
-        //     }
-        // }
-
-        if (activeWindow == window)
-            VirtualRenderer::putStr(stitle, x, y, VirtualRenderer::Border(_x1, _y1, _x2, _y2), pointerBuffer, &window->SelectedTitleColor);
-        else
-            VirtualRenderer::putStr(stitle, x, y, VirtualRenderer::Border(_x1, _y1, _x2, _y2), pointerBuffer, &window->DefaultTitleColor);
+        if (window == osData.debugTerminalWindow && !osData.showDebugterminal)
+            continue;
         
-        
-        _Free((void*)stitle);
-    }
-
-    //return;
-    
-    if (window->ShowBorder)
-    {
-        uint32_t** arr = ((uint32_t**)pointerBuffer->BaseAddress);
-        int64_t width = pointerBuffer->Width;
-
-        uint32_t* cBorder = &window->DefaultBorderColor;
-        if (activeWindow == window)
-            cBorder = &window->SelectedBorderColor;
-
-        uint8_t counter = 0;
-        for (int64_t x = -1; x < window->Dimensions.width + 1; x++)
+        if (window->hidden != window->oldHidden)
         {
-            int64_t newX = x + window->Dimensions.x;
-            int64_t newY = -1 + window->Dimensions.y;
-            if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 1)
-                arr[newX + newY * width] = cBorder; //*(uint32_t*)(to->BaseAddress + ((newX + (newY * to->Width)) * 4))
-            
-            
-            newY = window->Dimensions.height + window->Dimensions.y;
-            if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 0)
-                arr[newX + newY * width] = cBorder;
-            
-            // if (window->showTitleBar)
-            // {
-            //     newY = -22 + window->position.y;
-            //     if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 0)
-            //         arr[newX + newY * width] = cBorder;
-            // }
-        
-            counter++;
+            window->oldHidden = window->hidden;
+            osData.windowPointerThing->UpdatePointerRect(
+                window->position.x - 1, 
+                window->position.y - 23, 
+                window->position.x + window->size.width, 
+                window->position.y + window->size.height
+                );
         }
 
-        if (window->ShowTitleBar)
         {
-            counter = 0;
-            for (int64_t x = -1; x < window->Dimensions.width + 1; x++)
+            int x1 = window->position.x - 1;
+            int y1 = window->position.y - 23;
+            int sx1 = window->size.width + 3;
+            int sy1 = window->size.height + 25;
+
+            bool update = false;
+
+            int x2 = x1;
+            int y2 = y1;
+            int sx2 = sx1;
+            int sy2 = sy2;
+
+            if (window->maximize && window->oldMaximize)
             {
-                int64_t newX = x + window->Dimensions.x;
-                int64_t newY = -22 + window->Dimensions.y;
+                if (window->position.x != 0 || window->position.y != 23 || 
+                window->size.width != osData.windowPointerThing->actualScreenBuffer->Width ||
+                window->size.height != osData.windowPointerThing->actualScreenBuffer->Height - 23)
+                {
+                    window->maximize = false;
                     
-                if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 0)
-                    arr[newX + newY * width] = cBorder;
-                
-                counter++;
-            }  
-        }
+                    MPoint tMouse = MousePosition;
+                    tMouse.x -= window->position.x;
+                    tMouse.y -= window->position.y;
 
+                    tMouse.x = (tMouse.x * window->oldPreMaxSize.width) / window->size.width;
+                    tMouse.y = (tMouse.y * window->oldPreMaxSize.height) / window->size.height;
 
-        counter = 0;
-        int64_t maxY = -22;
-        if (!window->ShowTitleBar)
-            maxY = -1;
-        for (int64_t y = maxY; y < window->Dimensions.height; y++)
-        {
-            int64_t newX = window->Dimensions.width + window->Dimensions.x;
-            int64_t newY = y + window->Dimensions.y;
-            if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 1)
-                arr[newX + newY * width] = cBorder;
-            
-            newX = -1 + window->Dimensions.x;
-            if (newX >= _x1 && newY >= _y1 && newX <= _x2 && newY <= _y2 && (counter % 2) == 0)
-                arr[newX + newY * width] = cBorder;
-            
-            counter++;
-        } 
-    }
+                    window->newPosition.x = MousePosition.x - tMouse.x;
+                    window->newPosition.y = MousePosition.y - tMouse.y;
 
-    
-    if (window->ShowTitleBar)
-    {
-        VirtualRenderer::Border border = VirtualRenderer::Border(_x1, _y1, _x2, _y2);
-        int64_t x = window->Dimensions.x + window->Dimensions.width;
-        int64_t y = window->Dimensions.y - 22;
+                    //window->newPosition = window->oldPreMaxPosition;
+                    window->newSize = window->oldPreMaxSize;
 
-        
-        {
-            int state = 0;
-            if (activeWindow == window)
-                state = 1;
-            if (MousePosition.x >= x - 20 && MousePosition.x <= x && MousePosition.y >= y && MousePosition.y <= y + 20)
-                state = 2;
-            if (state == 2)
-                currentActionWindow = window;
+                    window->showBorder = window->oldPreMaxBorder;
+                    window->showTitleBar = window->oldPreMaxTitle;
 
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.CLOSE_N + state], x - 20, y + 1, 1, 1, border, virtualScreenBuffer);
-            x -= 20;
-        }
-        {
-            int state = 0;
-            if (activeWindow == window)
-                state = 1;
-            if (MousePosition.x >= x - 20 && MousePosition.x <= x && MousePosition.y >= y && MousePosition.y <= y + 20)
-                state = 2;
-            if (state == 2)
-                currentActionWindow = window;
-
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.MIN_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
-            x -= 20;
-        }
-        {
-            int state = 0;
-            if (activeWindow == window)
-                state = 1;
-            if (MousePosition.x >= x - 20 && MousePosition.x <= x && MousePosition.y >= y && MousePosition.y <= y + 20)
-                state = 2;
-            if (state == 2)
-                currentActionWindow = window;
-
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.HIDE_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
-            x -= 20;
-        }
-
-        
-    }
-
-    {
-        //uint32_t col = Colors.bred;
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 5, _x1 + 20, _y1 + 10, border, virtualScreenBuffer,  &window->defaultBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 10, _x1 + 1, _y1 + 11, border, virtualScreenBuffer, &window->selectedBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 14, _x1 + 8, _y1 + 17, border, virtualScreenBuffer, &window->selectedBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 18, _x1 + 6, _y1 + 25, border, virtualScreenBuffer, &window->defaultBorderColor);
-        
-
-        //windowIcons[windowIconEnum.CLOSE_N]
-
-        //VirtualRenderer::DrawImage(kernelFiles::ConvertFileToImage(&osData.windowIconsZIP->files[0]), x - 30, y + 10, 1, 1, border, virtualScreenBuffer);
-        //VirtualRenderer::DrawImage(kernelFiles::ConvertFileToImage(kernelFiles::ZIP::GetFileFromFileName(osData.windowIconsZIP, WindowManager::windowIconNames[3])), x - 60, y + 40, 1, 1, border, virtualScreenBuffer);
-        //osData.debugTerminalWindow->Log("- ADDR A: {}", ConvertHexToString((uint64_t)windowIcons[0]), Colors.yellow);
-        //VirtualRenderer::DrawImage(windowIcons[windowIconEnum.MIN_H], x - 90, y + 50, 2, 2, border, virtualScreenBuffer);
-
-        //VirtualRenderer::Border border = VirtualRenderer::Border(_x1, _y1, _x2, _y2);
-        //int64_t x = window->position.x + window->size.width;
-        //uint32_t col = Colors.bred;
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 5, _x1 + 20, _y1 + 10, border, virtualScreenBuffer,  &window->defaultBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 10, _x1 + 1, _y1 + 11, border, virtualScreenBuffer, &window->selectedBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 14, _x1 + 8, _y1 + 17, border, virtualScreenBuffer, &window->selectedBorderColor);
-        //VirtualRenderer::DrawLine(_x1 + 5, _y1 + 18, _x1 + 6, _y1 + 25, border, virtualScreenBuffer, &window->defaultBorderColor);
-        
-
-    }
-
-
-
-
-} 
-
-
-
-void DrawTaskbarRect(int x1, int y1, int x2, int y2)
-{
-    int64_t ypos = pointerBuffer->Height - taskbar->Height;
-
-    if (y2 < ypos)
-        return;
-    if (y1 < ypos)
-        y1 = ypos;
-
-    for (int y = y1; y <= y2; y++)
-        for (int x = x1; x <= x2; x++)
-        {
-            int64_t index = x + y * pointerBuffer->Width;
-            int64_t index2 = x + (y-ypos) * pointerBuffer->Width;
-            (((uint32_t**)pointerBuffer->BaseAddress)[index]) = &((uint32_t*)taskbar->BaseAddress)[index2];//&defaultBackgroundColor;
-        }
-}
-
-void UpdateWindowRect(Window* window)
-{
-    UpdatePointerRect(window->Dimensions.x - 1, window->Dimensions.y - 24, window->Dimensions.x + window->Dimensions.width + 1, window->Dimensions.y + window->Dimensions.height + 1);
-}
-
-void RenderWindow(Window* window)
-{
-    int x1 = max(0, window->Dimensions.x - 1);
-    int y1 = max(0, window->Dimensions.y - 24);
-    int x2 = min(pointerBuffer->Width - 1, window->Dimensions.x + window->Dimensions.width + 1);
-    int y2 = min(pointerBuffer->Height- 1, window->Dimensions.y + window->Dimensions.height + 1);
-
-    RenderWindowRect(window, 
-        x1, y1, 
-        x2, y2
-    );
-    
-    DrawTaskbarRect(x1, y1, x2, y2);
-}
-
-void RenderWindows()
-{
-    UpdatePointerRect(0, 0, pointerBuffer->Width - 1, pointerBuffer->Height - 1);
-} 
-
-
-
-void Clear(bool resetGlobal)
-{
-    if (resetGlobal)
-        ClearFrameBuffer(actualScreenFramebuffer, defaultBackgroundColor);
-    ClearFrameBuffer(mainBuffer, defaultBackgroundColor);
-    ClearFrameBuffer(taskbar, Colors.dblue);
-
-    ClearPointerBuffer(pointerBuffer, &defaultBackgroundColor);
-    //ClearPointerBuffer(copyOfVirtualBuffer, &defaultBackgroundColor);
-}   
-
-
-void ClearFrameBuffer(Framebuffer* buffer, uint32_t col)
-{
-    for (uint32_t y = 0; y < buffer->Height; y++)
-        for (uint32_t x = 0; x < buffer->Width; x++)
-            *((uint32_t*)buffer->BaseAddress + x + (y * buffer->PixelsPerScanLine)) = col;
-}
-
-void ClearPointerBuffer(PointerBuffer* buffer, uint32_t* col)
-{
-    uint32_t** endAddr = (uint32_t**)((uint64_t)buffer->BaseAddress + buffer->BufferSize);
-    for (uint32_t** pixel = (uint32_t**)buffer->BaseAddress; pixel < endAddr; pixel++)
-        *pixel = col;
-}
-
-
-uint8_t testInterlace = 4;
-uint8_t testCounterX = 0;
-uint8_t testCounterY = 0;
-
-void Render()
-{
-    // if (osData.currentDisplay == NULL)
-    //     return;
-    
-    
-    uint64_t counta = 0;
-    
-    // if (actualScreenBuffer != osData.currentDisplay->framebuffer)
-    // {
-    //     int sizeX = osData.currentDisplay->framebuffer->Width;
-    //     int sizeY = osData.currentDisplay->framebuffer->Height;
-    //     int sizePPS = osData.currentDisplay->framebuffer->PixelsPerScanLine;
-
-    //     if (actualScreenBuffer->Width != sizeX || 
-    //         actualScreenBuffer->Height != sizeY || 
-    //         actualScreenBuffer->PixelsPerScanLine != sizePPS)
-    //     {
-    //         // RESIZE
-    //         Resize(osData.currentDisplay->framebuffer);
-    //         Clear(true);
-    //         RenderWindows();
-    //     }
-    //     else
-    //         actualScreenBuffer = osData.currentDisplay->framebuffer;
-    // }
-
-    // osData.currentDisplay->StartFrame();
-
-    if (testInterlace != 1 && testInterlace != 0)
-    {
-        
-        int64_t h = actualScreenFramebuffer->Height, w = actualScreenFramebuffer->Width;
-
-        uint32_t** vPixel = (uint32_t**)pointerBuffer->BaseAddress + w * testCounterY;// + testCounterX;
-        uint32_t*  cPixel = (uint32_t*)  mainBuffer->BaseAddress + w * testCounterY;// + testCounterX;
-
-        uint8_t testInterlaceMinusOne = testInterlace - 1;
-        uint64_t wTimesInterlaceMinusOne = w * testInterlaceMinusOne;
-
-        // uint32_t** bVPixel = (uint32_t**)virtualScreenBuffer->BaseAddress;// + w * testCounterY;
-        // uint32_t* bCPixel = (uint32_t*) copyOfScreenBuffer->BaseAddress;// + w * testCounterY;
-
-
-        for (int64_t y = testCounterY; y < h; y += testInterlace)
-        {
-            for (int64_t x = testCounterX; x < w;)
-            {
-                uint32_t col = *(vPixel[x]);
-                if (cPixel[x] != col)
-                {
-                    // BEFORE
-                    // x -= testCounterX;
-                    // y -= testCounterY;
-                    // uint32_t** vPixel1 = vPixel;
-                    // uint32_t*  cPixel1 = cPixel;
-                    // vPixel -= testCounterX + (testCounterY * w);
-                    // cPixel -= testCounterX + (testCounterY * w); 
-
-                    // counta += RenderActualSquare(
-                    //                                         max(x, 0), 
-                    //                                         max(y, 0), 
-                    //                                         min(x + testInterlace, w - 1), 
-                    //                                         min(y + testInterlace, h - 1)
-                    //                                     );
-
-                    //
-                    counta += RenderActualSquare(
-                        x - (testInterlace * 2 - 1), 
-                        y - (testInterlace * 2 - 1), 
-                        
-                        x + testInterlace * 4 - 2, 
-                        y + testInterlace * 4 - 2
-                        );
-                    //
-
-                    // vPixel += testInterlace * 2;
-                    // cPixel += testInterlace * 2;
-                    x       += testInterlace * 3;
-
-                    // AFTER
-                    // x += testCounterX;
-                    // y += testCounterY;
-                    // vPixel = vPixel1;
-                    // cPixel = cPixel1;
+                    window->oldMaximize = false;
                 }
-                // vPixel += testInterlace;
-                // cPixel += testInterlace;
-                x += testInterlace;
-            } 
-            // vPixel += wTimesInterlaceMinusOne;
-            // cPixel += wTimesInterlaceMinusOne;
-            vPixel += testInterlace * w;
-            cPixel += testInterlace * w;
+            }
+
+            if (window->maximize != window->oldMaximize)
+            {
+                if (window->maximize)
+                {
+                    window->oldPreMaxPosition = window->position;
+                    window->oldPreMaxSize = window->size;
+
+                    window->oldPreMaxBorder = window->showBorder;
+                    window->oldPreMaxTitle = window->showTitleBar;
+
+                    window->newPosition = Position(0, 23);
+                    window->newSize = Size(osData.windowPointerThing->actualScreenBuffer->Width, osData.windowPointerThing->actualScreenBuffer->Height - 23);
+
+                    window->showBorder = false;
+                    //window->showTitleBar = false;
+
+                    window->oldMaximize = true;
+                }
+                else
+                {
+                    window->newPosition = window->oldPreMaxPosition;
+                    window->newSize = window->oldPreMaxSize;
+
+                    window->showBorder = window->oldPreMaxBorder;
+                    window->showTitleBar = window->oldPreMaxTitle;
+
+                    window->oldMaximize = false;
+                }
+            }
+
+
+            Size nSize = window->newSize;
+            Position nPos = window->newPosition;
+
+
+            if (window->size != nSize)
+            {
+                window->Resize(nSize);
+                {
+                    x2 = window->position.x - 1;
+                    y2 = window->position.y - 23;
+                    sx2 = window->size.width + 3;
+                    sy2 = window->size.height + 25;
+
+                    update = true;
+                }
+            }
+
+            if (window->position != nPos)
+            {
+                window->position = nPos;
+
+                x2 = window->position.x - 1;
+                y2 = window->position.y - 23;
+                sx2 = window->size.width + 3;
+                sy2 = window->size.height + 25;
+
+                update = true;
+            }
+
+            if (update)
+            {
+                int rx1 = min(x1, x2);
+                int ry1 = min(y1, y2);
+                int rx2 = max(x1 + sx1, x2 + sx2);
+                int ry2 = max(y1 + sy1, y2 + sy2);
+
+                int AR = (rx2 - rx1) * (ry2 - ry1);
+                int A1 = sx1 * sy1;
+                int A2 = sx2 * sy2;
+
+                if (AR <= A1+A2)
+                {
+                    osData.windowPointerThing->UpdatePointerRect(rx1, ry1, rx2, ry2);
+                }
+                else
+                {
+                    osData.windowPointerThing->UpdatePointerRect(x1, y1, x1 + sx1, y1 + sy1);
+                    osData.windowPointerThing->UpdatePointerRect(x2, y2, x2 + sx2, y2 + sy2);
+                }
+            }
+        }
+        if (window->instance != NULL && !window->hidden && (activeWindow == window || frame % 5 == (i%3)))
+        {
+            if (window->instance->instanceType == InstanceType::Terminal)
+            {
+                TerminalInstance* termInst1 = (TerminalInstance*)window->instance;
+                if (termInst1->newTermInstance != NULL)
+                {
+                    NewTerminalInstance* termInst2 = (NewTerminalInstance*)termInst1->newTermInstance;
+                    termInst2->DoRender();
+                }
+            }   
+            else if (window->instance->instanceType == InstanceType::GUI)
+            {
+                GuiInstance* guiInst = (GuiInstance*)window->instance;
+                guiInst->Render();
+            }   
         }
         
     }
-    else
-    {
-        if (testInterlace == 1)
-        {
-            
-            uint64_t h = actualScreenFramebuffer->Height, w = actualScreenFramebuffer->Width;
 
-            uint32_t** vPixel = (uint32_t**)pointerBuffer->BaseAddress;
-            uint32_t*  cPixel = (uint32_t*)  mainBuffer->BaseAddress;
-            uint32_t*  aPixel = (uint32_t*)  actualScreenFramebuffer->BaseAddress;
-
-            
-            for (int64_t y = 0; y < h; y++)
-            {
-                aPixel = (uint32_t*)  actualScreenFramebuffer->BaseAddress + y * actualScreenFramebuffer->PixelsPerScanLine;
-                for (int64_t x = 0; x < w; x++)
-                {
-                    uint32_t col = **vPixel;
-                    if (*cPixel != col)
-                    {
-                        *aPixel = col;
-                        *cPixel = col;
-                        //osData.currentDisplay->UpdatePixel(x, y);
-                    }
-                    vPixel++;
-                    cPixel++;
-                    aPixel++;
-                } 
-            }
-            
-
-            
-        }
-        else
-        {
-            
-            uint64_t h = actualScreenFramebuffer->Height, w = actualScreenFramebuffer->Width;
-
-            uint32_t** vPixel = (uint32_t**)pointerBuffer->BaseAddress;
-            uint32_t*  aPixel = (uint32_t*)  actualScreenFramebuffer->BaseAddress;
-
-            
-            for (int64_t y = 0; y < h; y++)
-            {
-                aPixel = (uint32_t*)  actualScreenFramebuffer->BaseAddress + y * actualScreenFramebuffer->PixelsPerScanLine;
-                for (int64_t x = 0; x < w; x++)
-                {
-                    *aPixel = **vPixel;
-                    vPixel++;
-                    aPixel++;
-                    //osData.currentDisplay->UpdatePixel(x, y);
-                } 
-            }
-            
-
-            
-        }
-    }
-
-    //osData.currentDisplay->EndFrame();
-
-    
-    // //osData.debugTerminalWindow->Log("             : ################", Colors.black);
-    // osData.debugTerminalWindow->renderer->CursorPosition.x = 0;
-    // osData.debugTerminalWindow->renderer->CursorPosition.y -= 16 * 16;
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 200,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Pixel changed: {}", to_string(counta), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 200,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("FPS: {}", to_string(fps), Colors.yellow);
-    
-
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 200,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Used Heap count: {}", to_string(usedHeapCount), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 300,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Used Heap amount: {} KB", to_string(usedHeapAmount / 0x1000), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Mouse Packet Count: {}", to_string(mousePackets.GetCount()), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Malloc Count: {}", to_string(mallocCount), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Free Count: {}", to_string(freeCount), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Stack Trace Count: {}", to_string(MStackData::stackPointer+1), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("Last Free Size: {}", to_string(lastFreeSize), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("PORT 64 VAL: {}", ConvertHexToString(osData.port64Val), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    
-    // uint64_t tVal = 0;
-
-    // if (MStackData::BenchmarkMode == 0)
-    //     tVal = MStackData::BenchmarkStackPointer2;//osData.debugTerminalWindow->Log("MSTACK: {}", to_string(MStackData::BenchmarkStackPointer2), Colors.yellow);
-    // else
-    //     tVal = MStackData::BenchmarkStackPointer1;//osData.debugTerminalWindow->Log("MSTACK: {}", to_string(MStackData::BenchmarkStackPointer1), Colors.yellow);
-    // if (tVal > MStackData::BenchmarkStackPointerSave)
-    // {
-    //     SaveBenchmarkStack(((MStackData::BenchmarkMode + 1) % 2));
-    // }
-
-    // osData.debugTerminalWindow->Log("MSTACK: {}", to_string(tVal), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("MSTACK MAX: {}", to_string(MStackData::BenchmarkStackPointerSave), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // osData.debugTerminalWindow->Log("PC SPEAKER INDEX: {}", to_string(AudioDeviceStuff::currentRawAudioIndex), Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // if (osData.ac97Driver != NULL)
-    //     osData.debugTerminalWindow->Log("AC97 OFF: {}", to_string(osData.ac97Driver->needManualRestart), Colors.yellow);
-    // else
-    //     osData.debugTerminalWindow->Log("<NO AC97>", Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // if (osData.ac97Driver != NULL)
-    //     osData.debugTerminalWindow->Log("AC97 DO CHECK: {}", to_string(osData.ac97Driver->doCheck), Colors.yellow);
-    // else
-    //     osData.debugTerminalWindow->Log("<NO AC97>", Colors.yellow);
-    
-
-    
-    // osData.debugTerminalWindow->renderer->Clear(
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.x + 240,
-    //     osData.debugTerminalWindow->renderer->CursorPosition.y + 16,
-    //     Colors.black);
-    // if (osData.ac97Driver != NULL)
-    //     osData.debugTerminalWindow->Log("AC97 DATA SRCS: {}", to_string(osData.ac97Driver->audioDestination->sources->GetCount()), Colors.yellow);
-    // else
-    //     osData.debugTerminalWindow->Log("<NO AC97>", Colors.yellow);
-    
-    
-    if(++testCounterX >= testInterlace)
-    {
-        testCounterX = 0;
-        if(++testCounterY >= testInterlace)
-            testCounterY = 0;
-    }   
+    osStats.totalWindowUpdateTime = PIT::TimeSinceBootMicroS() - tS;
 }
+RemoveFromStack();
 
-
-void UpdateWindowBorder(Window* window)
+AddToStack();
 {
-    if (!window->ShowBorder)
-        return;
-
-    int x1 = window->Dimensions.x;
-    int y1 = window->Dimensions.y;
-    int x2 = x1 + window->Dimensions.width;
-    int y2 = y1 + window->Dimensions.height;
-    
-    UpdatePointerRect(x1-1, y1-22, x1-1, y2);
-    UpdatePointerRect(x2,   y1-22, x2,   y2);
-
-    UpdatePointerRect(x1-1, y1-22, x2,   y1-22);
-    UpdatePointerRect(x1-1, y1-1 ,x2,   y1-1);
-    UpdatePointerRect(x1-1, y2, x2,   y2);
-
-    UpdatePointerRect(x1,   y1-22, x2,   y1-1);
-}
-
-uint64_t RenderActualSquare(int _x1, int _y1, int _x2, int _y2)
-{
-    int64_t h = actualScreenFramebuffer->Height, w = actualScreenFramebuffer->Width, bpl = actualScreenFramebuffer->PixelsPerScanLine;
-
-
-    if (_x1 < 0)
-        _x1 = 0;
-    // if (_x2 < 0)
-    //     _x2 = 0;
-    if (_y1 < 0)
-        _y1 = 0;
-    // if (_y2 < 0)
-    //     _y2 = 0;
-
-    // if (_x1 >= w)
-    //     _x1 = w - 1;
-    if (_x2 >= w)
-        _x2 = w - 1;
-    // if (_y1 >= h)
-    //     _y1 = h - 1;
-    if (_y2 >= h)
-        _y2 = h - 1;
-
-    if (_x1 > _x2)
-        return 0;
-    
-    if (_y1 > _y2)
-        return 0;
-    
-
-    //
-    uint64_t counta = 0;
-    uint64_t xdiff = _x2 - _x1;
-    uint32_t** vPixel = (uint32_t**)pointerBuffer->BaseAddress + _x1 + w * _y1;
-    uint32_t*  cPixel = (uint32_t*)  mainBuffer->BaseAddress + _x1 + w * _y1;
-
-    int64_t wMinusSomeStuff = w - (xdiff+1);
-
-    // DRAW SQUARE
-    for (int64_t y1 = _y1; y1 <= _y2; y1++)
-    {
-        int64_t y1TimesBpl = y1 * bpl;
-        for (int64_t x1 = _x1; x1 <= _x2; x1++)
-        {
-            uint32_t col = **vPixel;
-            if (*cPixel != col)
-            {
-                *cPixel = col;
-                *(((uint32_t*) actualScreenFramebuffer->BaseAddress) + (x1 + y1TimesBpl)) = col; //counta + 0xff111111;
-                counta++;
-                //osData.currentDisplay->UpdatePixel(x1, y1);
-            }
-            vPixel++;
-            cPixel++;
-        }
-        vPixel += wMinusSomeStuff;
-        cPixel += wMinusSomeStuff;
+    for (int i = 0; i < osData.windows.GetCount(); i++)
+    {     
+        Window* window = osData.windows[i];
+        window->RenderStuff();
     }
-
-    return counta;
 }
+RemoveFromStack();
+
+
+{
+    uint64_t tS = PIT::TimeSinceBootMicroS();
+    AddToStack();
+    Taskbar::RenderTaskbar();
+
+    // Handle mouse
+    AddToStack();
+    ProcessMousePackets();
+    RemoveFromStack();
+
+    // Draw Mouse
+    AddToStack();
+    MPoint mPosOld = MousePosition;
+    DrawMousePointer2(osData.windowPointerThing->virtualScreenBuffer, mPosOld);
+    RemoveFromStack();
+
+    // Render Screen
+    AddToStack();
+    osData.windowPointerThing->fps = fps;
+    osData.windowPointerThing->Render();
+    RemoveFromStack();
+
+    // Remove Mouse
+    AddToStack();
+    osData.windowPointerThing->UpdatePointerRect(mPosOld.x - 32, mPosOld.y - 32, mPosOld.x + 64, mPosOld.y + 64);
+    RemoveFromStack();
+
+    osStats.totalRenderTime = PIT::TimeSinceBootMicroS() - tS;
+    RemoveFromStack();
+}
+*/
+
+
+

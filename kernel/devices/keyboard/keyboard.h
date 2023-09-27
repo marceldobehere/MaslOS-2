@@ -60,5 +60,14 @@ namespace Keyboard
     int KeysAvaiable();
     bool DoKey();
 
+    struct MiniKeyInfo
+    {
+        bool IsPressed;
+        int Scancode;
+        char AsciiChar;
+    };
+    const MiniKeyInfo NoKey = { false, 0, 0 };
+    MiniKeyInfo DoAndGetKey();
+
     bool IsKeyPressed(int scancode);
 }
