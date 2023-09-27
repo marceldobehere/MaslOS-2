@@ -840,7 +840,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
                 sizeof(KeyMessagePacket)
             );
             
-            Serial::Writelnf("INT> Sending key packet to desktop task");
+            //Serial::Writelnf("INT> Sending key packet to desktop task");
             SendMessageToTask(packet, Scheduler::DesktopTask->pid);
             
             packet->Free();

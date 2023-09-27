@@ -34,7 +34,7 @@ extern MPoint MousePosition;
 
 void InitStuff();
 
-void PrintFPS(int fps, int frameTime, int breakTime);
+void PrintFPS(int fps, int frameTime, int breakTime, int totalTime);
 
 int main();
 

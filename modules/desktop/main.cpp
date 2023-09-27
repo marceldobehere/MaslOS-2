@@ -83,7 +83,7 @@ void InitStuff()
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
 
-void PrintFPS(int fps, int frameTime, int breakTime)
+void PrintFPS(int fps, int frameTime, int breakTime, int totalTime)
 {
     actualScreenRenderer->CursorPosition.x = 0;
     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
@@ -99,7 +99,8 @@ void PrintFPS(int fps, int frameTime, int breakTime)
 
     actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
     actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
-    actualScreenRenderer->Print(" {})", to_string(breakTime), Colors.yellow);
+    actualScreenRenderer->Print(" {} /", to_string(breakTime), Colors.yellow);
+    actualScreenRenderer->Print(" {})", to_string((totalTime)), Colors.yellow);
 
     actualScreenRenderer->Clear(
         300, 
@@ -173,6 +174,7 @@ int main()
         uint64_t frameTime = 0;
         uint64_t breakTime = 0;
         
+        uint64_t _startTime = envGetTimeMs();
         
         for (int i = 0; i < frameCount; i++)
         {
@@ -191,14 +193,19 @@ int main()
             //programYield();
         }
 
+        uint64_t _endTime = envGetTimeMs();
+
+        uint64_t totalTime = _endTime - _startTime;
+
         if (frameTime == 0)
             frameTime = 1;
         int fps = (int)((frameCount * 1000) / frameTime);
 
         frameTime = (frameTime * 1000) / frameCount;
         breakTime = (breakTime * 1000) / frameCount;
+        totalTime = (totalTime * 1000) / frameCount;
 
-        PrintFPS(fps, frameTime, breakTime);
+        PrintFPS(fps, frameTime, breakTime, totalTime);
     }
 
     return 0;
