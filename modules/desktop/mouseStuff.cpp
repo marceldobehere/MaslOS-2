@@ -22,24 +22,25 @@ uint32_t MouseDataMap[] =
 };
 
 
+
 uint8_t MouseShowBitmap[] =
 {
-    0b11111111, 0b11111110,
-    0b11111111, 0b11111100,
-    0b11111111, 0b11111000,
-    0b11111111, 0b11110000,
-    0b11111111, 0b11100000,
+    0b10000000, 0b00000000,
+    0b11000000, 0b00000000,
+    0b11100000, 0b00000000,
+    0b11110000, 0b00000000,
+    0b11111000, 0b00000000,
+    0b11111100, 0b00000000,
+    0b11111110, 0b00000000,
+    0b11111111, 0b00000000,
+    0b11111111, 0b10000000,
     0b11111111, 0b11000000,
-    0b11111111, 0b11100000,
-    0b11111111, 0b11110000,
-    0b11111111, 0b11111000,
-    0b11111111, 0b11111100,
-    0b11111011, 0b11111110,
-    0b11110001, 0b11111111,
-    0b11100000, 0b11111110,
-    0b11000000, 0b01111100,
-    0b10000000, 0b00111000,
-    0b00000000, 0b00010000
+    0b11111100, 0b00000000,
+    0b11101110, 0b00000000,
+    0b11001110, 0b00000000,
+    0b10000111, 0b00000000,
+    0b00000111, 0b00000000,
+    0b00000010, 0b00000000
 };
 
 uint32_t CurrentMouseCol = Colors.orange;
@@ -47,12 +48,47 @@ uint32_t CurrentMouseCol = Colors.orange;
 void DrawMousePointer(MPoint point, PointerBuffer* framebuffer)
 {
     // for now we will just draw the 16x16 hardcoded mouse image
+    uint32_t mouse[16 * 16];
+    static char cursor[16][16] = {
+        "*...............",
+        "**..............",
+        "*O*.............",
+        "*OO*............",
+        "*OOO*...........",
+        "*OOOO*..........",
+        "*OOOOO*.........",
+        "*OOOOOO*........",
+        "*OOOOOOO*.......",
+        "*OOOO*****......",
+        "*OO*O*..........",
+        "*O*.*O*.........",
+        "**..*O*.........",
+        "*....*O*........",
+        ".....*O*........",
+        "......*........."
+    };
+    int x, y;
+
+    for (y = 0; y < 16; y++) {
+        for (x = 0; x < 16; x++) {
+            if (cursor[y][x] == '*') {
+                mouse[y * 16 + x]  = COL8_000000;
+            }
+            if (cursor[y][x] == 'O') {
+                mouse[y * 16 + x]  = COL8_FFFFFF;
+            }
+            if (cursor[y][x] == '.') {
+                mouse[y * 16 + x]  = COL8_008484;
+            }
+        }
+    }
+    //return;
     
     for (int y = 0; y < 16; y++)
         for (int x = 0; x < 16; x++)
             if ((MouseShowBitmap[y * 2 + (x / 8)] & (0x80 >> (x & 7))) != 0)
                 if ((point.y + y) >= 0 && (point.y + y) < framebuffer->Height &&
                     (point.x + x) >= 0 && (point.x + x) < framebuffer->Width)
-                    framebuffer->BaseAddress[(point.y + y) * framebuffer->Width + (point.x + x)] = &(MouseDataMap[y * 16 + x]);
+                    framebuffer->BaseAddress[(point.y + y) * framebuffer->Width + (point.x + x)] = &(mouse[y * 16 + x]);
         
 }
