@@ -184,7 +184,8 @@ int main()
 
             frameTime += endTime - startTime;
 
-            programWait(10);
+            //programWait(10);
+            programYield();
 
             uint64_t endTime2 = envGetTimeMs();
 

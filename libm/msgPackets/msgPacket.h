@@ -21,6 +21,7 @@ public:
     MessagePacketType Type;
     uint8_t* Data;
     uint64_t Size;
+    uint64_t FromPID;
 
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size);
     GenericMessagePacket* Copy();

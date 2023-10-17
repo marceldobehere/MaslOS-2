@@ -702,7 +702,7 @@ void MapMemoryOfCurrentTask(osTask* task)
     }
 }
 
-bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid)
+bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid, uint64_t sourcePid)
 {
     if (oldPacket == NULL)
         return false;
@@ -841,7 +841,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             );
             
             //Serial::Writelnf("INT> Sending key packet to desktop task");
-            SendMessageToTask(packet, Scheduler::DesktopTask->pid);
+            SendMessageToTask(packet, Scheduler::DesktopTask->pid, 1);
             
             packet->Free();
             _Free(packet);
@@ -867,7 +867,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             );
             
             //Serial::Writelnf("INT> Sending mouse packet to desktop task");
-            SendMessageToTask(packet2, Scheduler::DesktopTask->pid);
+            SendMessageToTask(packet2, Scheduler::DesktopTask->pid, 1);
             
             packet2->Free();
             _Free(packet2);
@@ -1243,6 +1243,7 @@ void Syscall_handler(interrupt_frame* frame)
                 if (allowSend)
                 {
                     GenericMessagePacket* newPacket = oldPacket->Copy();
+                    newPacket->FromPID = task->pid;
                     otherTask->messages->Enqueue(newPacket);
                     frame->rax = 1;
                 }
