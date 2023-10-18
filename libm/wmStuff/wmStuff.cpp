@@ -112,8 +112,11 @@ Window* requestWindow()
         if (winCreate != NULL)
             break;
     }
-
+    
     uint64_t windowId = 0; // <GET WINDOW ID FROM PACKET>
+    if (winCreate->Size >= 4)
+        windowId = *((uint64_t*)winCreate->Data);
+
 
     Window* partial = getPartialWindow(windowId);
 

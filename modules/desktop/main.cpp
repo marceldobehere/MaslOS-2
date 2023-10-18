@@ -7,6 +7,7 @@
 #include <libm/msgPackets/keyPacket/keyPacket.h>
 #include <libm/msgPackets/windowBufferUpdatePacket/windowBufferUpdatePacket.h>
 #include <libm/queue/queue_windowBufferUpdate.h>
+#include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -131,7 +132,6 @@ int main()
 
     Window* window = new Window(50, 30, 200, 200, "Test Window 1", RND::RandomInt(), getPid());
     windows->Add(window);
-
     _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
 
     {
@@ -274,7 +274,97 @@ void DrawFrame()
 
             updateFramePackets->Enqueue(windowBufferUpdatePacket);
         }
-        // TODO: Handle window request, get and set msgs
+        else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && msg->Size == 0)
+        {
+            uint64_t pidFrom = msg->FromPID;
+            uint64_t newWindowId = RND::RandomInt();
+
+            Window* window = new Window(350, 30, 400, 200, "Created Test Window", newWindowId, pidFrom);
+            windows->Add(window);
+            _memset(window->Buffer->BaseAddress, 0x20, window->Buffer->BufferSize);
+
+            //Clear(true);
+            //RenderWindows();
+            ActuallyRenderWindow(window);
+
+            if (pidFrom != getPid())
+            {
+                // serialPrintLn("Sending Window ID");
+                // serialPrint("Win ID: ");
+                // serialPrintLn(to_string(newWindowId));
+                // serialPrint("From PID: ");
+                // serialPrintLn(to_string(getPid()));
+                // serialPrint("To PID: ");
+                // serialPrintLn(to_string(pidFrom));
+                GenericMessagePacket* response = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, (uint8_t*)&newWindowId, 4);
+                msgSendMessage(response, pidFrom);
+                response->Free();
+                _Free(response);
+            }
+        }
+        else if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
+        {
+            WindowObjectPacket* winObjPacketFrom = new WindowObjectPacket(msg);
+            Window* fromWind = winObjPacketFrom->PartialWindow;
+            uint64_t winId = 0;
+            if (fromWind != NULL)
+                fromWind->ID;
+
+            if (!winObjPacketFrom->Set)
+            {
+                Window* win = NULL;
+                for (int i = 0; i < windows->GetCount(); i++)
+                {
+                    Window* tWin = windows->ElementAt(i);
+                    if (tWin->ID == winId)
+                    {
+                        win = tWin;
+                        break;
+                    }
+                }
+
+                if (win != NULL)
+                {
+                    WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(win, false);
+                    GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
+
+                    serialPrintLn("> Sending Window");
+                    msgSendMessage(sendMsg, msg->FromPID);
+                    
+                    sendMsg->Free();
+                    _Free(sendMsg);
+
+                    winObjPacketTo->Free();
+                    _Free(winObjPacketTo);
+                }
+                else
+                {
+                    serialPrintLn("> Window not found");
+                }
+            }
+
+            if (fromWind != NULL)
+            {
+                fromWind->Free();
+                _Free(fromWind);
+            }
+
+            winObjPacketFrom->Free();
+            _Free(winObjPacketFrom);
+        }
+        else if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
+        {
+            WindowObjectPacket* winObjPacketFrom = new WindowObjectPacket(msg);
+
+            if (winObjPacketFrom->Set)
+            {
+                // Actually Set Window
+                // TODO: Implement
+            }
+
+            winObjPacketFrom->Free();
+            _Free(winObjPacketFrom);
+        }
 
         msg->Free();
         _Free(msg);

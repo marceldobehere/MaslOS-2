@@ -7,12 +7,14 @@ GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data
     Type = type;
     Size = size;
     Data = (uint8_t*)_Malloc(size, "Generic Message Data");
+    FromPID = 0;
     _memcpy(data, Data, size);
 }
 GenericMessagePacket* GenericMessagePacket::Copy()
 {
     GenericMessagePacket* packet = (GenericMessagePacket*)_Malloc(sizeof(GenericMessagePacket), "Generic Message Packet");
     *packet = GenericMessagePacket(Type, Data, Size);
+    packet->FromPID = FromPID;
     return packet;   
 }    
 void GenericMessagePacket::Free()
@@ -29,6 +31,7 @@ GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data
     Type = type;
     Size = size;
     Data = (uint8_t*)manager->_Xmalloc(size, "Generic Message Data");
+    FromPID = 0;
     _memcpy(data, Data, size);
 }
 
@@ -36,6 +39,7 @@ GenericMessagePacket* GenericMessagePacket::Copy(Heap::HeapManager* manager)
 {
     GenericMessagePacket* packet = (GenericMessagePacket*)manager->_Xmalloc(sizeof(GenericMessagePacket), "Generic Message Packet");
     *packet = GenericMessagePacket(Type, Data, Size, manager);
+    packet->FromPID = FromPID;
     return packet;
 }
 

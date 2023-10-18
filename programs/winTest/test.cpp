@@ -29,11 +29,11 @@ int main()
     globalPrint("A> DESKTOP PID: ");
     globalPrintLn(to_string(desktopPID));
 
-    programWait(5000);
+    programWait(2000);
 
     globalPrint("A> Requesting Window...");
-
     Window* window = requestWindow();
+    globalPrint("A> Requested Window!");
 
     if (window != NULL)
     {
