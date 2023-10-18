@@ -219,7 +219,7 @@ namespace Scheduler
         if (cycleDone)
         {
             if (CurrentRunningTask != NothingDoerTask)
-                Serial::Writelnf("SCHEDULER> NO TASKS TO RUN");
+                ;//Serial::Writelnf("SCHEDULER> NO TASKS TO RUN");
             nowTask = NothingDoerTask;
 
             if (nowTask == NULL)

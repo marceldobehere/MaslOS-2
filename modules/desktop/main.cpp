@@ -83,7 +83,7 @@ void InitStuff()
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
 
-void PrintFPS(int fps, int frameTime, int breakTime, int totalTime)
+void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime)
 {
     actualScreenRenderer->CursorPosition.x = 0;
     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
@@ -98,6 +98,7 @@ void PrintFPS(int fps, int frameTime, int breakTime, int totalTime)
     );
 
     actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
+    actualScreenRenderer->Print(" ({})", to_string(aFps), Colors.yellow);
     actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
     actualScreenRenderer->Print(" {} /", to_string(breakTime), Colors.yellow);
     actualScreenRenderer->Print(" {})", to_string((totalTime)), Colors.yellow);
@@ -128,7 +129,7 @@ int main()
 
     InitStuff();
 
-    Window* window = new Window(50, 30, 200, 200, "Test Window 1");
+    Window* window = new Window(50, 30, 200, 200, "Test Window 1", RND::RandomInt(), getPid());
     windows->Add(window);
 
     _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
@@ -201,12 +202,13 @@ int main()
         if (frameTime == 0)
             frameTime = 1;
         int fps = (int)((frameCount * 1000) / frameTime);
+        int aFps = (int)((frameCount * 1000) / totalTime);
 
         frameTime = (frameTime * 1000) / frameCount;
         breakTime = (breakTime * 1000) / frameCount;
         totalTime = (totalTime * 1000) / frameCount;
 
-        PrintFPS(fps, frameTime, breakTime, totalTime);
+        PrintFPS(fps, aFps, frameTime, breakTime, totalTime);
     }
 
     return 0;

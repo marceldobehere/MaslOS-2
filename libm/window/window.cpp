@@ -6,7 +6,7 @@
 #include <libm/rendering/Cols.h>
 #include <libm/rnd/rnd.h>
 
-Window::Window(int x, int y, int width, int height, const char* title)
+Window::Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid)
 {
     Title = StrCopy(title);
     OldTitle = StrCopy(Title);
@@ -35,7 +35,8 @@ Window::Window(int x, int y, int width, int height, const char* title)
     Updates = new List<WindowUpdate>();
     Buffer = NULL;
 
-    ID = RND::RandomInt();
+    ID = id;
+    PID = pid;
 
     ResizeFramebuffer(width, height);
 }

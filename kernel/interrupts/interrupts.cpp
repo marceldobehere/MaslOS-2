@@ -1124,7 +1124,7 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_YIELD)
     {
         if (Scheduler::CurrentRunningTask != Scheduler::NothingDoerTask)
-        Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask);
+            ;//Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask);
         Scheduler::CurrentRunningTask->justYielded = true;
 
         Scheduler::SchedulerInterrupt(frame);

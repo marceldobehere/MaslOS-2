@@ -99,12 +99,13 @@ class Window
     uint32_t DefaultTitleBackgroundColor;
 
     uint64_t ID;
+    uint64_t PID;
     
     List<WindowUpdate>* Updates;
 
     Framebuffer* Buffer;
 
-    Window(int x, int y, int width, int height, const char* title);
+    Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid);
 
     void ResizeFramebuffer(int width, int height);
 
