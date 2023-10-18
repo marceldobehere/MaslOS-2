@@ -12,6 +12,7 @@ char buffer[512];
 
 int main()
 {
+    return 0;
     //globalCls();
 
     int argc = getArgC();

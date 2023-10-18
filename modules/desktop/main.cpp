@@ -97,8 +97,8 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime)
         Colors.black
     );
 
-    actualScreenRenderer->Print("FPS: {}", to_string(fps), Colors.yellow);
-    actualScreenRenderer->Print(" ({})", to_string(aFps), Colors.yellow);
+    actualScreenRenderer->Print("FPS: {}", to_string(aFps), Colors.yellow);
+    actualScreenRenderer->Print(" ({})", to_string(fps), Colors.yellow);
     actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
     actualScreenRenderer->Print(" {} /", to_string(breakTime), Colors.yellow);
     actualScreenRenderer->Print(" {})", to_string((totalTime)), Colors.yellow);
@@ -274,6 +274,7 @@ void DrawFrame()
 
             updateFramePackets->Enqueue(windowBufferUpdatePacket);
         }
+        // TODO: Handle window request, get and set msgs
 
         msg->Free();
         _Free(msg);

@@ -1156,6 +1156,13 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = PIT::TimeSinceBootMS();
     }
+    else if (syscall == SYSCALL_ENV_GET_DESKTOP_PID)
+    {
+        if (Scheduler::DesktopTask != NULL)
+            frame->rax = Scheduler::DesktopTask->pid;
+        else
+            frame->rax = 0;
+    }
     else if (syscall == SYSCALL_GET_PID)
     {
         frame->rax = Scheduler::CurrentRunningTask->pid;

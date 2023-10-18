@@ -6,6 +6,34 @@
 #include <libm/rendering/Cols.h>
 #include <libm/rnd/rnd.h>
 
+Window::Window()
+{
+    Title = NULL;
+    OldTitle = NULL;
+
+    Dimensions = WindowDimension();
+    OldDimensions = Dimensions;
+
+    ShowTitleBar = true;
+    ShowBorder = true;
+    Hidden = false;
+    Moveable = true;
+    Resizeable = true;
+    Closeable = true;
+
+    DefaultBorderColor = Colors.dgray;
+    SelectedBorderColor = Colors.bgreen;
+    DefaultTitleColor = Colors.gray;
+    SelectedTitleColor = Colors.white;
+    DefaultTitleBackgroundColor = Colors.dgray;
+
+    Updates = NULL;
+    Buffer = NULL;
+
+    ID = 0;
+    PID = 0;
+}
+
 Window::Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid)
 {
     Title = StrCopy(title);
@@ -88,6 +116,11 @@ void Window::_CheckTitleChange()
 void Window::UpdateCheck()
 {
 
+}
+
+void Window::UpdateUsingPartialWindow(Window* window)
+{
+    // TODO apply the changes
 }
 
 // void Window::DrawToFramebuffer(Framebuffer* framebuffer, Framebuffer* backbuffer, WindowUpdate update, int x, int y)

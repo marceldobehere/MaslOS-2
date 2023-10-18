@@ -37,6 +37,15 @@ uint64_t getPid()
     return pid;
 }
 
+uint64_t envGetDesktopPid()
+{
+    int syscall = SYSCALL_ENV_GET_DESKTOP_PID;
+    uint64_t pid;
+
+    asm("int $0x31" : "=a"(pid): "a"(syscall));
+    return pid;
+}
+
 #ifdef _KERNEL_SRC
 #include "../kernel/paging/PageTableManager.h"
 #include "../kernel/scheduler/scheduler.h"

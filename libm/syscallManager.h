@@ -30,6 +30,7 @@ void programYield();
 int programSetPriority(int priority);
 
 uint64_t envGetTimeMs();
+uint64_t envGetDesktopPid();
 
 uint64_t randomUint64();
 

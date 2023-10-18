@@ -11,8 +11,10 @@ enum MessagePacketType : uint8_t
     GENERIC_MESSAGE,
     KEY_EVENT,
     MOUSE_EVENT,
-    WINDOW_EVENT,
-    WINDOW_BUFFER_EVENT
+    WINDOW_BUFFER_EVENT,
+    WINDOW_CREATE_EVENT,
+    WINDOW_GET_EVENT,
+    WINDOW_SET_EVENT
 };
 
 class GenericMessagePacket
