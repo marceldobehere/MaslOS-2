@@ -31,15 +31,29 @@ int main()
 
     programWait(2000);
 
-    globalPrint("A> Requesting Window...");
+    globalPrintLn("A> Requesting Window...");
     Window* window = requestWindow();
-    globalPrint("A> Requested Window!");
+    globalPrintLn("A> Requested Window!");
 
-    if (window != NULL)
-    {
-        globalPrint("A> Window ID: ");
-        globalPrintLn(to_string(window->ID));
-    }
+    if (window == NULL)
+        return 0;
+
+    
+    globalPrint("A> Window ID: ");
+    globalPrintLn(ConvertHexToString(window->ID));
+    
+
+    globalPrint("A> Window Title (1): \"");
+    globalPrint(window->Title);
+    globalPrintLn("\"");
+
+    _Free(window->Title);
+    window->Title = StrCopy("Hello World!");
+    setWindow(window->ID, window);
+    
+    globalPrint("A> Window Title (2): \"");
+    globalPrint(window->Title);
+    globalPrintLn("\"");
 
     return 0;
 }

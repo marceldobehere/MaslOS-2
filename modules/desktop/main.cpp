@@ -201,6 +201,8 @@ int main()
 
         if (frameTime == 0)
             frameTime = 1;
+        if (totalTime == 0)
+            totalTime = 1;
         int fps = (int)((frameCount * 1000) / frameTime);
         int aFps = (int)((frameCount * 1000) / totalTime);
 
@@ -289,14 +291,14 @@ void DrawFrame()
 
             if (pidFrom != getPid())
             {
-                // serialPrintLn("Sending Window ID");
-                // serialPrint("Win ID: ");
-                // serialPrintLn(to_string(newWindowId));
-                // serialPrint("From PID: ");
-                // serialPrintLn(to_string(getPid()));
-                // serialPrint("To PID: ");
-                // serialPrintLn(to_string(pidFrom));
-                GenericMessagePacket* response = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, (uint8_t*)&newWindowId, 4);
+                serialPrintLn("Sending Window ID");
+                serialPrint("Win ID: ");
+                serialPrintLn(ConvertHexToString(newWindowId));
+                serialPrint("From PID: ");
+                serialPrintLn(to_string(getPid()));
+                serialPrint("To PID: ");
+                serialPrintLn(to_string(pidFrom));
+                GenericMessagePacket* response = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, (uint8_t*)&newWindowId, 8);
                 msgSendMessage(response, pidFrom);
                 response->Free();
                 _Free(response);
@@ -308,7 +310,13 @@ void DrawFrame()
             Window* fromWind = winObjPacketFrom->PartialWindow;
             uint64_t winId = 0;
             if (fromWind != NULL)
-                fromWind->ID;
+            {
+                serialPrintLn("> WIN NOT NULL");
+                winId = fromWind->ID;   
+            }
+
+            serialPrint("> WIN ID: ");
+            serialPrintLn(ConvertHexToString(winId));
 
             if (!winObjPacketFrom->Set)
             {
@@ -325,6 +333,7 @@ void DrawFrame()
 
                 if (win != NULL)
                 {
+                    serialPrintLn("> WIN GET EVENT");
                     WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(win, false);
                     GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
 
@@ -352,14 +361,49 @@ void DrawFrame()
             winObjPacketFrom->Free();
             _Free(winObjPacketFrom);
         }
-        else if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
+        else if (msg->Type == MessagePacketType::WINDOW_SET_EVENT)
         {
             WindowObjectPacket* winObjPacketFrom = new WindowObjectPacket(msg);
+            Window* fromWind = winObjPacketFrom->PartialWindow;
+            uint64_t winId = 0;
+            if (fromWind != NULL)
+            {
+                serialPrintLn("> WIN NOT NULL");
+                winId = fromWind->ID;   
+            }
+
+            serialPrint("> WIN ID: ");
+            serialPrintLn(ConvertHexToString(winId));
 
             if (winObjPacketFrom->Set)
             {
-                // Actually Set Window
-                // TODO: Implement
+                Window* win = NULL;
+                for (int i = 0; i < windows->GetCount(); i++)
+                {
+                    Window* tWin = windows->ElementAt(i);
+                    if (tWin->ID == winId)
+                    {
+                        win = tWin;
+                        break;
+                    }
+                }
+
+                if (win != NULL)
+                {
+                    serialPrintLn("> WIN SET EVENT");
+                    win->UpdateUsingPartialWindow(fromWind, false);
+                    win->UpdateCheck();
+                }
+                else
+                {
+                    serialPrintLn("> Window not found");
+                }
+            }
+
+            if (fromWind != NULL)
+            {
+                fromWind->Free();
+                _Free(fromWind);
             }
 
             winObjPacketFrom->Free();

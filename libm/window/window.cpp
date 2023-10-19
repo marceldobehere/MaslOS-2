@@ -118,9 +118,51 @@ void Window::UpdateCheck()
 
 }
 
-void Window::UpdateUsingPartialWindow(Window* window)
+void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)
 {
     // TODO apply the changes
+
+    // Title
+    if (window->Title != NULL)
+    {
+        _Free((void*)Title);
+        Title = StrCopy(window->Title);
+    }
+
+    // Dimensions
+    Dimensions = window->Dimensions;
+
+    // ShowTitleBar
+    ShowTitleBar = window->ShowTitleBar;
+    // ShowBorder
+    ShowBorder = window->ShowBorder;
+    // Hidden
+    Hidden = window->Hidden;
+    // Moveable
+    Moveable = window->Moveable;
+    // Resizeable
+    Resizeable = window->Resizeable;
+    // Closeable
+    Closeable = window->Closeable;
+
+    // DefaultBorderColor
+    DefaultBorderColor = window->DefaultBorderColor;
+    // SelectedBorderColor
+    SelectedBorderColor = window->SelectedBorderColor;
+    // DefaultTitleColor
+    DefaultTitleColor = window->DefaultTitleColor;
+    // SelectedTitleColor
+    SelectedTitleColor = window->SelectedTitleColor;
+    // DefaultTitleBackgroundColor
+    DefaultTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+
+    if (updateIdAndPid)
+    {
+        // ID
+        ID = window->ID;
+        // PID
+        PID = window->PID;
+    }
 }
 
 // void Window::DrawToFramebuffer(Framebuffer* framebuffer, Framebuffer* backbuffer, WindowUpdate update, int x, int y)

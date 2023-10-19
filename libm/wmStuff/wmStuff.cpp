@@ -45,9 +45,12 @@ GenericMessagePacket* getWindowGetPacket()
 Window* getPartialWindow(uint64_t id)
 {
     {
-        WindowObjectPacket* winObj = new WindowObjectPacket(NULL, false);
+        Window* tWin = new Window(0, 0, 0, 0, "", id, 0);
+        WindowObjectPacket* winObj = new WindowObjectPacket(tWin, false);
         GenericMessagePacket* msg = winObj->ToGenericMessagePacket();
         msgSendMessage(msg, desktopPID);
+        tWin->Free();
+        _Free(tWin);
         msg->Free();
         _Free(msg);
         winObj->Free();
@@ -76,7 +79,7 @@ Window* getPartialWindow(uint64_t id)
 void setWindow(uint64_t id, Window* window)
 {
     {
-        WindowObjectPacket* winObj = new WindowObjectPacket(window, false);
+        WindowObjectPacket* winObj = new WindowObjectPacket(window, true);
         GenericMessagePacket* msg = winObj->ToGenericMessagePacket();
         msgSendMessage(msg, desktopPID);
         msg->Free();
@@ -88,7 +91,8 @@ void setWindow(uint64_t id, Window* window)
     // after sending the window set, we need to update the window object 
     // to avoid changes that were not permitted by the wm (keep it synchronised)
     Window* partialWindow = getPartialWindow(id);
-    window->UpdateUsingPartialWindow(partialWindow);
+    window->UpdateUsingPartialWindow(partialWindow, true);
+    window->UpdateCheck();
     partialWindow->Free();
     _Free(partialWindow);
 }
@@ -114,14 +118,14 @@ Window* requestWindow()
     }
     
     uint64_t windowId = 0; // <GET WINDOW ID FROM PACKET>
-    if (winCreate->Size >= 4)
+    if (winCreate->Size >= 8)
         windowId = *((uint64_t*)winCreate->Data);
 
 
     Window* partial = getPartialWindow(windowId);
 
     Window* newWindow = new Window(0, 0, 0, 0, "", windowId, 0);
-    newWindow->UpdateUsingPartialWindow(partial);
+    newWindow->UpdateUsingPartialWindow(partial, true);
     newWindow->UpdateCheck();
 
     winCreate->Free();

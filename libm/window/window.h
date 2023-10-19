@@ -108,7 +108,7 @@ class Window
     Window();
     Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid);
 
-    void UpdateUsingPartialWindow(Window* window);
+    void UpdateUsingPartialWindow(Window* window, bool updateIdAndPid);
 
     void ResizeFramebuffer(int width, int height);
 
