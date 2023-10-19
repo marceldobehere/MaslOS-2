@@ -311,12 +311,11 @@ void DrawFrame()
             uint64_t winId = 0;
             if (fromWind != NULL)
             {
-                serialPrintLn("> WIN NOT NULL");
                 winId = fromWind->ID;   
             }
 
-            serialPrint("> WIN ID: ");
-            serialPrintLn(ConvertHexToString(winId));
+            // serialPrint("> WIN ID: ");
+            // serialPrintLn(ConvertHexToString(winId));
 
             if (!winObjPacketFrom->Set)
             {
@@ -333,11 +332,11 @@ void DrawFrame()
 
                 if (win != NULL)
                 {
-                    serialPrintLn("> WIN GET EVENT");
+                    // serialPrintLn("> WIN GET EVENT");
                     WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(win, false);
                     GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
 
-                    serialPrintLn("> Sending Window");
+                    // serialPrintLn("> Sending Window");
                     msgSendMessage(sendMsg, msg->FromPID);
                     
                     sendMsg->Free();
@@ -348,7 +347,7 @@ void DrawFrame()
                 }
                 else
                 {
-                    serialPrintLn("> Window not found");
+                    // serialPrintLn("> Window not found");
                 }
             }
 
@@ -368,12 +367,11 @@ void DrawFrame()
             uint64_t winId = 0;
             if (fromWind != NULL)
             {
-                serialPrintLn("> WIN NOT NULL");
                 winId = fromWind->ID;   
             }
 
-            serialPrint("> WIN ID: ");
-            serialPrintLn(ConvertHexToString(winId));
+            // serialPrint("> WIN ID: ");
+            // serialPrintLn(ConvertHexToString(winId));
 
             if (winObjPacketFrom->Set)
             {
@@ -390,13 +388,13 @@ void DrawFrame()
 
                 if (win != NULL)
                 {
-                    serialPrintLn("> WIN SET EVENT");
+                    // serialPrintLn("> WIN SET EVENT");
                     win->UpdateUsingPartialWindow(fromWind, false);
                     win->UpdateCheck();
                 }
                 else
                 {
-                    serialPrintLn("> Window not found");
+                    // serialPrintLn("> Window not found");
                 }
             }
 
@@ -415,6 +413,41 @@ void DrawFrame()
     }
 
     doUpdate |= updateFramePackets->GetCount() > 0;
+
+    // check for window updates
+    for (int i = 0; i < windows->GetCount(); i++)
+    {
+        Window* window = windows->ElementAt(i);
+        window->UpdateCheck();
+
+        if (window->Updates->GetCount() > 0)
+        {
+            doUpdate = true;
+
+            for (int j = 0; j < window->Updates->GetCount(); j++)
+            {
+                WindowUpdate update = window->Updates->ElementAt(j);
+
+                UpdatePointerRect(
+                    window->Dimensions.x + update.x1, 
+                    window->Dimensions.y + update.y1, 
+                    
+                    window->Dimensions.x + update.x2, 
+                    window->Dimensions.y + update.y2
+                );
+
+                RenderActualSquare(
+                    window->Dimensions.x + update.x1, 
+                    window->Dimensions.y + update.y1, 
+                    
+                    window->Dimensions.x + update.x2, 
+                    window->Dimensions.y + update.y2
+                );
+            }
+
+            window->Updates->Clear();
+        }
+    }
 
     //Taskbar::RenderTaskbar();
 

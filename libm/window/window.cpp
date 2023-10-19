@@ -110,12 +110,18 @@ void Window::_CheckDimensionChange()
 
 void Window::_CheckTitleChange()
 {
+    if (!StrEquals(Title, OldTitle))
+    {
+        _Free(OldTitle);
+        OldTitle = StrCopy(Title);
 
+        Updates->Add(WindowUpdate(0, -23, Dimensions.width, 1));
+    }
 }
 
 void Window::UpdateCheck()
 {
-
+    _CheckTitleChange();
 }
 
 void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)

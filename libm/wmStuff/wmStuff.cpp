@@ -76,6 +76,11 @@ Window* getPartialWindow(uint64_t id)
     return window;
 }
 
+void setWindow(Window* window)
+{
+    setWindow(window->ID, window);
+}
+
 void setWindow(uint64_t id, Window* window)
 {
     {

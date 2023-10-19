@@ -38,7 +38,6 @@ int main()
     if (window == NULL)
         return 0;
 
-    
     globalPrint("A> Window ID: ");
     globalPrintLn(ConvertHexToString(window->ID));
     
@@ -49,11 +48,27 @@ int main()
 
     _Free(window->Title);
     window->Title = StrCopy("Hello World!");
-    setWindow(window->ID, window);
+    setWindow(window);
     
     globalPrint("A> Window Title (2): \"");
     globalPrint(window->Title);
     globalPrintLn("\"");
+
+
+    programWait(2000);
+
+    while (true)
+    {
+        _Free(window->Title);
+        window->Title = StrCopy("AAA");
+        setWindow(window);
+
+        _Free(window->Title);
+        window->Title = StrCopy("BBB");
+        setWindow(window);
+
+        programYield();
+    }
 
     return 0;
 }

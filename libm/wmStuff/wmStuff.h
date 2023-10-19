@@ -11,6 +11,7 @@ extern List<GenericMessagePacket*>* yesWindowPackets;
 extern uint64_t desktopPID;
 
 Window* getPartialWindow(uint64_t id);
+void setWindow(Window* window);
 void setWindow(uint64_t id, Window* window);
 Window* requestWindow();
 void handleWindowPackets();

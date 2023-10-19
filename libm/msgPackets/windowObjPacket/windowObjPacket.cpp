@@ -8,10 +8,8 @@
 
 WindowObjectPacket::WindowObjectPacket(Window* window, bool set)
 {
-    serialPrintLn("> FROM WINDOW START");
     this->PartialWindow = window;
     this->Set = set;
-    serialPrintLn("> FROM WINDOW END");
 }
 
 /*
@@ -43,7 +41,6 @@ WindowObjectPacket::WindowObjectPacket(Window* window, bool set)
 
 WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacket)
 {
-    serialPrintLn("> FROM MSG START");
     PartialWindow = new Window(0, 0, 0, 0, "", 0, 0);
     
     uint8_t* buffer = genericMessagePacket->Data;
@@ -112,12 +109,9 @@ WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacke
     tBuffer += 8;
     // uint64_t PID;
     PartialWindow->PID = *(uint64_t*)tBuffer;
-
-    serialPrintLn("> FROM MSG END");
 }
 GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
 {
-    serialPrintLn("> TO MSG START");
     if (PartialWindow == NULL)
         Panic("WAAA WINDOW IS NULL", true);
     int count = 0;
@@ -158,7 +152,6 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint64_t PID;
     count += 8;
 
-    serialPrintLn("> TO MSG START 2");
 
     uint8_t* buffer = (uint8_t*)_Malloc(count, "Window Object Packet Buffer");
 
@@ -225,7 +218,6 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint64_t PID;
     *(uint64_t*)tBuffer = PartialWindow->PID;
 
-    serialPrintLn("> TO MSG START 3");
 
     GenericMessagePacket* msg = NULL;
     if (Set)
@@ -235,7 +227,6 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
 
     _Free(buffer);
 
-    serialPrintLn("> TO MSG END");
     return msg;
 }
 
