@@ -68,6 +68,10 @@ int main()
         setWindow(window);
 
         programYield();
+
+        // Check for mem leaks
+        // serialPrint("A> Used Heap Count: ");
+        // serialPrintLn(to_string(Heap::GlobalHeapManager->_usedHeapCount));
     }
 
     return 0;

@@ -70,6 +70,7 @@ Window* getPartialWindow(uint64_t id)
     WindowObjectPacket* gotObj = new WindowObjectPacket(winGet);
     Window* window = gotObj->PartialWindow;
     gotObj->Free();
+    _Free(gotObj);
 
     winGet->Free();
     _Free(winGet);
@@ -98,10 +99,20 @@ void setWindow(uint64_t id, Window* window)
     Window* partialWindow = getPartialWindow(id);
     window->UpdateUsingPartialWindow(partialWindow, true);
     window->UpdateCheck();
+    window->Updates->Clear();
     partialWindow->Free();
     _Free(partialWindow);
 }
 
+void updateWindow(Window* window)
+{
+    Window* partialWindow = getPartialWindow(window->ID);
+    window->UpdateUsingPartialWindow(partialWindow, true);
+    window->UpdateCheck();
+    window->Updates->Clear();
+    partialWindow->Free();
+    _Free(partialWindow);
+}
 
 
 Window* requestWindow()
@@ -132,6 +143,7 @@ Window* requestWindow()
     Window* newWindow = new Window(0, 0, 0, 0, "", windowId, 0);
     newWindow->UpdateUsingPartialWindow(partial, true);
     newWindow->UpdateCheck();
+    newWindow->Updates->Clear();
 
     winCreate->Free();
     _Free(winCreate);

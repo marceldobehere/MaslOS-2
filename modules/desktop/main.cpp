@@ -211,6 +211,10 @@ int main()
         totalTime = (totalTime * 1000) / frameCount;
 
         PrintFPS(fps, aFps, frameTime, breakTime, totalTime);
+
+        // Check for mem leaks
+        // serialPrint("B> Used Heap Count: ");
+        // serialPrintLn(to_string(Heap::GlobalHeapManager->_usedHeapCount));
     }
 
     return 0;
