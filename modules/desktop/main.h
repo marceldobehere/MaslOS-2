@@ -31,14 +31,15 @@ extern Window* currentActionWindow;
 
 extern MPoint MousePosition;
 
+extern List<WindowUpdate>* ScreenUpdates;
 
 void InitStuff();
 
-void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime);
+void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount);
 
 int main();
 
-void DrawFrame();
+uint64_t DrawFrame();
 
 
 

@@ -63,6 +63,8 @@ int main()
         window->Title = StrCopy("AAA");
         setWindow(window);
 
+        programYield();
+
         _Free(window->Title);
         window->Title = StrCopy("BBB");
         setWindow(window);

@@ -18,6 +18,7 @@ namespace Scheduler
     extern int CurrentTaskIndex; 
     extern void* TestElfFile;
     extern void* DesktopElfFile;
+    extern Lockable<List<void*>*> UsedPageRegions;
 
     void InitScheduler();
 
@@ -25,6 +26,9 @@ namespace Scheduler
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
     osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, const char** argv, bool isUserMode);
+
+    void* RequestNextFreePageRegion();
+    void FreePageRegion(void* addr);
 
     void AddTask(osTask* task);
 

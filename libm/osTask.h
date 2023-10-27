@@ -37,6 +37,7 @@ struct osTask
 
     uint8_t* kernelStack;
     uint8_t* userStack;
+	void* addrOfVirtPages;
 
     void* pageTableContext;
 

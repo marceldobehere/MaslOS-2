@@ -369,7 +369,7 @@ void UpdateWindowRect(Window* window)
     UpdatePointerRect(window->Dimensions.x - 1, window->Dimensions.y - 24, window->Dimensions.x + window->Dimensions.width + 1, window->Dimensions.y + window->Dimensions.height + 1);
 }
 
-void ActuallyRenderWindow(Window *window)
+uint64_t ActuallyRenderWindow(Window *window, bool render)
 {
     int x1 = max(0, window->Dimensions.x - 1);
     int y1 = max(0, window->Dimensions.y - 24);
@@ -383,7 +383,10 @@ void ActuallyRenderWindow(Window *window)
     
     DrawTaskbarRect(x1, y1, x2, y2);
 
-    RenderActualSquare(
+    if (!render)
+        return 0;
+
+    return RenderActualSquare(
         x1, y1, 
         x2, y2
     );

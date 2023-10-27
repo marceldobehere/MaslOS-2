@@ -9,7 +9,7 @@ void DrawTaskbarRect(int x1, int y1, int x2, int y2); //
 void UpdatePointerRect(int x1, int y1, int x2, int y2); //
 void UpdateWindowRect(Window *window); //
 void RenderWindow(Window *window); // 
-void ActuallyRenderWindow(Window *window); // 
+uint64_t ActuallyRenderWindow(Window *window, bool render); // 
 void RenderWindowRect(Window *window, int x1, int y1, int x2, int y2); //
 void RenderWindows(); //
 void Clear(bool resetGlobal); //

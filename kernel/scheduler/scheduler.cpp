@@ -14,6 +14,7 @@
 namespace Scheduler
 {
     Lockable<List<osTask*>*> osTasks;
+    Lockable<List<void*>*> UsedPageRegions;
     osTask* CurrentRunningTask;
     osTask* NothingDoerTask;
     osTask* DesktopTask;
@@ -32,6 +33,8 @@ namespace Scheduler
         TestElfFile = NULL;
 
         osTasks = Lockable<List<osTask*>*>(new List<osTask*>());
+
+        UsedPageRegions = Lockable<List<void*>*>(new List<void*>());
 
         osTasks.Lock();
 
@@ -279,6 +282,31 @@ namespace Scheduler
         return currFrame;      
     }
 
+    #define PAGE_REGION_REQUEST_START 0x0000600000000000
+    #define PAGE_REGION_REQUEST_STEP   0x0000001000000000
+
+    void* RequestNextFreePageRegion()
+    {
+        UsedPageRegions.Lock();
+
+        void* addr = (void*)PAGE_REGION_REQUEST_START;
+        while (UsedPageRegions.obj->GetIndexOf(addr) != -1)
+            addr = (void*)((uint64_t)addr + PAGE_REGION_REQUEST_STEP);
+
+        UsedPageRegions.obj->Add(addr);
+        UsedPageRegions.Unlock();
+        return addr;
+    }
+
+    void FreePageRegion(void* addr)
+    {
+        UsedPageRegions.Lock();
+        int index = UsedPageRegions.obj->GetIndexOf(addr);
+        if (index != -1)
+            UsedPageRegions.obj->RemoveAt(index);
+        UsedPageRegions.Unlock();
+    }
+
     osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argC, const char** argV, bool isUserMode)
     {
         bool tempEnabled = SchedulerEnabled;
@@ -321,6 +349,7 @@ namespace Scheduler
         task->removeMe = false;
         task->elfFile = module;
         task->pid = RND::RandomInt();
+        task->addrOfVirtPages = RequestNextFreePageRegion();
         Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
 
         {
@@ -507,6 +536,10 @@ namespace Scheduler
         {
             Elf::FreeElf(task->elfFile);
         }
+
+        AddToStack();
+        FreePageRegion(task->addrOfVirtPages);
+        RemoveFromStack();
 
         AddToStack();
         osTasks.Unlock();

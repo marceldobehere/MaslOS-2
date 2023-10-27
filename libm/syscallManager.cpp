@@ -66,7 +66,7 @@ void* requestNextPages(int count)
         osTask* task = Scheduler::CurrentRunningTask;
         PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
 
-        char* newAddr = (char*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * task->requestedPages->GetCount());
+        char* newAddr = (char*)((uint64_t)task->addrOfVirtPages + 0x1000 * task->requestedPages->GetCount());
         void* resAddr = (void*)newAddr;
 
         for (int i = 0; i < pageCount; i++)
@@ -82,23 +82,6 @@ void* requestNextPages(int count)
 
         Serial::Writelnf("K> Requested next %d pages to %X", pageCount, newAddr);
         return resAddr;
-        
-        // osTask* task = Scheduler::CurrentRunningTask;
-        // if (task == NULL)
-        //     Panic("REQUESTING PAGE BUT TASK IS NULL", true);
-        // void* tempPage = GlobalAllocator->RequestPage();
-        // int count = task->requestedPages->GetCount();
-
-        // task->requestedPages->Add(tempPage);
-        
-        // void* newAddr = (void*)(MEM_AREA_USER_PROGRAM_REQUEST_START + 0x1000 * count);
-        // PageTableManager manager = PageTableManager((PageTable*)task->pageTableContext);
-        // manager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
-        // GlobalPageTableManager.MapMemory(newAddr, (void*)tempPage, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
-
-        // Serial::Writelnf("> KERNEL Requested page for task: %X", newAddr);
-
-        // return newAddr;
     #else
         int syscall = SYSCALL_REQUEST_NEXT_PAGES;
         void* page;

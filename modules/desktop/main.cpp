@@ -29,6 +29,8 @@ MPoint oldMousePos;
 
 Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 
+List<WindowUpdate>* ScreenUpdates;
+
 void InitStuff()
 {
     ENV_DATA* env = getEnvData();
@@ -81,10 +83,12 @@ void InitStuff()
 
     windows = new List<Window*>(5);
 
+    ScreenUpdates = new List<WindowUpdate>(5);
+
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
 
-void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime)
+void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount)
 {
     actualScreenRenderer->CursorPosition.x = 0;
     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
@@ -97,13 +101,14 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime)
         actualScreenRenderer->CursorPosition.y + 16, 
         Colors.black
     );
-
     actualScreenRenderer->Print("FPS: {}", to_string(aFps), Colors.yellow);
     actualScreenRenderer->Print(" ({})", to_string(fps), Colors.yellow);
     actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
     actualScreenRenderer->Print(" {} /", to_string(breakTime), Colors.yellow);
     actualScreenRenderer->Print(" {})", to_string((totalTime)), Colors.yellow);
 
+
+    actualScreenRenderer->CursorPosition.x = 300;
     actualScreenRenderer->Clear(
         300, 
         actualScreenRenderer->CursorPosition.y, 
@@ -112,10 +117,19 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime)
         actualScreenRenderer->CursorPosition.y + 16, 
         Colors.black
     );
-
-    actualScreenRenderer->CursorPosition.x = 300;
-
     actualScreenRenderer->Print("MALLOC: {}", to_string(Heap::GlobalHeapManager->_usedHeapCount), Colors.yellow);  
+
+
+    actualScreenRenderer->CursorPosition.x = 500;
+    actualScreenRenderer->Clear(
+        500, 
+        actualScreenRenderer->CursorPosition.y, 
+
+        680, 
+        actualScreenRenderer->CursorPosition.y + 16, 
+        Colors.black
+    );
+    actualScreenRenderer->Print("PIXELS: {}", to_string(totalPixelCount), Colors.yellow);
 }
 
 
@@ -161,7 +175,7 @@ int main()
 
     Clear(true);
     RenderWindows();
-    ActuallyRenderWindow(window);
+    ActuallyRenderWindow(window, true);
 
     DrawFrame();
 
@@ -174,13 +188,14 @@ int main()
     {
         uint64_t frameTime = 0;
         uint64_t breakTime = 0;
+        uint64_t totalPixelCount = 0;
         
         uint64_t _startTime = envGetTimeMs();
         
         for (int i = 0; i < frameCount; i++)
         {
             uint64_t startTime = envGetTimeMs();
-            DrawFrame();
+            totalPixelCount += DrawFrame();
             uint64_t endTime = envGetTimeMs();
 
             frameTime += endTime - startTime;
@@ -210,7 +225,7 @@ int main()
         breakTime = (breakTime * 1000) / frameCount;
         totalTime = (totalTime * 1000) / frameCount;
 
-        PrintFPS(fps, aFps, frameTime, breakTime, totalTime);
+        PrintFPS(fps, aFps, frameTime, breakTime, totalTime, totalPixelCount);
 
         // Check for mem leaks
         // serialPrint("B> Used Heap Count: ");
@@ -222,8 +237,9 @@ int main()
 
 
 
-void DrawFrame()
+uint64_t DrawFrame()
 {
+    uint64_t totalPixelCount = 0;
     uint32_t rndCol = (uint32_t)RND::RandomInt();
 
     updateFramePackets->Clear();
@@ -291,7 +307,13 @@ void DrawFrame()
 
             //Clear(true);
             //RenderWindows();
-            ActuallyRenderWindow(window);
+            totalPixelCount += ActuallyRenderWindow(window, false);
+            ScreenUpdates->Add(WindowUpdate(
+                window->Dimensions.x - 1,
+                window->Dimensions.y - 24,
+                window->Dimensions.x + window->Dimensions.width + 1,
+                window->Dimensions.x + window->Dimensions.height + 1
+                ));
 
             if (pidFrom != getPid())
             {
@@ -440,13 +462,13 @@ void DrawFrame()
                     window->Dimensions.y + update.y2
                 );
 
-                RenderActualSquare(
+                ScreenUpdates->Add(WindowUpdate(
                     window->Dimensions.x + update.x1, 
                     window->Dimensions.y + update.y1, 
                     
                     window->Dimensions.x + update.x2, 
                     window->Dimensions.y + update.y2
-                );
+                ));
             }
 
             window->Updates->Clear();
@@ -468,14 +490,6 @@ void DrawFrame()
 
     if (!doUpdate)
         return;
-
-    RenderActualSquare(
-        oldMousePos.x, 
-        oldMousePos.y, 
-        
-        oldMousePos.x + 16, 
-        oldMousePos.y + 16
-    );
 
     // Draw Mouse
     MPoint tempMousePos = MousePosition;
@@ -518,13 +532,21 @@ void DrawFrame()
                 }
 
             // render changes to screen
-            RenderActualSquare(
+            UpdatePointerRect(
                 win->Dimensions.x + packet->X, 
                 win->Dimensions.y + packet->Y, 
                 
                 win->Dimensions.x + packet->X + packet->Width - 1, 
                 win->Dimensions.y + packet->Y + packet->Height - 1
             );
+
+            ScreenUpdates->Add(WindowUpdate(
+                win->Dimensions.x + packet->X, 
+                win->Dimensions.y + packet->Y, 
+                
+                win->Dimensions.x + packet->X + packet->Width - 1, 
+                win->Dimensions.y + packet->Y + packet->Height - 1
+            ));
         }
 
         
@@ -532,7 +554,30 @@ void DrawFrame()
         _Free(packet);
     }
 
-    RenderActualSquare(
+    totalPixelCount += RenderActualSquare(
+        oldMousePos.x, 
+        oldMousePos.y, 
+        
+        oldMousePos.x + 16, 
+        oldMousePos.y + 16
+    );
+
+    for (int i = 0; i < ScreenUpdates->GetCount(); i++)
+    {
+        WindowUpdate update = ScreenUpdates->ElementAt(i);
+
+        totalPixelCount += RenderActualSquare(
+            update.x1, 
+            update.y1, 
+            
+            update.x2, 
+            update.y2
+        );
+    }
+    ScreenUpdates->Clear();
+
+
+    totalPixelCount += RenderActualSquare(
         tempMousePos.x, 
         tempMousePos.y, 
         
@@ -547,6 +592,8 @@ void DrawFrame()
 
 
     //actualScreenRenderer->Clear(300, 300, 320, 320, rndCol);
+
+    return totalPixelCount;
 }
 
 
