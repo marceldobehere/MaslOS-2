@@ -8,6 +8,10 @@
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
 #include <libm/wmStuff/wmStuff.h>
+#include <libm/rendering/basicRenderer.h>
+#include <libm/rendering/Cols.h>
+#include <libm/rnd/rnd.h>
+
 
 char buffer[512];
 
@@ -57,19 +61,48 @@ int main()
 
     programWait(2000);
 
+    globalPrintLn("> Window Buffer ADDR 1: ");
+    globalPrintLn(ConvertHexToString((uint64_t)window->Buffer));
+
+    globalPrintLn("> Window Buffer ADDR 2: ");
+    globalPrintLn(ConvertHexToString((uint64_t)window->Buffer->BaseAddress));
+
+
+    globalPrintLn("> ENV ADDR: ");
+    globalPrintLn(ConvertHexToString((uint64_t)env));
+
+    globalPrintLn("> ENV FONT ADDR: ");
+    globalPrintLn(ConvertHexToString((uint64_t)env->globalFont));
+
+
+    TempRenderer* renderer = new TempRenderer(window->Buffer, env->globalFont);
+
+    renderer->Clear(Colors.black);
+    renderer->Println("Hello, world!");
+
+    // send update for full window
+    SendWindowFrameBufferUpdate(window);
+    
+    // send update for partial region
+    //SendWindowFrameBufferUpdate(window, 0, 0, 40, 40);
+
     while (true)
     {
-        _Free(window->Title);
-        window->Title = StrCopy("AAA");
-        setWindow(window);
+
+        renderer->Clear(40, 40, 100, 100, (uint32_t)RND::RandomInt());
+        SendWindowFrameBufferUpdate(window, 40, 40, 100, 100);
+
+        // _Free(window->Title);
+        // window->Title = StrCopy("AAA");
+        // setWindow(window);
 
         programYield();
 
-        _Free(window->Title);
-        window->Title = StrCopy("BBB");
-        setWindow(window);
+        // _Free(window->Title);
+        // window->Title = StrCopy("BBB");
+        // setWindow(window);
 
-        programYield();
+        // programYield();
 
         // Check for mem leaks
         // serialPrint("A> Used Heap Count: ");

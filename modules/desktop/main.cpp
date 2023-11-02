@@ -88,7 +88,7 @@ void InitStuff()
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
 
-void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount)
+void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount, int frameCount)
 {
     actualScreenRenderer->CursorPosition.x = 0;
     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 64;
@@ -101,6 +101,13 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
         actualScreenRenderer->CursorPosition.y + 16, 
         Colors.black
     );
+
+    int tTime = totalTime;
+
+    frameTime = (frameTime * 1000) / frameCount;
+    breakTime = (breakTime * 1000) / frameCount;
+    totalTime = (totalTime * 1000) / frameCount;
+        
     actualScreenRenderer->Print("FPS: {}", to_string(aFps), Colors.yellow);
     actualScreenRenderer->Print(" ({})", to_string(fps), Colors.yellow);
     actualScreenRenderer->Print(" ({} /", to_string(frameTime), Colors.yellow);
@@ -125,11 +132,15 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
         500, 
         actualScreenRenderer->CursorPosition.y, 
 
-        680, 
+        880, 
         actualScreenRenderer->CursorPosition.y + 16, 
         Colors.black
     );
-    actualScreenRenderer->Print("PIXELS: {}", to_string(totalPixelCount), Colors.yellow);
+    actualScreenRenderer->Print("PIXELS PER FRAME: {}", to_string(totalPixelCount / frameCount), Colors.yellow);
+
+    totalTime = tTime;
+
+    actualScreenRenderer->Print(" ({} PPS)", to_string((totalPixelCount * 1000) / totalTime), Colors.yellow);
 }
 
 
@@ -221,11 +232,8 @@ int main()
         int fps = (int)((frameCount * 1000) / frameTime);
         int aFps = (int)((frameCount * 1000) / totalTime);
 
-        frameTime = (frameTime * 1000) / frameCount;
-        breakTime = (breakTime * 1000) / frameCount;
-        totalTime = (totalTime * 1000) / frameCount;
 
-        PrintFPS(fps, aFps, frameTime, breakTime, totalTime, totalPixelCount);
+        PrintFPS(fps, aFps, frameTime, breakTime, totalTime, totalPixelCount, frameCount);
 
         // Check for mem leaks
         // serialPrint("B> Used Heap Count: ");
@@ -308,7 +316,7 @@ uint64_t DrawFrame()
             //Clear(true);
             //RenderWindows();
             totalPixelCount += ActuallyRenderWindow(window, false);
-            ScreenUpdates->Add(WindowUpdate(
+            ScreenUpdates->AddIfUnique(WindowUpdate(
                 window->Dimensions.x - 1,
                 window->Dimensions.y - 24,
                 window->Dimensions.x + window->Dimensions.width + 1,
@@ -454,15 +462,16 @@ uint64_t DrawFrame()
             {
                 WindowUpdate update = window->Updates->ElementAt(j);
 
-                UpdatePointerRect(
-                    window->Dimensions.x + update.x1, 
-                    window->Dimensions.y + update.y1, 
-                    
-                    window->Dimensions.x + update.x2, 
-                    window->Dimensions.y + update.y2
-                );
+                if (update.outsideWindow)
+                    UpdatePointerRect(
+                        window->Dimensions.x + update.x1, 
+                        window->Dimensions.y + update.y1, 
+                        
+                        window->Dimensions.x + update.x2, 
+                        window->Dimensions.y + update.y2
+                    );
 
-                ScreenUpdates->Add(WindowUpdate(
+                ScreenUpdates->AddIfUnique(WindowUpdate(
                     window->Dimensions.x + update.x1, 
                     window->Dimensions.y + update.y1, 
                     
@@ -489,7 +498,7 @@ uint64_t DrawFrame()
     doUpdate |= MousePosition != oldMousePos;
 
     if (!doUpdate)
-        return;
+        return 0;
 
     // Draw Mouse
     MPoint tempMousePos = MousePosition;
@@ -531,16 +540,7 @@ uint64_t DrawFrame()
                     winBuf[aX + aY * win->Buffer->Width] = packet->Buffer[x + y * packet->Width];
                 }
 
-            // render changes to screen
-            UpdatePointerRect(
-                win->Dimensions.x + packet->X, 
-                win->Dimensions.y + packet->Y, 
-                
-                win->Dimensions.x + packet->X + packet->Width - 1, 
-                win->Dimensions.y + packet->Y + packet->Height - 1
-            );
-
-            ScreenUpdates->Add(WindowUpdate(
+            ScreenUpdates->AddIfUnique(WindowUpdate(
                 win->Dimensions.x + packet->X, 
                 win->Dimensions.y + packet->Y, 
                 

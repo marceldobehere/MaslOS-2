@@ -96,8 +96,8 @@ void Window::ResizeFramebuffer(int width, int height)
             for (int x = 0; x < minX; x++)
                 newData[x + y * Buffer->PixelsPerScanLine] = oldData[x + y * oldBuffer->PixelsPerScanLine];
 
-        _Free(Buffer->BaseAddress);
-        _Free(Buffer);
+        _Free(oldBuffer->BaseAddress);
+        _Free(oldBuffer);
     }
 
     Updates->Add(WindowUpdate(0, 0, width, height));
@@ -105,7 +105,21 @@ void Window::ResizeFramebuffer(int width, int height)
 
 void Window::_CheckDimensionChange()
 {
-    
+    if (Dimensions.width != OldDimensions.width ||
+        Dimensions.height != OldDimensions.height)
+    {
+        ResizeFramebuffer(Dimensions.width, Dimensions.height);
+        OldDimensions.width = Dimensions.width;
+        OldDimensions.height = Dimensions.height;
+    }
+
+    if (Dimensions.x != OldDimensions.x ||
+        Dimensions.y != OldDimensions.y)
+    {
+        //Updates->Add(WindowUpdate(0, 0, Dimensions.width, Dimensions.height));
+        OldDimensions.x = Dimensions.x;
+        OldDimensions.y = Dimensions.y;
+    }
 }
 
 void Window::_CheckTitleChange()
@@ -115,13 +129,15 @@ void Window::_CheckTitleChange()
         _Free(OldTitle);
         OldTitle = StrCopy(Title);
 
-        Updates->Add(WindowUpdate(0, -23, Dimensions.width, 1));
+        Updates->Add(WindowUpdate(0, -23, Dimensions.width, 1, true));
     }
 }
 
 void Window::UpdateCheck()
 {
     _CheckTitleChange();
+
+    _CheckDimensionChange();
 }
 
 void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)

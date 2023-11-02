@@ -38,7 +38,9 @@ template <typename T> class List
     uint64_t GetCount();
     uint64_t GetCapacity();
     int64_t GetIndexOf(T item);
+    bool Contains(T item);
     void Add(T item);
+    void AddIfUnique(T item);
     void InsertAt(T item, int64_t index);
     void RemoveAt(int64_t index);
     void RemoveLast();

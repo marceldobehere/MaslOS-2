@@ -172,3 +172,81 @@ void handleWindowPackets()
             nonWindowPackets->Add(msg);
     }
 }
+
+#include "../msgPackets/windowBufferUpdatePacket/windowBufferUpdatePacket.h"
+
+bool SendWindowFrameBufferUpdate(Window* window, int x1, int y1, int x2, int y2)
+{
+    if (window == NULL)
+        return false;
+    if (window->Buffer == NULL)
+        return false;
+    if (x1 < 0)
+        x1 = 0;
+    if (y1 < 0)
+        y1 = 0;
+    if (x2 > window->Buffer->Width - 1)
+        x2 = window->Buffer->Width - 1;
+    if (y2 > window->Buffer->Height - 1)
+        y2 = window->Buffer->Height - 1;
+    if (x1 > x2)
+        return false;
+    if (y1 > y2)
+        return false;
+
+    int width = x2 - x1 + 1;
+    int height = y2 - y1 + 1;
+
+    uint32_t* buffer = (uint32_t*)_Malloc(width * height * 4);
+
+    for (int i = 0, y = y1; y <= y2; y++)
+        for (int x = x1; x <= x2; x++, i++)
+            buffer[i] = ((uint32_t*)window->Buffer->BaseAddress)[x + y * window->Buffer->Width];
+    
+
+    WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
+        x1, y1, width, height,
+        window->ID,
+        buffer
+    );
+
+    GenericMessagePacket* msg = packet->ToGenericMessagePacket();
+
+    bool res = msgSendMessage(msg, desktopPID);
+
+    msg->Free();
+    _Free(msg);
+
+    packet->Free();
+    _Free(packet); 
+
+    _Free(buffer);
+
+    return res;
+}
+
+bool SendWindowFrameBufferUpdate(Window* window)
+{
+    if (window == NULL)
+        return false;
+    if (window->Buffer == NULL)
+        return false;
+    
+    WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
+        0, 0, window->Dimensions.width, window->Dimensions.height,
+        window->ID,
+        (uint32_t*)window->Buffer->BaseAddress
+    );
+
+    GenericMessagePacket* msg = packet->ToGenericMessagePacket();
+
+    bool res = msgSendMessage(msg, desktopPID);
+
+    msg->Free();
+    _Free(msg);
+
+    packet->Free();
+    _Free(packet); 
+
+    return res;
+}

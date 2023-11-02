@@ -10,6 +10,7 @@ struct WindowUpdate
     int y1;
     int x2;
     int y2;
+    bool outsideWindow;
 
     WindowUpdate()
     {
@@ -17,6 +18,7 @@ struct WindowUpdate
         y1 = 0; 
         x2 = 0; 
         y2 = 0;
+        outsideWindow = false;
     }
 
     WindowUpdate(int x1, int y1, int x2, int y2)
@@ -25,16 +27,26 @@ struct WindowUpdate
         this->y1 = y1; 
         this->x2 = x2; 
         this->y2 = y2;
+        this->outsideWindow = false;
+    }
+
+    WindowUpdate(int x1, int y1, int x2, int y2, bool outsideWindow)
+    {
+        this->x1 = x1; 
+        this->y1 = y1; 
+        this->x2 = x2; 
+        this->y2 = y2;
+        this->outsideWindow = outsideWindow;
     }
 
     bool operator ==(const WindowUpdate& other)
     {
-        return x1 == other.x1 && y1 == other.y1 && x2 == other.x2 && y2 == other.y2;
+        return x1 == other.x1 && y1 == other.y1 && x2 == other.x2 && y2 == other.y2 && outsideWindow == other.outsideWindow;
     }
 
     bool operator !=(const WindowUpdate& other)
     {
-        return x1 != other.x1 || y1 != other.y1 || x2 != other.x2 || y2 != other.y2;
+        return x1 != other.x1 || y1 != other.y1 || x2 != other.x2 || y2 != other.y2 || outsideWindow != other.outsideWindow;
     }
 };
 

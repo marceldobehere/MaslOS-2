@@ -91,6 +91,19 @@ template <typename T> int64_t List<T>::GetIndexOf(T item)
     return -1;
 }
 
+template <typename T> bool List<T>::Contains(T item)
+{
+    AddToStack();
+    for (uint64_t index = 0; index < count; index++)
+        if (arr[index] == item)
+        {
+            RemoveFromStack();
+            return true;
+        }
+    RemoveFromStack();
+    return false;
+}
+
 template <typename T> void List<T>::Add(T item)
 {
     AddToStack();
@@ -99,6 +112,19 @@ template <typename T> void List<T>::Add(T item)
 
     arr[count] = item;
     count++;
+    RemoveFromStack();
+}
+
+template <typename T> void List<T>::AddIfUnique(T item)
+{
+    AddToStack();
+    if (Contains(item))
+    {
+        RemoveFromStack();
+        return;
+    }
+
+    Add(item);
     RemoveFromStack();
 }
 

@@ -35,7 +35,7 @@ extern List<WindowUpdate>* ScreenUpdates;
 
 void InitStuff();
 
-void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount);
+void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount, int frameCount);
 
 int main();
 

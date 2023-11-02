@@ -991,8 +991,35 @@ void Syscall_handler(interrupt_frame* frame)
 
         if (!Scheduler::CurrentRunningTask->isKernelModule)
         {
-            frame->rax = 0;
-            Serial::Writelnf("> Get env (userspace prg) %X", frame->rax);
+            Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+
+            Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
+
+            ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
+            if (env != NULL)
+            {
+                PSF1_FONT* font2 = (PSF1_FONT*)taskHeap->_Xmalloc(sizeof(PSF1_FONT), "Malloc for font");
+                if (font2 != NULL)
+                {
+                    font2->psf1_Header = (PSF1_HEADER*)taskHeap->_Xmalloc(sizeof(PSF1_HEADER), "Malloc for font header");
+                    if (font2->psf1_Header != NULL)
+                    {
+                        *font2->psf1_Header = *GlobalRenderer->psf1_font->psf1_Header;
+
+                        int amt = (font2->psf1_Header->mode + 1) * 256 * font2->psf1_Header->charsize;
+                        font2->glyphBuffer = (void*)taskHeap->_Xmalloc(amt, "Malloc for font glyph buffer");
+                        if (font2->glyphBuffer != NULL)
+                        {
+                            _memcpy(GlobalRenderer->psf1_font->glyphBuffer, font2->glyphBuffer, amt);
+                        }
+                    }
+                }
+                env->globalFont = font2;//GlobalRenderer->psf1_font;
+                env->globalFrameBuffer = NULL;//GlobalRenderer->framebuffer;
+            }
+
+            frame->rax = (uint64_t)env;
+            Serial::Writelnf("> Get env (user prog) %X", frame->rax);
         }
         else
         {
@@ -1006,6 +1033,7 @@ void Syscall_handler(interrupt_frame* frame)
                 env->globalFont = GlobalRenderer->psf1_font;
                 env->globalFrameBuffer = GlobalRenderer->framebuffer;
             }
+
             frame->rax = (uint64_t)env;
             Serial::Writelnf("> Get env (kernel module) %X", frame->rax);
         }

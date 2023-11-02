@@ -17,3 +17,5 @@ void setWindow(uint64_t id, Window* window);
 Window* requestWindow();
 void handleWindowPackets();
 
+bool SendWindowFrameBufferUpdate(Window* window, int x1, int y1, int x2, int y2);
+bool SendWindowFrameBufferUpdate(Window* window);
