@@ -806,6 +806,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         }
         Scheduler::CurrentRunningTask = NULL;
 
+        GlobalRenderer->Println();   
+        GlobalRenderer->Println("ERROR CODE: {}", to_string(frame->error_code), Colors.yellow);   
+
+        //while (true);
+
         //Serial::Writelnf("> END OF INT (%X, %X)", frame->cr3, frame->cr0);
         InterruptGoingOn = false;
         Scheduler::SchedulerInterrupt(frame);

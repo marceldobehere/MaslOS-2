@@ -125,6 +125,7 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
         PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
+        PDE.SetFlag(PT_Flag::NX, false);
 
         PML4->entries[indexer.PDP_i] = PDE;
     }
@@ -134,6 +135,11 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
             PDE.SetFlag(PT_Flag::UserSuper, true);
+            PML4->entries[indexer.PDP_i] = PDE;
+        }
+        if (PDE.GetFlag(PT_Flag::NX))
+        {
+            PDE.SetFlag(PT_Flag::NX, false);
             PML4->entries[indexer.PDP_i] = PDE;
         }
     }
@@ -152,6 +158,8 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
         PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
+        PDE.SetFlag(PT_Flag::NX, false);
+
         PDP->entries[indexer.PD_i] = PDE;
     }
     else
@@ -160,6 +168,11 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
             PDE.SetFlag(PT_Flag::UserSuper, true);
+            PDP->entries[indexer.PD_i] = PDE;
+        }
+        if (PDE.GetFlag(PT_Flag::NX))
+        {
+            PDE.SetFlag(PT_Flag::NX, false);
             PDP->entries[indexer.PD_i] = PDE;
         }
     }
@@ -179,6 +192,8 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
         PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
         PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
+        PDE.SetFlag(PT_Flag::NX, false);
+
         PD->entries[indexer.PT_i] = PDE;
     }
     else
@@ -187,6 +202,11 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
         if (userSpace && !PDE.GetFlag(PT_Flag::UserSuper))
         {
             PDE.SetFlag(PT_Flag::UserSuper, true);
+            PD->entries[indexer.PT_i] = PDE;
+        }
+        if (PDE.GetFlag(PT_Flag::NX))
+        {
+            PDE.SetFlag(PT_Flag::NX, false);
             PD->entries[indexer.PT_i] = PDE;
         }
     }
@@ -200,6 +220,8 @@ void PageTableManager::MapMemory(void* virtualMemory, void* physicalMemory, int 
     PDE.SetFlag(PT_Flag::CacheDisabled, (flags & PT_Flag_CacheDisabled) != 0);
     PDE.SetFlag(PT_Flag::WriteThrough, (flags & PT_Flag_WriteThrough) != 0);
     PDE.SetFlag(PT_Flag::UserSuper, (flags & PT_Flag_UserSuper) != 0);
+    PDE.SetFlag(PT_Flag::NX, false);
+    
     PT->entries[indexer.P_i] = PDE;
 
     return;

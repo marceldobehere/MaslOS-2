@@ -6,7 +6,7 @@
 
 namespace Elf
 {
-    void elf_apply_relocations(void* ptr, Elf64_Ehdr* header, uint64_t vaddr, uint64_t elf_load_offset, uint64_t size) 
+    void elf_apply_relocations(void* ptr, Elf64_Ehdr* header, uint64_t vaddr, uint64_t elf_load_offset, uint64_t sizeA) 
     {
         Elf64_Phdr* ph = (Elf64_Phdr*) (((char*) ptr) + header->e_phoff);
         for (int i = 0; i < header->e_phnum; i++, ph++) 
@@ -93,20 +93,24 @@ namespace Elf
         Elf64_Phdr* ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
         //Serial::Writelnf("ELF> ph: %x\n", ph);
 
-        void* last_dest;
+        void* last_dest = NULL;
 
         for (int i = 0; i < header->e_phnum; i++, ph++) 
         {
             if (ph->p_type != PT_LOAD) 
                 continue;
     
-            last_dest = (void*) ((uint64_t) ph->p_vaddr + ph->p_memsz);
+            void* tempDest = (void*) ((uint64_t) ph->p_vaddr + ph->p_memsz);
+            if (last_dest == NULL || last_dest < tempDest)
+                last_dest = tempDest;
         }
 
         void* offset = GlobalAllocator->RequestPages((uint64_t) last_dest / 0x1000 + 1);
+        // TODO: might make a check here for kernel modules, so ya cant run or see it as userspace
         GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, (uint64_t) last_dest / 0x1000 + 1, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
         //Serial::Writelnf("offset: %x\n", offset);
+        _memset(offset, 0, (uint64_t) last_dest / 0x1000 + 1);
 
         ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
         for (int i = 0; i < header->e_phnum; i++, ph++)
@@ -118,7 +122,6 @@ namespace Elf
             if (ph->p_type != PT_LOAD) 
                 continue;
             
-        
             _memset(dest, 0, ph->p_memsz);
             _memcpy(src, dest, ph->p_filesz);
 

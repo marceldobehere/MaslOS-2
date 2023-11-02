@@ -19,6 +19,7 @@
 #define PT_Flag_Custom2 512
 #define PT_Flag_PAT 1024
 
+
 // kernel heap starts here
 #define MEM_AREA_KERNEL_HEAP_START 0x0000100000000000
 

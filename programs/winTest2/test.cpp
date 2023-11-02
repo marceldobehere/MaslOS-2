@@ -215,16 +215,25 @@ int main(int argc, char** argv)
 
     while (true)
     {
-        testGui->Render();
-        testRect->position.x += 5;
-        if (testRect->position.x > 300)
-            testRect->position.x = 0;
-        testRect->position.y += 3;
-        if (testRect->position.y > 100)
-            testRect->position.y = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            testGui->Render();
+            testRect->position.x += 5;
+            if (testRect->position.x > 300)
+                testRect->position.x = 0;
+            testRect->position.y += 3;
+            if (testRect->position.y > 100)
+                testRect->position.y = 0;
+            
+            programYield();
+        }
         
-        programYield();
-        //programWait(500);
+        window->Dimensions.x += 10;
+        if (window->Dimensions.x > 500)
+            window->Dimensions.x = 300;
+        setWindow(window);
+
+        programWait(50);
     }
 
     // while (true)
