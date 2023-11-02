@@ -156,6 +156,28 @@ void InitKernel(BootInfo* bootInfo)
 #define IDT_IST_IRQ		2
 #define IDT_IST_TIMER	3
 
+/**
+ * Enable the FPU
+ *
+ * We are assuming that we have one to begin with, but since we
+ * only really operate on 686 machines, we do, so we're not
+ * going to bother checking.
+ */
+
+void set_fpu_cw(const uint16_t cw) 
+{
+	asm volatile("fldcw %0" :: "m"(cw));
+}
+
+void enable_fpu() 
+{
+	size_t cr4;
+	asm volatile ("mov %%cr4, %0" : "=r"(cr4));
+	cr4 |= 0x200;
+	asm volatile ("mov %0, %%cr4" :: "r"(cr4));
+	set_fpu_cw(0x37F);
+}
+
 void DoGdtStuff()
 {
     //GlobalRenderer->Clear(Colors.red);
@@ -186,6 +208,8 @@ void DoGdtStuff()
 	gdt_set_tss_ist(gdt_block, IDT_IST_TIMER, stack_timer_end);
 	gdt_load(&gdt_block->gdt_descriptor);
 
+
+    enable_fpu();
     //cpu_enable_features();
 }
 

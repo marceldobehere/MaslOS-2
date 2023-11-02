@@ -21,4 +21,7 @@
 #include "list_basic_msg.h"
 #include "list_window_update.h"
 
+#include "list_guiField.h"
+#include "list_guiBaseComp.h"
+
 #include "./list_window.h"

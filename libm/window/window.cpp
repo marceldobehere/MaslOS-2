@@ -185,6 +185,8 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)
         // PID
         PID = window->PID;
     }
+
+    UpdateCheck();
 }
 
 // void Window::DrawToFramebuffer(Framebuffer* framebuffer, Framebuffer* backbuffer, WindowUpdate update, int x, int y)

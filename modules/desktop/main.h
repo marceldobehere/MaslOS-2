@@ -31,13 +31,15 @@ extern Window* currentActionWindow;
 
 extern MPoint MousePosition;
 
-extern List<WindowUpdate>* ScreenUpdates;
+#include <libm/queue/queue_window_update.h>
+
+extern Queue<WindowUpdate>* ScreenUpdates;
 
 void InitStuff();
 
 void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount, int frameCount);
 
-int main();
+int main(int argc, char** argv);
 
 uint64_t DrawFrame();
 

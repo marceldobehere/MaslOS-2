@@ -121,16 +121,30 @@ intr_common_handler:
 	push rax
 
 
+	; push fpu state region (108 bytes but padded)
+	sub rsp, 256
+
+	; save fpu state
+	fsave [rsp]
+
+
 	mov rdi, rsp
 
 	call intr_common_handler_c
 
-	pop rax
-	pop rax
-	mov cr3, rax
-	pop rax
-	pop rax
-	;mov cr0, rax
+	; restore fpu state
+	frstor [rsp]
+
+	; pop fpu state region (108 bytes but padded)
+	add rsp, 256
+
+
+	pop rax; cr4
+	pop rax; cr3
+	mov cr3, rax; save cr3
+	pop rax; cr2
+	pop rax; cr0
+	;mov cr0, rax; save cr0
 	popa
 
 	add rsp, 16

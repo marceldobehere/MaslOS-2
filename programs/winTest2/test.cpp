@@ -25,77 +25,36 @@ char buffer[512];
 
 int main(int argc, char** argv)
 {
-    // int argc = getArgC();
-    // char **argv = getArgV();
-    //ENV_DATA *env = getEnvData();
     initWindowManagerStuff();
-    
-    programWait(1000);
-    
-    globalPrintLn("Hello from window Test");
-
-    uint64_t pid = getPid();
-    globalPrint("A> THIS PID: ");
-    globalPrintLn(to_string(pid));
-
-    globalPrint("A> DESKTOP PID: ");
-    globalPrintLn(to_string(desktopPID));
-
     programWait(2000);
+    
+    uint64_t pid = getPid();
 
-    globalPrintLn("A> Requesting Window...");
     Window* window = requestWindow();
-    globalPrintLn("A> Requested Window!");
 
     if (window == NULL)
         return 0;
 
-    globalPrint("A> Window ID: ");
-    globalPrintLn(ConvertHexToString(window->ID));
-    
-
-    globalPrint("A> Window Title (1): \"");
-    globalPrint(window->Title);
-    globalPrintLn("\"");
-
     _Free(window->Title);
-    window->Title = StrCopy("Hello World!");
+    window->Title = StrCopy("Testo!");
+    window->Dimensions.y += 300;
+    window->Dimensions.width = 150;
+    window->Dimensions.height = 200;
     setWindow(window);
-    
-    globalPrint("A> Window Title (2): \"");
-    globalPrint(window->Title);
-    globalPrintLn("\"");
 
+    programWait(500);
 
-    programWait(1000);
-
-    globalPrintLn("> Window Buffer ADDR 1: ");
-    globalPrintLn(ConvertHexToString((uint64_t)window->Buffer));
-
-    globalPrintLn("> Window Buffer ADDR 2: ");
-    globalPrintLn(ConvertHexToString((uint64_t)window->Buffer->BaseAddress));
 
     ENV_DATA* env = envData;
 
-    globalPrintLn("> ENV ADDR: ");
-    globalPrintLn(ConvertHexToString((uint64_t)env));
-
-    globalPrintLn("> ENV FONT ADDR: ");
-    globalPrintLn(ConvertHexToString((uint64_t)env->globalFont));
-
-
     TempRenderer* renderer = new TempRenderer(window->Buffer, env->globalFont);
 
-    renderer->Clear(Colors.black);
-    renderer->Println("Hello, world!");
+    renderer->Clear(Colors.dblue);
+    renderer->Println("lol");
 
     // send update for full window
     SendWindowFrameBufferUpdate(window);
     
-    // send update for partial region
-    //SendWindowFrameBufferUpdate(window, 0, 0, 40, 40);
-
-
     programWait(1000);
 
     GuiInstance* testGui;
@@ -260,8 +219,10 @@ int main(int argc, char** argv)
         testRect->position.x += 5;
         if (testRect->position.x > 300)
             testRect->position.x = 0;
+        testRect->position.y += 3;
+        if (testRect->position.y > 100)
+            testRect->position.y = 0;
         
-
         programYield();
         //programWait(500);
     }

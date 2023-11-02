@@ -1,6 +1,7 @@
 //#pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include "userEnvStuff.h"
 
 #ifdef _KERNEL_SRC
 
@@ -79,4 +80,5 @@ namespace PIT
         return envGetTimeMs();
     }
 }
+
 #endif

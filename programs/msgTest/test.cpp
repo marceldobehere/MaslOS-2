@@ -10,13 +10,13 @@
 
 char buffer[512];
 
-int main()
+int main(int argc, char** argv)
 {
     return 0;
     //globalCls();
 
-    int argc = getArgC();
-    char **argv = getArgV();
+    // int argc = getArgC();
+    // char **argv = getArgV();
     ENV_DATA *env = getEnvData();
 
     globalPrintLn("Hello from a test (2) program!");

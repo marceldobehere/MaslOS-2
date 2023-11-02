@@ -1,6 +1,6 @@
 #include <libm/syscallManager.h>
 
-int main()
+int main(int argc, char** argv)
 {
     return 0;
     programSetPriority(1);

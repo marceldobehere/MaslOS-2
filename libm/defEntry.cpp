@@ -5,11 +5,24 @@
 #include <libm/heap/heap.h>
 #include <libm/memStuff.h>
 
-extern "C" int main();
+#include <libm/userEnvStuff.h>
 
+extern "C" int main(int argc, char** argv);
+
+bool alreadyStarted = false;
 
 extern "C" void _start()
 {
+    if (alreadyStarted)
+    {
+        serialPrintLn("> ERROR: PROGRAM GOT HALF RESTARTED!!!");
+        programCrash();
+
+        while (true)
+            programExit(-1);
+    }
+    alreadyStarted = true;
+
     uint64_t a = randomUint64();
     uint64_t b = randomUint64();
     RND::RandomInit(a, b);
@@ -22,6 +35,10 @@ extern "C" void _start()
 
     int argc = getArgC();
     char **argv = getArgV();
+    envData = getEnvData();
+    defaultRenderFont = NULL;
+    if (envData != NULL)
+        defaultRenderFont = envData->globalFont;
 
     // globalPrintLn("GETTING ARGVS:");
     // for (int i = 0; i < argc; i++)
@@ -34,7 +51,7 @@ extern "C" void _start()
     // if (argv != NULL)
     //     _Free(argv);
 
-    int res = main();
+    int res = main(argc, argv);
     while (true)
         programExit(res);
 }

@@ -34,6 +34,11 @@ typedef struct
     //     uint64_t    dss;
     // } base_frame;
     //uint64_t ss;
+    
+    // fpu state (108 bytes but we say 256 to align)
+    uint8_t fpu_state[256];
+
+    // cr registers
     uint64_t cr4;
     uint64_t cr3;
     uint64_t cr2;

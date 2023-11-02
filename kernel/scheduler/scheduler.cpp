@@ -46,7 +46,7 @@ namespace Scheduler
     }
 
     // TODO
-    // Handle SMP (Symmetric Multi-Processing)
+    // Handle SMP (Symmetric Multi-Processing) (ye idk not anytime soon prolly)
     // Handle FPU Register States on Context Switch
     interrupt_frame* SchedulerInterrupt(interrupt_frame* currFrame)
     {

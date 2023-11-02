@@ -29,7 +29,7 @@ MPoint oldMousePos;
 
 Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 
-List<WindowUpdate>* ScreenUpdates;
+Queue<WindowUpdate>* ScreenUpdates;
 
 void InitStuff()
 {
@@ -83,7 +83,7 @@ void InitStuff()
 
     windows = new List<Window*>(5);
 
-    ScreenUpdates = new List<WindowUpdate>(5);
+    ScreenUpdates = new Queue<WindowUpdate>(20);
 
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 }
@@ -145,11 +145,11 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
 
 
 
-int main()
+int main(int argc, char** argv)
 {
     serialPrintLn("Starting Desktop");
 
-    programSetPriority(2);
+    programSetPriority(1);
 
     programWait(100);
 
@@ -253,7 +253,7 @@ uint64_t DrawFrame()
     updateFramePackets->Clear();
 
     bool doUpdate = false;
-    int msgCount = min(msgGetCount(), 10);
+    int msgCount = min(msgGetCount(), 50);
     for (int i = 0; i < msgCount; i++)
     {
         GenericMessagePacket* msg = msgGetMessage();
@@ -316,7 +316,7 @@ uint64_t DrawFrame()
             //Clear(true);
             //RenderWindows();
             totalPixelCount += ActuallyRenderWindow(window, false);
-            ScreenUpdates->AddIfUnique(WindowUpdate(
+            ScreenUpdates->Enqueue(WindowUpdate(
                 window->Dimensions.x - 1,
                 window->Dimensions.y - 24,
                 window->Dimensions.x + window->Dimensions.width + 1,
@@ -446,7 +446,7 @@ uint64_t DrawFrame()
         _Free(msg);
     }
 
-    doUpdate |= updateFramePackets->GetCount() > 0;
+    //doUpdate |= updateFramePackets->GetCount() > 0;
 
     // check for window updates
     for (int i = 0; i < windows->GetCount(); i++)
@@ -471,7 +471,7 @@ uint64_t DrawFrame()
                         window->Dimensions.y + update.y2
                     );
 
-                ScreenUpdates->AddIfUnique(WindowUpdate(
+                ScreenUpdates->Enqueue(WindowUpdate(
                     window->Dimensions.x + update.x1, 
                     window->Dimensions.y + update.y1, 
                     
@@ -495,7 +495,11 @@ uint64_t DrawFrame()
 
     //doUpdate = true;
 
+    doUpdate = updateFramePackets->GetCount() != 0;
+
     doUpdate |= MousePosition != oldMousePos;
+
+    doUpdate |= ScreenUpdates->GetCount() != 0;
 
     if (!doUpdate)
         return 0;
@@ -540,7 +544,7 @@ uint64_t DrawFrame()
                     winBuf[aX + aY * win->Buffer->Width] = packet->Buffer[x + y * packet->Width];
                 }
 
-            ScreenUpdates->AddIfUnique(WindowUpdate(
+            ScreenUpdates->Enqueue(WindowUpdate(
                 win->Dimensions.x + packet->X, 
                 win->Dimensions.y + packet->Y, 
                 
@@ -562,19 +566,30 @@ uint64_t DrawFrame()
         oldMousePos.y + 16
     );
 
-    for (int i = 0; i < ScreenUpdates->GetCount(); i++)
-    {
-        WindowUpdate update = ScreenUpdates->ElementAt(i);
 
-        totalPixelCount += RenderActualSquare(
+    int pixelSum = 0;
+    int maxPixelsPerFrame = 3000;
+    
+    while (ScreenUpdates->GetCount() > 0)
+    {
+        WindowUpdate update = ScreenUpdates->Dequeue();
+
+        pixelSum += RenderActualSquare(
             update.x1, 
             update.y1, 
             
             update.x2, 
             update.y2
         );
+
+        totalPixelCount += pixelSum;
+
+        if ((pixelSum > maxPixelsPerFrame) && ScreenUpdates->GetCount() < 5)
+            break;
     }
-    ScreenUpdates->Clear();
+    // serialPrint("UPDATES LEFT: ");
+    // serialPrintLn(to_string(ScreenUpdates->GetCount()));
+    // //ScreenUpdates->Clear();
 
 
     totalPixelCount += RenderActualSquare(

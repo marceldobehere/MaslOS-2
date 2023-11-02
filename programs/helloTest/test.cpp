@@ -3,15 +3,15 @@
 #include <libm/rendering/basicRenderer.h>
 #include <libm/rendering/Cols.h>
 
-int main()
+int main(int argc, char** argv)
 {
     //return 0;
     //while (true);
 
 
-    int argc = getArgC();
-    //*((char*)(uint64_t)argc) = 'A';
-    char** argv = getArgV();
+    // int argc = getArgC();
+    // //*((char*)(uint64_t)argc) = 'A';
+    // char** argv = getArgV();
     ENV_DATA* env = getEnvData();
 
 
