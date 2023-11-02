@@ -1230,6 +1230,14 @@ void Syscall_handler(interrupt_frame* frame)
         //task->active = false;
         Scheduler::AddTask(task);
     }
+    else if (syscall == SYSCALL_PID_EXISTS)
+    {
+        uint64_t pid = frame->rbx;
+        
+        bool exists = Scheduler::GetTask(pid) != NULL;
+        
+        frame->rax = exists;
+    }
     else if (syscall == SYSCALL_MSG_GET_COUNT)
     {
         Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;

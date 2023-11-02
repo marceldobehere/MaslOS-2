@@ -254,6 +254,8 @@ int main(int argc, char** argv)
 
     //programWait(1000);
 
+    uint64_t endTime = envGetTimeMs() + 6000;
+
     while (true)
     {
         testGui->Render();
@@ -264,6 +266,9 @@ int main(int argc, char** argv)
 
         programYield();
         //programWait(500);
+
+        if (envGetTimeMs() >= endTime)
+            break;
     }
 
     // while (true)

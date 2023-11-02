@@ -26,6 +26,7 @@ extern bool drawBackground;
 extern Framebuffer* taskbar;
 
 extern List<Window*>* windows;
+extern List<Window*>* windowsToDelete;
 extern Window* activeWindow;
 extern Window* currentActionWindow;
 
@@ -43,7 +44,7 @@ int main(int argc, char** argv);
 
 uint64_t DrawFrame();
 
-
+void CheckForDeadWindows();
 
 
 

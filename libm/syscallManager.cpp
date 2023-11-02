@@ -37,6 +37,15 @@ uint64_t getPid()
     return pid;
 }
 
+bool pidExists(uint64_t pid)
+{
+    int syscall = SYSCALL_PID_EXISTS;
+    bool exists;
+
+    asm("int $0x31" : "=a"(exists): "a"(syscall), "b"(pid));
+    return exists;
+}
+
 uint64_t envGetDesktopPid()
 {
     int syscall = SYSCALL_ENV_GET_DESKTOP_PID;

@@ -21,6 +21,7 @@ Framebuffer* backgroundImage = NULL;
 Framebuffer* taskbar;
 
 List<Window*>* windows;
+List<Window*>* windowsToDelete;
 Window* activeWindow;
 Window* currentActionWindow;
 
@@ -82,6 +83,7 @@ void InitStuff()
     
 
     windows = new List<Window*>(5);
+    windowsToDelete = new List<Window*>(3);
 
     ScreenUpdates = new Queue<WindowUpdate>(20);
 
@@ -142,6 +144,7 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
 
     actualScreenRenderer->Print(" ({} PPS)", to_string((totalPixelCount * 1000) / totalTime), Colors.yellow);
 }
+
 
 
 
@@ -207,6 +210,10 @@ int main(int argc, char** argv)
         {
             uint64_t startTime = envGetTimeMs();
             totalPixelCount += DrawFrame();
+
+            if ((i & 7) == 0)
+                CheckForDeadWindows();
+
             uint64_t endTime = envGetTimeMs();
 
             frameTime += endTime - startTime;
@@ -220,6 +227,8 @@ int main(int argc, char** argv)
 
             //programYield();
         }
+
+        
 
         uint64_t _endTime = envGetTimeMs();
 
@@ -243,7 +252,21 @@ int main(int argc, char** argv)
     return 0;
 }
 
+void CheckForDeadWindows()
+{
+    for (int i = 0; i < windows->GetCount(); i++)
+    {
+        Window* window = windows->ElementAt(i);
+        if (!pidExists(window->PID))
+        {
+            windows->RemoveAt(i);
 
+            windowsToDelete->Add(window);
+
+            i--;
+        }
+    }   
+}
 
 uint64_t DrawFrame()
 {
@@ -320,7 +343,7 @@ uint64_t DrawFrame()
                 window->Dimensions.x - 1,
                 window->Dimensions.y - 24,
                 window->Dimensions.x + window->Dimensions.width + 1,
-                window->Dimensions.x + window->Dimensions.height + 1
+                window->Dimensions.y + window->Dimensions.height + 1
                 ));
 
             if (pidFrom != getPid())
@@ -483,6 +506,30 @@ uint64_t DrawFrame()
             window->Updates->Clear();
         }
     }
+
+
+    for (int i = 0; i < windowsToDelete->GetCount(); i++)
+    {
+        Window* window = windowsToDelete->ElementAt(i);
+
+        UpdatePointerRect(
+            window->Dimensions.x - 1,
+            window->Dimensions.y - 24,
+            window->Dimensions.x + window->Dimensions.width + 1,
+            window->Dimensions.y + window->Dimensions.height + 1
+        );
+
+        ScreenUpdates->Enqueue(WindowUpdate(
+            window->Dimensions.x - 1,
+            window->Dimensions.y - 24,
+            window->Dimensions.x + window->Dimensions.width + 1,
+            window->Dimensions.y + window->Dimensions.height + 1
+            ));
+
+        window->Free();
+        _Free(window);
+    }
+    windowsToDelete->Clear();
 
     //Taskbar::RenderTaskbar();
 

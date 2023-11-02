@@ -7,6 +7,7 @@ int getArgC();
 char** getArgV();
 ENV_DATA* getEnvData();
 uint64_t getPid();
+bool pidExists(uint64_t pid);
 void* requestNextPage();
 void* requestNextPages(int count);
 
