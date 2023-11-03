@@ -33,8 +33,10 @@ Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
 
 ## Screenshots
-![A Bootscreen yes](/images/img1.png)
+![WM progress](/images/wm%202.png)
 ![Beginning to work on WM](/images/start%20of%20wm%201.png)
+![A Bootscreen yes](/images/img1.png)
+
 
 
 
