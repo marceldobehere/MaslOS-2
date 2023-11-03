@@ -18,6 +18,9 @@
 
 // #include "../cStdLib/queue/queue_all.h"
 
+#include "../diskStuff/Disk_Interfaces/generic/genericDiskInterface.h"
+#include <libm/list/list_genDiskInterface.h>
+
 struct OSData
 {
     bool exit;
@@ -49,7 +52,7 @@ struct OSData
 //     bool bgTaskRun = true;
 //     WindowManager::WindowPointerBufferThing* windowPointerThing;
 
-//     List<DiskInterface::GenericDiskInterface*> diskInterfaces;
+    List<DiskInterface::GenericDiskInterface*> diskInterfaces;
 //     //List<Audio::BasicAudioDestination*> audioDestinations;
 
 //     List<Audio::AudioInputDevice*> audioInputDevices;
@@ -74,4 +77,4 @@ struct OSData
 
 
 
-extern volatile OSData osData;
+extern OSData osData;

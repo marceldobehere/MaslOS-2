@@ -25,3 +25,12 @@
 #include "list_guiBaseComp.h"
 
 #include "./list_window.h"
+
+#include "./list_genDiskInterface.h"
+
+#include "./list_partInfo.h"
+
+#include "./list_fsStructs.h"
+
+#include "./list_mrafsFsInterface.h"
+

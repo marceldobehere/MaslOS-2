@@ -1,3 +1,3 @@
 #include "osData.h"
 
-volatile OSData osData;
+OSData osData;

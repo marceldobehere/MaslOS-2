@@ -116,7 +116,7 @@ void ScrollUp(int amt)
     int64_t w2 = w - 502;
     if (w2 < 0)
         w2 = 0;
-    uint64_t h = fb->Height;
+    uint64_t h = fb->Height - 32;
     uint32_t* arr = ((uint32_t*)fb->BaseAddress);
     for (int i = amt; i < h; i++)
         for (int j = 0; j < w2; j++)
@@ -136,7 +136,7 @@ void PrintMsgColSL(const char* msg, const char* var, uint32_t col)
     if (!PrintAll || !osData.verboseBoot)
         return;
     GlobalRenderer->Print(msg, var, col);
-    while (GlobalRenderer->CursorPosition.y > GlobalRenderer->framebuffer->Height - 32)
+    while (GlobalRenderer->CursorPosition.y > GlobalRenderer->framebuffer->Height - 64)
         ScrollUp(16);
 }
 

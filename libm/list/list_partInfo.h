@@ -1,8 +1,10 @@
-// #pragma once
-// #include "./list.h"
+#pragma once
+#include "./list.h"
 
 
-// #include "../../kernelStuff/diskStuff/Partition_Interfaces/generic/partitionStructs.h"
 
-// template class Array<PartitionInterface::PartitionInfo*>;
-// template class  List<PartitionInterface::PartitionInfo*>;
+#include "../../kernel/diskStuff/Partition_Interfaces/generic/partitionStructs.h"
+
+template class Array<PartitionInterface::PartitionInfo*>;
+template class  List<PartitionInterface::PartitionInfo*>;
+

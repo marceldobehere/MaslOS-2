@@ -1,6 +1,18 @@
 #include "AutoFree.h"
 #include <libm/experimental/RelocatableAllocator.h>
 
+
+#ifndef MEMCPY
+#define MEMCPY
+
+void memcpy(char *a, char *b, uint64_t size)
+{
+    for (uint64_t i = 0; i < size; ++i)
+        a[i] = b[i];
+}
+
+#endif
+
 void ReferenceCounter::Increment()
 {
     ++RefCount;

@@ -2,198 +2,199 @@
 #include "../../kernelStuff/IO/IO.h"
 #include <stddef.h>
 
-
 // //#include "../../paging/PageTableManager.h"
-// #include "../../osData/osData.h"
-// #include "../ahci/ahci.h"
-// //#include "../ac97/ac97.h"
-// #include "../serial/serial.h"
+#include "../../osData/osData.h"
+#include "../ahci/ahci.h"
+#include <libm/cstr.h>
+//#include "../ac97/ac97.h"
+#include "../serial/serial.h"
+
 
 namespace PCI
 {
-//     void EnumeratePCI(ACPI::MCFGHeader* mcfg)
-//     {
-//         AddToStack();
-//         int entries = (mcfg->Header.Length - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
-//         RemoveFromStack();
+    void EnumeratePCI(ACPI::MCFGHeader* mcfg)
+    {
+        AddToStack();
+        int entries = (mcfg->Header.Length - sizeof(ACPI::MCFGHeader)) / sizeof(ACPI::DeviceConfig);
+        RemoveFromStack();
         
-//         AddToStack();
+        AddToStack();
 
-//         for (int t = 0; t < entries; t++)
-//         {
-//             ACPI::DeviceConfig* newDeviceConfig = (ACPI::DeviceConfig*)((uint64_t)mcfg + sizeof(ACPI::MCFGHeader) + sizeof(ACPI::DeviceConfig) * t);
-//             for (uint64_t bus = newDeviceConfig->StartBus; bus < newDeviceConfig->EndBus; bus++)
-//                 EnumerateBus(newDeviceConfig->BaseAddress, bus);
-//         }
-//         RemoveFromStack();
-//     }
+        for (int t = 0; t < entries; t++)
+        {
+            ACPI::DeviceConfig* newDeviceConfig = (ACPI::DeviceConfig*)((uint64_t)mcfg + sizeof(ACPI::MCFGHeader) + sizeof(ACPI::DeviceConfig) * t);
+            for (uint64_t bus = newDeviceConfig->StartBus; bus < newDeviceConfig->EndBus; bus++)
+                EnumerateBus(newDeviceConfig->BaseAddress, bus);
+        }
+        RemoveFromStack();
+    }
 
-//     void EnumerateBus(uint64_t baseAddress, uint64_t bus)
-//     {
-//         AddToStack();
-//         uint64_t offset = bus << 20;
+    void EnumerateBus(uint64_t baseAddress, uint64_t bus)
+    {
+        AddToStack();
+        uint64_t offset = bus << 20;
 
-//         uint64_t busAddress = baseAddress + offset;
+        uint64_t busAddress = baseAddress + offset;
 
-//         //GlobalPageTableManager.MapMemory((void*)busAddress, (void*)busAddress);
+        //GlobalPageTableManager.MapMemory((void*)busAddress, (void*)busAddress);
         
-//         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)busAddress;
+        PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)busAddress;
 
-//         if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
-//         if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
 
-//         for (uint64_t device = 0; device < 32; device++)
-//         {
-//             EnumerateDevice(busAddress, device);
-//         }
-//         RemoveFromStack();
-//     }
+        for (uint64_t device = 0; device < 32; device++)
+        {
+            EnumerateDevice(busAddress, device);
+        }
+        RemoveFromStack();
+    }
 
-//     void EnumerateDevice(uint64_t busAddress, uint64_t device) // Slot
-//     {
-//         AddToStack();
-//         uint64_t offset = device << 15;
+    void EnumerateDevice(uint64_t busAddress, uint64_t device) // Slot
+    {
+        AddToStack();
+        uint64_t offset = device << 15;
 
-//         uint64_t deviceAddress = busAddress + offset;
+        uint64_t deviceAddress = busAddress + offset;
 
-//         //GlobalPageTableManager.MapMemory((void*)deviceAddress, (void*)deviceAddress);
+        //GlobalPageTableManager.MapMemory((void*)deviceAddress, (void*)deviceAddress);
         
-//         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)deviceAddress;
+        PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)deviceAddress;
 
-//         if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
-//         if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
 
-//         for (uint64_t function = 0; function < 8; function++)
-//         {
-//             EnumerateFunction(deviceAddress, function);
-//         }
-//         RemoveFromStack();
-//     }
+        for (uint64_t function = 0; function < 8; function++)
+        {
+            EnumerateFunction(deviceAddress, function);
+        }
+        RemoveFromStack();
+    }
 
-//     void EnumerateFunction(uint64_t deviceAddress, uint64_t function)
-//     {
-//         AddToStack();
-//         uint64_t offset = function << 12;
+    void EnumerateFunction(uint64_t deviceAddress, uint64_t function)
+    {
+        AddToStack();
+        uint64_t offset = function << 12;
 
-//         uint64_t functionAddress = deviceAddress + offset;
+        uint64_t functionAddress = deviceAddress + offset;
 
-//         if (functionAddress == 0x0000000000000000) {RemoveFromStack(); return;}
+        if (functionAddress == 0x0000000000000000) {RemoveFromStack(); return;}
 
-//         //GlobalPageTableManager.MapMemory((void*)functionAddress, (void*)functionAddress);
+        //GlobalPageTableManager.MapMemory((void*)functionAddress, (void*)functionAddress);
         
-//         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)functionAddress;
+        PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)functionAddress;
 
-//         if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
-//         if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0x0000) {RemoveFromStack(); return;}
+        if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
 
-//         BasicRenderer* renderer = osData.debugTerminalWindow->renderer;
-//         renderer->Print(" - ");
+        //BasicRenderer* renderer = osData.debugTerminalWindow->renderer;
+        Serial::Write(" - ");
 
-//         {
-//             const char* vendorName = GetVendorName(pciDeviceHeader->Vendor_ID);
-//             if (vendorName != unknownString)
-//                 renderer->Print(vendorName);
-//             else
-//             {
-//                 renderer->Print("<");
-//                 renderer->Print(ConvertHexToString(pciDeviceHeader->Vendor_ID));
-//                 renderer->Print(">");
-//             }
-//             renderer->Print(" / ");
-//         }
+        {
+            const char* vendorName = GetVendorName(pciDeviceHeader->Vendor_ID);
+            if (vendorName != unknownString)
+                Serial::Write(vendorName);
+            else
+            {
+                Serial::Write("<");
+                Serial::Write(ConvertHexToString(pciDeviceHeader->Vendor_ID));
+                Serial::Write(">");
+            }
+            Serial::Write(" / ");
+        }
 
-//         {
-//             const char* deviceName = GetDeviceName(pciDeviceHeader->Vendor_ID, pciDeviceHeader->Device_ID);
-//             if (deviceName != unknownString)
-//                 renderer->Print(deviceName);
-//             else
-//             {
-//                 renderer->Print("<");
-//                 renderer->Print(ConvertHexToString(pciDeviceHeader->Device_ID));
-//                 renderer->Print(">");
-//             }
-//             renderer->Print(" / ");
-//         }
+        {
+            const char* deviceName = GetDeviceName(pciDeviceHeader->Vendor_ID, pciDeviceHeader->Device_ID);
+            if (deviceName != unknownString)
+                Serial::Write(deviceName);
+            else
+            {
+                Serial::Write("<");
+                Serial::Write(ConvertHexToString(pciDeviceHeader->Device_ID));
+                Serial::Write(">");
+            }
+            Serial::Write(" / ");
+        }
 
-//         {
-//             const char* className = GetClassName(pciDeviceHeader->Class);
-//             if (className != unknownString)
-//                 renderer->Print(className);
-//             else
-//             {
-//                 renderer->Print("<");
-//                 renderer->Print(ConvertHexToString(pciDeviceHeader->Class));
-//                 renderer->Print(">");
-//             }
-//             renderer->Print(" / ");
-//         }
+        {
+            const char* className = GetClassName(pciDeviceHeader->Class);
+            if (className != unknownString)
+                Serial::Write(className);
+            else
+            {
+                Serial::Write("<");
+                Serial::Write(ConvertHexToString(pciDeviceHeader->Class));
+                Serial::Write(">");
+            }
+            Serial::Write(" / ");
+        }
 
-//         {
-//             const char* subclassName = GetSubclassName(pciDeviceHeader->Class, pciDeviceHeader->SubClass);
-//             if (subclassName != unknownString)
-//                 renderer->Print(subclassName);
-//             else
-//             {
-//                 renderer->Print("<");
-//                 renderer->Print(ConvertHexToString(pciDeviceHeader->SubClass));
-//                 renderer->Print(">");
-//             }
-//             renderer->Print(" / ");
-//         }
+        {
+            const char* subclassName = GetSubclassName(pciDeviceHeader->Class, pciDeviceHeader->SubClass);
+            if (subclassName != unknownString)
+                Serial::Write(subclassName);
+            else
+            {
+                Serial::Write("<");
+                Serial::Write(ConvertHexToString(pciDeviceHeader->SubClass));
+                Serial::Write(">");
+            }
+            Serial::Write(" / ");
+        }
 
-//         {
-//             const char* progIFName = GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->SubClass, pciDeviceHeader->Prog_IF);
-//             if (progIFName != unknownString)
-//                 renderer->Print(progIFName);
-//             else
-//             {
-//                 renderer->Print("<");
-//                 renderer->Print(ConvertHexToString(pciDeviceHeader->Prog_IF));
-//                 renderer->Print(">");
-//             }
-//             //renderer->Print(" / ");
-//         }
-//         renderer->Println();
+        {
+            const char* progIFName = GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->SubClass, pciDeviceHeader->Prog_IF);
+            if (progIFName != unknownString)
+                Serial::Write(progIFName);
+            else
+            {
+                Serial::Write("<");
+                Serial::Write(ConvertHexToString(pciDeviceHeader->Prog_IF));
+                Serial::Write(">");
+            }
+            //renderer->Print(" / ");
+        }
+        Serial::Writelnf("");
 
-//         // osData.debugTerminalWindow->renderer->Println("> BARS:", Colors.yellow);
-//         // for (int i = 0; i < 6; i++)
-//         // {
-//         //     osData.debugTerminalWindow->renderer->Print(" - BAR {}: ", to_string(i), Colors.orange);
-//         //     osData.debugTerminalWindow->renderer->Println("{}", ConvertHexToString(*(((uint32_t*)&((PCI::PCIHeader0*)pciDeviceHeader)->BAR0) + i)), Colors.orange);
-//         //     io_wait(1000);
-//         // }
+        // osData.debugTerminalWindow->renderer->Println("> BARS:", Colors.yellow);
+        // for (int i = 0; i < 6; i++)
+        // {
+        //     osData.debugTerminalWindow->renderer->Print(" - BAR {}: ", to_string(i), Colors.orange);
+        //     osData.debugTerminalWindow->renderer->Println("{}", ConvertHexToString(*(((uint32_t*)&((PCI::PCIHeader0*)pciDeviceHeader)->BAR0) + i)), Colors.orange);
+        //     io_wait(1000);
+        // }
 
 
-//         if (pciDeviceHeader->Class == 0x04 && pciDeviceHeader->SubClass == 0x01 && pciDeviceHeader->Prog_IF == 0x00)
-//         {
-//             new AC97::AC97Driver(pciDeviceHeader);
-//         }
-//         else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A3E)
-//         {
-//             new AC97::AC97Driver(pciDeviceHeader);
-//         }
-//         else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A6E)
-//         {
-//             new AC97::AC97Driver(pciDeviceHeader);
-//         }
-//         else if (pciDeviceHeader->Vendor_ID == 0x1022 && pciDeviceHeader->Device_ID == 0x15E3)
-//         {
-//             new AC97::AC97Driver(pciDeviceHeader);
-//         }
-//         else if (pciDeviceHeader->Class == 0x01 && pciDeviceHeader->SubClass == 0x06 && pciDeviceHeader->Prog_IF == 0x01)
-//         {
-//             new AHCI::AHCIDriver(pciDeviceHeader);
-//         }
-//         else if (pciDeviceHeader->Class == 0x07 && pciDeviceHeader->SubClass == 0x00)
-//         {
-//             Serial::pciCard = (uint64_t)pciDeviceHeader;
-//             //Serial::SerialPort= 0x2F8;
-//             if (!Serial::Init())
-//                 Serial::pciCard = 0;
-//         }
+        if (pciDeviceHeader->Class == 0x04 && pciDeviceHeader->SubClass == 0x01 && pciDeviceHeader->Prog_IF == 0x00)
+        {
+            // new AC97::AC97Driver(pciDeviceHeader);
+        }
+        else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A3E)
+        {
+            // new AC97::AC97Driver(pciDeviceHeader);
+        }
+        else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A6E)
+        {
+            // new AC97::AC97Driver(pciDeviceHeader);
+        }
+        else if (pciDeviceHeader->Vendor_ID == 0x1022 && pciDeviceHeader->Device_ID == 0x15E3)
+        {
+            // new AC97::AC97Driver(pciDeviceHeader);
+        }
+        else if (pciDeviceHeader->Class == 0x01 && pciDeviceHeader->SubClass == 0x06 && pciDeviceHeader->Prog_IF == 0x01)
+        {
+            new AHCI::AHCIDriver(pciDeviceHeader);
+        }
+        else if (pciDeviceHeader->Class == 0x07 && pciDeviceHeader->SubClass == 0x00)
+        {
+            Serial::pciCard = (uint64_t)pciDeviceHeader;
+            //Serial::SerialPort= 0x2F8;
+            if (!Serial::Init())
+                Serial::pciCard = 0;
+        }
 
-//         RemoveFromStack();
-//     }
+        RemoveFromStack();
+    }
 
 
 

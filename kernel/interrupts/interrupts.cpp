@@ -772,6 +772,14 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         PrintRegisterDump(GlobalRenderer);
         Serial::Writeln();
 
+        GlobalRenderer->Println();   
+        GlobalRenderer->Println("ERROR CODE: {}", to_string(frame->error_code), Colors.yellow);   
+        Serial::Writelnf("ERROR CODE: %d", frame->error_code);
+
+
+        if (osData.booting)
+            while (true);
+
         if (Scheduler::CurrentRunningTask != NULL)
         {
             Serial::Writeln("Task info:");
@@ -806,8 +814,6 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         }
         Scheduler::CurrentRunningTask = NULL;
 
-        GlobalRenderer->Println();   
-        GlobalRenderer->Println("ERROR CODE: {}", to_string(frame->error_code), Colors.yellow);   
 
         //while (true);
 

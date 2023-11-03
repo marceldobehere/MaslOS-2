@@ -1,5 +1,5 @@
-// #pragma once
+#pragma once
 
-// int InitAcpiShutdownThing(void* RSDT);
+int InitAcpiShutdownThing(void* RSDT);
 
-// void PowerOffAcpi();
+void PowerOffAcpi();

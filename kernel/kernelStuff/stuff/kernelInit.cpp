@@ -16,6 +16,11 @@
 #include "../../devices/gdt/initialGdt.h"
 #include "../../devices/keyboard/keyboard.h"
 #include "../../devices/mouse/mouse.h"
+#include "../../devices/pci/pci.h"
+#include "../../diskStuff/Disk_Interfaces/ram/ramDiskInterface.h"
+#include "../../diskStuff/Partition_Interfaces/mraps/mrapsPartitionInterface.h"
+#include "../../diskStuff/Filesystem_Interfaces/mrafs/mrafsFileSystemInterface.h"
+
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
 
@@ -117,20 +122,138 @@ void InitKernel(BootInfo* bootInfo)
     StepDone();
 
 
-//     PrintMsg("> Clearing Input Buffer (2/2)");
-//     {
-//         // Clear the input buffer.
-//         size_t timeout = 1024;
-//         while ((inb(STAT) & 1) && timeout > 0) {
-//             timeout--;
-//             inb(CMD);
-//         }
-//     }
-//     StepDone();
+    // PrintMsg("> Clearing Input Buffer (2/2)");
+    // {
+    //     // Clear the input buffer.
+    //     size_t timeout = 1024;
+    //     while ((inb(STAT) & 1) && timeout > 0) {
+    //         timeout--;
+    //         inb(CMD);
+    //     }
+    // }
+    // StepDone();
 
 
 
+    PrintMsg("> Creating OS Ram Disk");
+    PrintMsgStartLayer("OS RAM DISK");
+    AddToStack();
+    {
 
+        uint64_t totSize = 500000;
+        // for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
+        // {
+        //     totSize += bootInfo->maabZIP->files[i].size;
+        // }
+        // for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
+        // {
+        //     totSize += bootInfo->otherZIP->files[i].size;
+        // }
+
+        totSize += 6000000;
+        uint64_t totSize2 = totSize;
+        totSize2 /= 512;
+        totSize -= 200000;
+
+        AddToStack();
+        DiskInterface::RamDiskInterface* ramDisk = new DiskInterface::RamDiskInterface(totSize2);
+        RemoveFromStack();
+
+        AddToStack();
+        osData.diskInterfaces = List<DiskInterface::GenericDiskInterface*>(4);
+        RemoveFromStack();
+
+        AddToStack();
+        osData.diskInterfaces.Add(ramDisk);
+        RemoveFromStack();
+
+        AddToStack();
+        DiskInterface::GenericDiskInterface* diskInterface = ramDisk;
+        PartitionInterface::GenericPartitionInterface* partInterface = (PartitionInterface::GenericPartitionInterface*)new PartitionInterface::MRAPSPartitionInterface(diskInterface);
+        partInterface->InitAndSavePartitionTable();
+        RemoveFromStack();
+
+        AddToStack();
+        partInterface->CreatePartition(partInterface->partitionList[2], totSize);
+
+        partInterface->partitionList[2]->driveName=StrCopy("bruh");
+        partInterface->partitionList[2]->driveNameLen=StrLen("bruh");
+        partInterface->SavePartitionTable();
+        RemoveFromStack();
+
+        AddToStack();
+        Serial::Writelnf("> PART: %X", partInterface);
+        FilesystemInterface::GenericFilesystemInterface* fsInterface = (FilesystemInterface::GenericFilesystemInterface*)new FilesystemInterface::MrafsFilesystemInterface(partInterface, partInterface->partitionList[2]);
+        RemoveFromStack();
+
+
+        AddToStack();
+        fsInterface->InitAndSaveFSTable();
+        RemoveFromStack();
+
+        // PrintMsgStartLayer("MAAB");
+        // for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
+        // {
+        //     PrintMsgColSL("FILE: \"{}\"", bootInfo->maabZIP->files[i].filename, Colors.yellow);
+        //     PrintMsgCol(" ({} bytes)", to_string(bootInfo->maabZIP->files[i].size), Colors.bgreen);
+        //     fsInterface->CreateFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size);
+        //     fsInterface->WriteFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size, bootInfo->maabZIP->files[i].fileData);
+        // }
+        // PrintMsgEndLayer("MAAB");
+
+
+        // PrintMsgStartLayer("OTHER");
+        // for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
+        // {
+        //     PrintMsgColSL("ZIP FILE: \"{}\"", bootInfo->otherZIP->files[i].filename, Colors.yellow);
+        //     PrintMsgCol(" ({} bytes)", to_string(bootInfo->otherZIP->files[i].size), Colors.bgreen);
+        //     //bootInfo->otherZIP->files[i];
+
+        //     if (StrLen(bootInfo->otherZIP->files[i].filename) < 5)
+        //         continue;
+            
+        //     const char* tempName1 = StrSubstr(bootInfo->otherZIP->files[i].filename, 0, StrLen(bootInfo->otherZIP->files[i].filename) - 5);
+        //     const char* tempName2 = StrCombine(tempName1, "/");
+
+        //     //kernelFiles::ZIP::GetFileFromFileName()
+        //     kernelFiles::ZIPFile* zip = kernelFiles::ZIP::GetZIPFromDefaultFile(&bootInfo->otherZIP->files[i]);
+        //     fsInterface->CreateFolder(tempName1);
+        //     PrintMsgStartLayer(tempName1);
+        //     for (int x = 0; x < zip->fileCount; x++)
+        //     {
+        //         const char* tempPath = StrCombine(tempName2, zip->files[x].filename);
+        //         PrintMsgColSL("FILE: \"{}\"", tempPath, Colors.yellow);
+        //         PrintMsgCol(" ({} bytes)", to_string(zip->files[x].size), Colors.bgreen);
+        //         fsInterface->CreateFile(tempPath, zip->files[x].size);
+        //         fsInterface->WriteFile(tempPath, zip->files[x].size, zip->files[x].fileData);
+        //         _Free((void*)tempPath);
+        //     }
+        //     PrintMsgEndLayer(tempName1);
+
+        //     _Free(tempName1);
+        //     _Free(tempName2);
+        //                 //const char* tempPath = StrCombine("other", bootInfo->otherZIP->files[i].filename);
+        //     //fsInterface->CreateFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size);
+        //     //fsInterface->WriteFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size, bootInfo->otherZIP->files[i].fileData);
+        // }
+        // PrintMsgEndLayer("OTHER");
+        fsInterface->SaveFSTable();
+
+        //while (true);
+
+    }
+    RemoveFromStack();
+    PrintMsgEndLayer("OS RAM DISK");
+    StepDone();
+
+    AddToStack();
+    PrintMsg("> Prepare ACPI");
+    PrintMsgStartLayer("ACPI");
+    PrepareACPI(bootInfo);
+    PrintMsgEndLayer("ACPI");
+    PrintDebugTerminal();
+    StepDone();
+    RemoveFromStack();
 
 
 
@@ -386,4 +509,140 @@ void PrepareInterrupts()
     __asm__ volatile ("sti");
     RemoveFromStack();
     
+}
+
+#include "../../devices/acpi/acpiShutdown.h"
+#include "../../interrupts/panic.h"
+
+void DoPCIWithoutMCFG(BootInfo* bootInfo)
+{
+
+}
+
+void PrepareACPI(BootInfo* bootInfo)
+{
+    AddToStack();
+
+    
+
+    AddToStack();
+    PrintMsgStartLayer("ACPI");
+    PrintMsg("Preparing ACPI...");
+    PrintMsg("RSDP Addr: {}", ConvertHexToString((uint64_t)bootInfo->rsdp));
+    RemoveFromStack();
+
+    AddToStack();   
+    ACPI::SDTHeader* rootThing = NULL;
+    int div = 1;
+
+
+    if (bootInfo->rsdp->firstPart.Revision == 0)
+    {
+        PrintMsg("ACPI Version: 1");
+        rootThing = (ACPI::SDTHeader*)(uint64_t)(bootInfo->rsdp->firstPart.RSDTAddress);
+        PrintMsg("RSDT Header Addr: {}", ConvertHexToString((uint64_t)rootThing));
+        div = 4;
+
+        if (rootThing == NULL)
+        {
+            Panic("RSDT Header is at NULL!", true);
+        }
+        else
+        {
+            //GlobalRenderer->Clear(Colors.black);
+            PrintMsg("> Testing ACPI Loader...");
+
+            InitAcpiShutdownThing(rootThing);
+            //while (true);
+        }
+    }
+    else
+    {
+        PrintMsg("ACPI Version: 2");
+        rootThing = (ACPI::SDTHeader*)(bootInfo->rsdp->XSDTAddress);
+        PrintMsg("XSDT Header Addr: {}", ConvertHexToString((uint64_t)rootThing));
+        div = 8;
+
+        if (rootThing == NULL)
+        {
+            Panic("XSDT Header is at NULL!", true);
+        }
+    }
+    
+    PrintDebugTerminal();
+    RemoveFromStack();
+
+    
+    AddToStack();
+    int entries = (rootThing->Length - sizeof(ACPI::SDTHeader)) / div;
+    PrintMsg("Entry count: {}", to_string(entries));
+    RemoveFromStack();
+
+    AddToStack();
+    PrintMsgSL("> ");
+    for (int t = 0; t < entries; t++)
+    {
+        uint64_t bleh1 = *(uint64_t*)((uint64_t)rootThing + sizeof(ACPI::SDTHeader) + (t * div));
+        if (div == 4)
+            bleh1 &= 0x00000000FFFFFFFF;
+        ACPI::SDTHeader* newSDTHeader = (ACPI::SDTHeader*)bleh1;
+        
+        char bruh[2];
+        bruh[1] = 0;
+
+        for (int i = 0; i < 4; i++)
+        {
+            bruh[0] = newSDTHeader->Signature[i];
+            PrintMsgSL(bruh);
+        }
+
+        PrintMsgSL(" ");
+    }
+    PrintMsg("");
+    RemoveFromStack();
+
+    AddToStack();
+    ACPI::MCFGHeader* mcfg = (ACPI::MCFGHeader*)ACPI::FindTable(rootThing, (char*)"MCFG", div);
+
+    PrintMsg("MCFG Header Addr: {}", ConvertHexToString((uint64_t)mcfg));
+    RemoveFromStack();
+
+    if (mcfg == NULL)
+    {
+        //Panic("MCFG HEADER IS NULL!", true);
+        DoPCIWithoutMCFG(bootInfo);
+
+        PrintMsgEndLayer("ACPI");
+        RemoveFromStack();
+        return;
+    }
+
+
+    // for (int i = 0; i < 20; i++)
+    //     GlobalRenderer->Clear(Colors.purple);
+
+    //Panic("bruh", true);
+
+    PrintDebugTerminal();
+
+    AddToStack();
+    PCI::EnumeratePCI(mcfg);
+    RemoveFromStack();
+
+    PrintDebugTerminal();
+
+    // for (int i = 0; i < 20; i++)
+    //     GlobalRenderer->Clear(Colors.bblue);
+
+    AddToStack();
+    PrintMsg("Drive Count: {}", to_string(osData.diskInterfaces.GetCount()));
+    RemoveFromStack();    
+    
+    // for (int i = 0; i < 20; i++)
+    //     GlobalRenderer->Clear(Colors.orange);
+
+    PrintDebugTerminal();
+    RemoveFromStack();
+
+    PrintMsgEndLayer("ACPI");
 }

@@ -1,5 +1,10 @@
 #include "RelocatableAllocator.h"
 
+
+
+
+
+
 char *RelocatableAllocator::alloc(uint64_t size)
 {
     int idx = FindFreeBlock(size);

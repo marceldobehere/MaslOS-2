@@ -7,4 +7,7 @@ void PrepareMemory(BootInfo* bootInfo);
 
 void PrepareInterrupts();
 
+void DoPCIWithoutMCFG(BootInfo* bootInfo);
+void PrepareACPI(BootInfo* bootInfo);
+
 void DoGdtStuff();
