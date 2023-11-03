@@ -361,6 +361,35 @@ uint64_t DrawFrame()
                 _Free(response);
             }
         }
+        else if (msg->Type == MessagePacketType::WINDOW_DELETE_EVENT && msg->Size == 8)
+        {
+            uint64_t pidFrom = msg->FromPID;
+            uint64_t wantedWindowId = *(uint64_t*)msg->Data;
+
+            Window* window = NULL;
+            for (int i = 0; i < windows->GetCount(); i++)
+            {
+                Window* tWin = windows->ElementAt(i);
+                if (tWin->ID == wantedWindowId)
+                {
+                    window = tWin;
+                    break;
+                }
+            }
+
+            if (window != NULL)
+            {
+                if (window->PID == pidFrom)
+                {
+                    windowsToDelete->Add(window);
+
+                    int idx = windows->GetIndexOf(window);
+                    windows->RemoveAt(idx);
+                }
+            }
+
+            // TODO: maybe make it send like an ok back
+        }
         else if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
         {
             WindowObjectPacket* winObjPacketFrom = new WindowObjectPacket(msg);
@@ -513,7 +542,7 @@ uint64_t DrawFrame()
         Window* window = windowsToDelete->ElementAt(i);
 
         UpdatePointerRect(
-            window->Dimensions.x - 1,
+        window->Dimensions.x - 1,
             window->Dimensions.y - 24,
             window->Dimensions.x + window->Dimensions.width + 1,
             window->Dimensions.y + window->Dimensions.height + 1

@@ -271,6 +271,20 @@ int main(int argc, char** argv)
             break;
     }
 
+    programWait(1000);
+
+    deleteWindow(window);
+
+    window->Free();
+    _Free(window);
+
+    programWait(1000);
+
+    window = requestWindow();
+
+
+    programWait(1000);
+
     // while (true)
     // {
 

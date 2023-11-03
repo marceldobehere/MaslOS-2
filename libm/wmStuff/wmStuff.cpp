@@ -114,6 +114,22 @@ void updateWindow(Window* window)
     _Free(partialWindow);
 }
 
+void deleteWindow(Window* window)
+{
+    deleteWindow(window->ID);
+}
+
+void deleteWindow(uint64_t id)
+{
+    {
+        uint64_t data = id;
+        GenericMessagePacket* winReq = new GenericMessagePacket(MessagePacketType::WINDOW_DELETE_EVENT, (uint8_t*)&data, 8);
+        msgSendMessage(winReq, desktopPID);
+        winReq->Free();
+    }
+
+    // TODO: maybe make it blocking and wait for a result
+}
 
 Window* requestWindow()
 {
