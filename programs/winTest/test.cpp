@@ -48,7 +48,11 @@ int main(int argc, char** argv)
     globalPrintLn("A> Requested Window!");
 
     if (window == NULL)
+    {
+        globalPrintLn("A> Window is NULL!");
+        programWait(1000);
         return 0;
+    }
 
     globalPrint("A> Window ID: ");
     globalPrintLn(ConvertHexToString(window->ID));

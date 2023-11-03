@@ -3,52 +3,49 @@
 #include "../syscallManager.h"
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 
-List<GenericMessagePacket*>* nonWindowPackets;
-List<GenericMessagePacket*>* yesWindowPackets;
 uint64_t desktopPID;
 
 void initWindowManagerStuff()
 {
-    nonWindowPackets = new List<GenericMessagePacket*>();
-    yesWindowPackets = new List<GenericMessagePacket*>();
     desktopPID = envGetDesktopPid();
 }
 
-GenericMessagePacket* getWindowCreatePacket()
-{
-    for (int i = 0; i < yesWindowPackets->GetCount(); i++)
-    {
-        GenericMessagePacket* msg = yesWindowPackets->ElementAt(i);
-        if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT)
-        {
-            yesWindowPackets->RemoveAt(i);
-            return msg;
-        }   
-    }
-    return NULL;
-}
+// GenericMessagePacket* getWindowCreatePacket()
+// {
+//     for (int i = 0; i < yesWindowPackets->GetCount(); i++)
+//     {
+//         GenericMessagePacket* msg = yesWindowPackets->ElementAt(i);
+//         if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT)
+//         {
+//             yesWindowPackets->RemoveAt(i);
+//             return msg;
+//         }   
+//     }
+//     return NULL;
+// }
 
-GenericMessagePacket* getWindowGetPacket()
-{
-    for (int i = 0; i < yesWindowPackets->GetCount(); i++)
-    {
-        GenericMessagePacket* msg = yesWindowPackets->ElementAt(i);
-        if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
-        {
-            yesWindowPackets->RemoveAt(i);
-            return msg;
-        }   
-    }
-    return NULL;
-}
+// GenericMessagePacket* getWindowGetPacket()
+// {
+//     for (int i = 0; i < yesWindowPackets->GetCount(); i++)
+//     {
+//         GenericMessagePacket* msg = yesWindowPackets->ElementAt(i);
+//         if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
+//         {
+//             yesWindowPackets->RemoveAt(i);
+//             return msg;
+//         }   
+//     }
+//     return NULL;
+// }
 
 Window* getPartialWindow(uint64_t id)
 {
+    uint64_t convoId;
     {
         Window* tWin = new Window(0, 0, 0, 0, "", id, 0);
         WindowObjectPacket* winObj = new WindowObjectPacket(tWin, false);
         GenericMessagePacket* msg = winObj->ToGenericMessagePacket();
-        msgSendMessage(msg, desktopPID);
+        convoId = msgSendConv(msg, desktopPID);
         tWin->Free();
         _Free(tWin);
         msg->Free();
@@ -57,15 +54,10 @@ Window* getPartialWindow(uint64_t id)
         _Free(winObj);
     }
 
-    GenericMessagePacket* winGet = NULL;
-    while (true)
-    {
-        programYield();
-        handleWindowPackets();
-        winGet = getWindowGetPacket();
-        if (winGet != NULL)
-            break;
-    }
+    GenericMessagePacket* winGet = msgWaitConv(convoId, 5000);
+
+    if (winGet == NULL)
+        return NULL;
 
     WindowObjectPacket* gotObj = new WindowObjectPacket(winGet);
     Window* window = gotObj->PartialWindow;
@@ -133,21 +125,16 @@ void deleteWindow(uint64_t id)
 
 Window* requestWindow()
 {
+    uint64_t convoId;
     {
         GenericMessagePacket* winReq = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, NULL, 0);
-        msgSendMessage(winReq, desktopPID);
+        convoId = msgSendConv(winReq, desktopPID);
         winReq->Free();
     }
 
-    GenericMessagePacket* winCreate = NULL;
-    while (true)
-    {
-        programYield();
-        handleWindowPackets();
-        winCreate = getWindowCreatePacket();
-        if (winCreate != NULL)
-            break;
-    }
+    GenericMessagePacket* winCreate = msgWaitConv(convoId, 5000);
+    if (winCreate == NULL)
+        return NULL;
     
     uint64_t windowId = 0; // <GET WINDOW ID FROM PACKET>
     if (winCreate->Size >= 8)
@@ -166,28 +153,6 @@ Window* requestWindow()
     return newWindow;
 }
 
-void handleWindowPackets()
-{
-    while (true)
-    {
-        if (msgGetCount() == 0)
-            return;
-        
-        GenericMessagePacket* msg = msgGetMessage();
-        if (msg == NULL)
-            return;
-
-        if (
-            msg->Type == MessagePacketType::WINDOW_BUFFER_EVENT ||
-            msg->Type == MessagePacketType::WINDOW_CREATE_EVENT ||
-            msg->Type == MessagePacketType::WINDOW_GET_EVENT ||
-            msg->Type == MessagePacketType::WINDOW_SET_EVENT
-        )
-            yesWindowPackets->Add(msg);
-        else 
-            nonWindowPackets->Add(msg);
-    }
-}
 
 #include "../msgPackets/windowBufferUpdatePacket/windowBufferUpdatePacket.h"
 

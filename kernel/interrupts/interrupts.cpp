@@ -913,6 +913,15 @@ extern "C" void CloseCurrentTask()
 
 #include <libm/syscallList.h>
 
+uint64_t _tempGenericMessageConvoId = 0;
+bool _tempGenericMessageChecker(GenericMessagePacket* msg)
+{
+    if (msg == NULL)
+        return false;
+    
+    return msg->ConvoID == _tempGenericMessageConvoId;
+}
+
 bool IsAddressValidForTask(void* addr, osTask* task)
 {
     if (task == NULL)
@@ -1284,6 +1293,31 @@ void Syscall_handler(interrupt_frame* frame)
                 oldPacket->Free();
                 _Free(oldPacket);
                 frame->rax = (uint64_t)newPacket;
+            }
+        }
+    }
+    else if (syscall == SYSCALL_MSG_GET_MSG_CONVO)
+    {
+        Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;
+        frame->rax = 0;
+        uint64_t convoId = frame->rbx;
+        if (queue != NULL && queue->GetCount() > 0)
+        {
+            _tempGenericMessageConvoId = convoId;
+            GenericMessagePacket** oldPacketPtr = queue->First(_tempGenericMessageChecker);
+
+            if (oldPacketPtr != NULL)
+            {
+                queue->Remove(oldPacketPtr);
+                GenericMessagePacket* oldPacket = *oldPacketPtr;
+                Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+                if (oldPacket != NULL && taskHeap != NULL)
+                {
+                    GenericMessagePacket* newPacket = oldPacket->Copy(taskHeap);
+                    oldPacket->Free();
+                    _Free(oldPacket);
+                    frame->rax = (uint64_t)newPacket;
+                }
             }
         }
     }

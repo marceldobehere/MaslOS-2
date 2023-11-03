@@ -261,3 +261,49 @@ bool msgSendMessage(GenericMessagePacket* packet, uint64_t targetPid)
     asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(packet), "c"(targetPid));
     return success;
 }
+
+GenericMessagePacket* msgGetConv(uint64_t convoId)
+{
+    int syscall = SYSCALL_MSG_GET_MSG_CONVO;
+    GenericMessagePacket* packet;
+    asm("int $0x31" : "=a"(packet) : "a"(syscall), "b"(convoId));
+    return packet;
+}
+
+#include <libm/cstr.h>
+
+GenericMessagePacket* msgWaitConv(uint64_t convoId, uint64_t timeoutMs)
+{
+    int64_t endTime = envGetTimeMs() + timeoutMs;
+    while ((int64_t)envGetTimeMs() < endTime)
+    {
+        GenericMessagePacket* packet = msgGetConv(convoId);
+        if (packet != NULL)
+            return packet;
+        programYield();
+    }
+
+    return NULL;
+}
+
+#include <libm/rnd/rnd.h>
+
+uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid)
+{
+    uint64_t convoId = RND::RandomInt();
+    return msgSendConv(packet, targetPid, convoId);
+}
+
+uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid, uint64_t convoId)
+{
+    packet->ConvoID = convoId;
+    msgSendMessage(packet, targetPid);
+    return convoId;
+}
+
+uint64_t msgRespondConv(GenericMessagePacket* og, GenericMessagePacket* reply)
+{
+    reply->ConvoID = og->ConvoID;
+    msgSendMessage(reply, og->FromPID);
+    return og->ConvoID;
+}

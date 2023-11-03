@@ -106,3 +106,45 @@ template <typename T> void Queue<T>::Clear()
     tail = 0;
     count = 0;
 }
+
+template <typename T> T* Queue<T>::First(bool(*condFunction)(T))
+{
+    if (freed)
+        return NULL;
+    
+    for (int64_t i = 0; i < count; i++)
+    {
+        T* item = &arr[(head + i) % arrSize];
+        if (condFunction(*item))
+            return item;
+    }
+    return NULL;
+}
+
+template <typename T> void Queue<T>:: Remove(T* item)
+{
+    if (freed)
+        return;
+    
+    // get index
+    int64_t index = -1;
+    for (int64_t i = 0; i < count; i++)
+    {
+        T* item2 = &arr[(head + i) % arrSize];
+        if (item2 == item)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+        return;
+    
+    // remove
+    for (int64_t i = index; i < count - 1; i++)
+        arr[(head + i) % arrSize] = arr[(head + i + 1) % arrSize];
+    
+    count--;
+    tail = (arrSize + tail - 1) % arrSize;
+}

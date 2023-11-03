@@ -25,6 +25,7 @@ public:
     uint8_t* Data;
     uint64_t Size;
     uint64_t FromPID;
+    uint64_t ConvoID;
 
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size);
     GenericMessagePacket* Copy();

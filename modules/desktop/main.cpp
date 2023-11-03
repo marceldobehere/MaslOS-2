@@ -356,7 +356,7 @@ uint64_t DrawFrame()
                 serialPrint("To PID: ");
                 serialPrintLn(to_string(pidFrom));
                 GenericMessagePacket* response = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, (uint8_t*)&newWindowId, 8);
-                msgSendMessage(response, pidFrom);
+                msgRespondConv(msg, response);
                 response->Free();
                 _Free(response);
             }
@@ -423,7 +423,8 @@ uint64_t DrawFrame()
                     GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
 
                     // serialPrintLn("> Sending Window");
-                    msgSendMessage(sendMsg, msg->FromPID);
+                    //msgSendMessage(sendMsg, msg->FromPID);
+                    msgRespondConv(msg, sendMsg);
                     
                     sendMsg->Free();
                     _Free(sendMsg);

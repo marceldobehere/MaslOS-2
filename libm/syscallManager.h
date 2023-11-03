@@ -48,3 +48,11 @@ bool envGetKeyState(int scancode);
 int msgGetCount();
 GenericMessagePacket* msgGetMessage();
 bool msgSendMessage(GenericMessagePacket* packet, uint64_t targetPid);
+
+
+GenericMessagePacket* msgGetConv(uint64_t convoId);
+GenericMessagePacket* msgWaitConv(uint64_t convoId, uint64_t timeoutMs);
+uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid, uint64_t convoId);
+uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid);
+uint64_t msgRespondConv(GenericMessagePacket* og, GenericMessagePacket* reply);
+

@@ -22,4 +22,7 @@ template <typename T> class Queue
     void Enqueue(T item);
     void Clear();
     void Free();
+
+    T* First(bool (*condFunction)(T));
+    void Remove(T* item);
 };
