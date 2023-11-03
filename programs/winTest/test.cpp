@@ -282,6 +282,18 @@ int main(int argc, char** argv)
 
     window = requestWindow();
 
+    for (int i = 0; i < 10; i++)
+    {
+        window->Hidden = true;
+        setWindow(window);
+        programWait(500);
+
+        window->DefaultBorderColor = (uint32_t)RND::RandomInt();
+        window->Hidden = false;
+        setWindow(window);
+        programWait(500);
+    }
+
 
     programWait(1000);
 

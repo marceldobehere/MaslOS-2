@@ -104,11 +104,23 @@ class Window
     bool Resizeable;
     bool Closeable;
 
+    bool OldShowTitleBar;
+    bool OldShowBorder;
+    bool OldHidden;
+
     uint32_t DefaultBorderColor;
     uint32_t SelectedBorderColor;
     uint32_t DefaultTitleColor;
     uint32_t SelectedTitleColor;
     uint32_t DefaultTitleBackgroundColor;
+
+    uint32_t CurrentBorderColor;
+    uint32_t CurrentTitleColor;
+    uint32_t CurrentTitleBackgroundColor;
+
+    uint32_t OldBorderColor;
+    uint32_t OldTitleColor;
+    uint32_t OldTitleBackgroundColor;
 
     uint64_t ID;
     uint64_t PID;
@@ -127,6 +139,10 @@ class Window
     void _CheckDimensionChange();
 
     void _CheckTitleChange();
+
+    void _CheckBorderChange();
+
+    void _CheckVisChange();
 
     void UpdateCheck();
     

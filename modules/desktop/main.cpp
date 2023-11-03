@@ -504,6 +504,21 @@ uint64_t DrawFrame()
     for (int i = 0; i < windows->GetCount(); i++)
     {
         Window* window = windows->ElementAt(i);
+
+        {
+            window->CurrentTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+            if (window == activeWindow)
+            {
+                window->CurrentTitleColor = window->SelectedTitleColor;
+                window->CurrentBorderColor = window->SelectedBorderColor;
+            }
+            else
+            {
+                window->CurrentTitleColor = window->DefaultTitleColor;
+                window->CurrentBorderColor = window->DefaultBorderColor;
+            }
+        }
+
         window->UpdateCheck();
 
         if (window->Updates->GetCount() > 0)

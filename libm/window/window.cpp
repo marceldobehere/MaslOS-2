@@ -27,6 +27,19 @@ Window::Window()
     SelectedTitleColor = Colors.white;
     DefaultTitleBackgroundColor = Colors.dgray;
 
+
+    OldShowTitleBar = ShowTitleBar;
+    OldShowBorder = ShowBorder;
+    OldHidden = Hidden;
+
+    CurrentBorderColor = DefaultBorderColor;
+    CurrentTitleColor = DefaultTitleColor;
+    CurrentTitleBackgroundColor = DefaultTitleBackgroundColor;
+
+    OldBorderColor = CurrentBorderColor;
+    OldTitleColor = CurrentTitleColor;
+    OldTitleBackgroundColor = CurrentTitleBackgroundColor;
+
     Updates = NULL;
     Buffer = NULL;
 
@@ -60,6 +73,19 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     SelectedTitleColor = Colors.white;
     DefaultTitleBackgroundColor = Colors.dgray;
 
+    OldShowTitleBar = ShowTitleBar;
+    OldShowBorder = ShowBorder;
+    OldHidden = Hidden;
+
+    CurrentBorderColor = DefaultBorderColor;
+    CurrentTitleColor = DefaultTitleColor;
+    CurrentTitleBackgroundColor = DefaultTitleBackgroundColor;
+
+    OldBorderColor = CurrentBorderColor;
+    OldTitleColor = CurrentTitleColor;
+    OldTitleBackgroundColor = CurrentTitleBackgroundColor;
+
+    
     Updates = new List<WindowUpdate>();
     Buffer = NULL;
 
@@ -179,11 +205,76 @@ void Window::_CheckTitleChange()
     }
 }
 
+void Window::_CheckBorderChange()
+{
+    if (CurrentBorderColor != OldBorderColor)
+    {
+        // top
+        Updates->Add(WindowUpdate(0, -23, Dimensions.width, 0, true));
+
+        // left
+        Updates->Add(WindowUpdate(-1, -23, -1, Dimensions.height, true));
+
+        // bottom
+        Updates->Add(WindowUpdate(0, Dimensions.height, Dimensions.width, Dimensions.height, true));
+
+        // right
+        Updates->Add(WindowUpdate(Dimensions.width, -23, Dimensions.width, Dimensions.height, true));
+
+        OldBorderColor = CurrentBorderColor;
+    }
+
+    if (CurrentTitleBackgroundColor != OldTitleBackgroundColor || 
+        CurrentTitleColor != OldTitleColor)
+    {
+        Updates->Add(WindowUpdate(-1, -23, Dimensions.width, 1, true));
+
+        OldTitleBackgroundColor = CurrentTitleBackgroundColor;
+        OldTitleColor = CurrentTitleColor;
+    }
+}
+
+void Window::_CheckVisChange()
+{
+    if (ShowTitleBar != OldShowTitleBar)
+    {
+        Updates->Add(WindowUpdate(-1, -23, Dimensions.width, 0, true));
+        OldShowTitleBar = ShowTitleBar;
+    }
+    if (ShowBorder != OldShowBorder)
+    {
+        // top
+        Updates->Add(WindowUpdate(0, -23, Dimensions.width, 0, true));
+
+        // left
+        Updates->Add(WindowUpdate(-1, -23, -1, Dimensions.height, true));
+
+        // bottom
+        Updates->Add(WindowUpdate(0, Dimensions.height, Dimensions.width, Dimensions.height, true));
+
+        // right
+        Updates->Add(WindowUpdate(Dimensions.width, -23, Dimensions.width, Dimensions.height, true));
+
+        OldShowBorder = ShowBorder;
+    }
+    if (Hidden != OldHidden)
+    {
+        Updates->Clear();
+        Updates->Add(WindowUpdate(-1, -23, Dimensions.width + 1, Dimensions.height + 1, true));
+
+        OldHidden = Hidden;
+    }
+}
+
 void Window::UpdateCheck()
 {
+    _CheckBorderChange();
+
     _CheckTitleChange();
 
     _CheckDimensionChange();
+
+    _CheckVisChange();
 }
 
 void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)
