@@ -55,6 +55,25 @@ uint64_t envGetDesktopPid()
     return pid;
 }
 
+
+MouseState* envGetMouseState()
+{
+    int syscall = SYSCALL_ENV_GET_MOUSE_STATE;
+    MouseState* state;
+
+    asm("int $0x31" : "=a"(state): "a"(syscall));
+    return state;
+}
+
+bool envGetKeyState(int scancode)
+{
+    int syscall = SYSCALL_ENV_GET_KEY_STATE;
+    bool state;
+
+    asm("int $0x31" : "=a"(state): "a"(syscall), "b"(scancode));
+    return state;
+}
+
 #ifdef _KERNEL_SRC
 #include "../kernel/paging/PageTableManager.h"
 #include "../kernel/scheduler/scheduler.h"

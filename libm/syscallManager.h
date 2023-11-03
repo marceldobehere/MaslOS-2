@@ -38,6 +38,11 @@ uint64_t randomUint64();
 void launchTestElfUser();
 void launchTestElfKernel();
 
+#include "mouseState.h"
+
+MouseState* envGetMouseState();
+bool envGetKeyState(int scancode);
+
 #include "msgPackets/msgPacket.h"
 
 int msgGetCount();

@@ -1,5 +1,4 @@
 #include "mouse.h"
-#include <libm/math.h>
 #include "../../kernelStuff/IO/IO.h"
 #include "../../osData/MStack/MStackM.h"
 #include "../pit/pit.h"
@@ -798,6 +797,11 @@ namespace Mouse
         res.LeftButton = leftButton;
         res.RightButton = rightButton;
         res.MiddleButton = middleButton;
+
+        MousePosition = IMousePosition;
+        clicks[0] = leftButton;
+        clicks[1] = rightButton;
+        clicks[2] = middleButton;
 
         // if(tClicks[0] || tClicks[1] || tClicks[2])
         //     HandleClick(tClicks[0], tClicks[1], tClicks[2]);

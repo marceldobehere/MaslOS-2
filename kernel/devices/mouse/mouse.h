@@ -1,10 +1,14 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <libm/math.h>
 #include <libm/queue/queue_mousePacket.h>
 
 namespace Mouse
 {
+    extern bool clicks[3];
+    extern MPoint MousePosition;
+
     extern int mouseCycleSkip;
 
     extern Queue<MousePacket>* mousePackets;

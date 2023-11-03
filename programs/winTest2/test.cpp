@@ -227,13 +227,17 @@ int main(int argc, char** argv)
             
             programYield();
         }
+
+        MouseState* mState = envGetMouseState();
+        window->Dimensions.y = mState->MouseY;
+        _Free(mState);
         
         window->Dimensions.x += 10;
         if (window->Dimensions.x > 500)
             window->Dimensions.x = 300;
         setWindow(window);
 
-        programWait(50);
+        programWait(20);
     }
 
     // while (true)

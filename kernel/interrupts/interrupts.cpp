@@ -824,7 +824,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     if (Scheduler::DesktopTask != NULL && !Scheduler::DesktopTask->removeMe)
     {
-        int keysToDo = min(50, Keyboard::KeysAvaiable());
+        int keysToDo = min(150, Keyboard::KeysAvaiable());
         for (int i = 0; i < keysToDo; i++)
         {
             Keyboard::MiniKeyInfo info = Keyboard::DoAndGetKey();
@@ -852,7 +852,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             _Free(packet);
         }
 
-        int mouseToDo = min(50, Mouse::MousePacketsAvailable());
+        int mouseToDo = min(150, Mouse::MousePacketsAvailable());
         for (int i = 0; i < mouseToDo; i++)
         {
             MousePacket mPacket = Mouse::mousePackets->Dequeue();
@@ -945,6 +945,7 @@ bool IsAddressValidForTask(void* addr, osTask* task)
 
 #include <libm/heap/heap.h>
 #include <libm/cstrTools.h>
+#include <libm/mouseState.h>
 
 void Syscall_handler(interrupt_frame* frame)
 {
@@ -1235,8 +1236,30 @@ void Syscall_handler(interrupt_frame* frame)
         uint64_t pid = frame->rbx;
         
         bool exists = Scheduler::GetTask(pid) != NULL;
-        
+
         frame->rax = exists;
+    }
+    else if (syscall == SYSCALL_ENV_GET_MOUSE_STATE)
+    {
+        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+
+        MouseState* packet = (MouseState*)taskHeap->_Xmalloc(sizeof(MouseState), "Malloc for mouse state");
+
+        if (packet != NULL)
+        {
+            packet->MouseX = Mouse::MousePosition.x;
+            packet->MouseY = Mouse::MousePosition.y;
+            packet->Left = Mouse::clicks[0];
+            packet->Right = Mouse::clicks[1];
+            packet->Middle = Mouse::clicks[2];
+        }
+
+        frame->rax = (uint64_t)packet;
+    }
+    else if (syscall == SYSCALL_ENV_GET_KEY_STATE)
+    {
+        int scancode = frame->rbx;
+        frame->rax = Keyboard::IsKeyPressed(scancode);
     }
     else if (syscall == SYSCALL_MSG_GET_COUNT)
     {
