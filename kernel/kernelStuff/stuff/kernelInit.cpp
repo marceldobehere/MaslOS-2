@@ -85,19 +85,19 @@ void InitKernel(BootInfo* bootInfo)
     PIT::InitPIT();
     StepDone();
 
-//     #define STAT 0x64
-//     #define CMD 0x60
+    #define STAT 0x64
+    #define CMD 0x60
     
-//     PrintMsg("> Clearing Input Buffer (1/2)");
-//     {
-//         // Clear the input buffer.
-//         size_t timeout = 1024;
-//         while ((inb(STAT) & 1) && timeout > 0) {
-//             timeout--;
-//             inb(CMD);
-//         }
-//     }
-//     StepDone();
+    PrintMsg("> Clearing Input Buffer (1/2)");
+    {
+        // Clear the input buffer.
+        size_t timeout = 1024;
+        while ((inb(STAT) & 1) && timeout > 0) {
+            timeout--;
+            inb(CMD);
+        }
+    }
+    StepDone();
     
     PrintMsg("> Initing PS/2 Mouse");
     Mouse::InitPS2Mouse();//(bootInfo->mouseZIP, "default.mbif");
@@ -122,16 +122,16 @@ void InitKernel(BootInfo* bootInfo)
     StepDone();
 
 
-    // PrintMsg("> Clearing Input Buffer (2/2)");
-    // {
-    //     // Clear the input buffer.
-    //     size_t timeout = 1024;
-    //     while ((inb(STAT) & 1) && timeout > 0) {
-    //         timeout--;
-    //         inb(CMD);
-    //     }
-    // }
-    // StepDone();
+    PrintMsg("> Clearing Input Buffer (2/2)");
+    {
+        // Clear the input buffer.
+        size_t timeout = 1024;
+        while ((inb(STAT) & 1) && timeout > 0) {
+            timeout--;
+            inb(CMD);
+        }
+    }
+    StepDone();
 
 
 
