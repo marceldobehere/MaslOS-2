@@ -186,8 +186,6 @@ namespace GuiComponentStuff
         }
         else
         {
-            serialPrint("< KEY PRESSED: ");
-            serialPrintLn(to_string((int)info.Scancode));
             char* bleh = (char*)_Malloc(len + 2);
             for (int i = 0; i < len; i++)
                 bleh[i] = (*txt)[i];
