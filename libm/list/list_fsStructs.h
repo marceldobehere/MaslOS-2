@@ -2,7 +2,7 @@
 #include "./list.h"
 
 
-#include "../../kernel/diskStuff/Filesystem_Interfaces/generic/fileSystemStructs.h"
+#include <libm/fsStuff/fsInfo/fileSystemStructs.h>
 
 template class Array<FilesystemInterface::BaseInfo*>;
 template class  List<FilesystemInterface::BaseInfo*>;

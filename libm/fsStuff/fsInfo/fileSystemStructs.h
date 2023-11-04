@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define FsInt FilesystemInterface
+
 namespace FilesystemInterface
 {
     enum FilesystemInterfaceType : uint8_t

@@ -56,3 +56,39 @@ uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid, uint64_t 
 uint64_t msgSendConv(GenericMessagePacket* packet, uint64_t targetPid);
 uint64_t msgRespondConv(GenericMessagePacket* og, GenericMessagePacket* reply);
 
+
+
+
+#include <libm/fsStuff/fsInfo/fileSystemStructs.h>
+
+bool fsCreateFile(const char* path);
+bool fsCreateFileWithSize(const char* path, uint64_t size);
+bool fsCreateFolder(const char* path);
+
+bool fsDeleteFile(const char* path);
+bool fsDeleteFolder(const char* path);
+
+bool fsRenameFile(const char* path, const char* newPath);
+bool fsRenameFolder(const char* path, const char* newPath);
+
+bool fsCopyFile(const char* path, const char* newPath);
+bool fsCopyFolder(const char* path, const char* newPath);
+
+bool fsFileExists(const char* path);
+bool fsFolderExists(const char* path);
+
+const char** fsGetFilesInPath(const char* path, uint64_t* count);
+const char** fsGetFoldersInPath(const char* path, uint64_t* count);
+const char** fsGetDrivesInRoot(uint64_t* count);
+
+FsInt::FileInfo* fsGetFileInfo(const char* path);
+FsInt::FolderInfo* fsGetFolderInfo(const char* path);
+
+bool fsReadFileIntoBuffer(const char* path, void* buffer, uint64_t start, uint64_t byteCount);
+
+bool fsReadFileIntoBuffer(const char* path, void* buffer, uint64_t byteCount);
+bool fsWriteFileFromBuffer(const char* path, void* buffer, uint64_t byteCount);
+
+bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount);
+
+

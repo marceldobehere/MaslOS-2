@@ -1,6 +1,6 @@
 #include "fileSystemStructs.h"
 #include <libm/cstrTools.h>
-#include "../../../memory/heap.h"
+#include <libm/stubs.h>
 
 namespace FilesystemInterface
 {

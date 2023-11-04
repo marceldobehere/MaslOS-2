@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#include "../../Filesystem_Interfaces/generic/fileSystemStructs.h"
+#include <libm/fsStuff/fsInfo/fileSystemStructs.h>
 
 namespace PartitionInterface
 {

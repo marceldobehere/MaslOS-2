@@ -307,3 +307,182 @@ uint64_t msgRespondConv(GenericMessagePacket* og, GenericMessagePacket* reply)
     msgSendMessage(reply, og->FromPID);
     return og->ConvoID;
 }
+
+#include "stubs.h"
+
+
+bool fsCreateFile(const char* path)
+{
+    int syscall = SYSCALL_FS_CREATE_FILE;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+bool fsCreateFileWithSize(const char* path, uint64_t size)
+{
+    int syscall = SYSCALL_FS_CREATE_FILE_WITH_SIZE;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(size));
+    return success;
+}
+
+bool fsCreateFolder(const char* path)
+{
+    int syscall = SYSCALL_FS_CREATE_FOLDER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+
+bool fsDeleteFile(const char* path)
+{
+    int syscall = SYSCALL_FS_DELETE_FILE;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+bool fsDeleteFolder(const char* path)
+{
+    int syscall = SYSCALL_FS_DELETE_FOLDER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+
+bool fsRenameFile(const char* path, const char* newPath)
+{
+    int syscall = SYSCALL_FS_RENAME_FILE;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(newPath));
+    return success;
+}
+
+bool fsRenameFolder(const char* path, const char* newPath)
+{
+    int syscall = SYSCALL_FS_RENAME_FOLDER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(newPath));
+    return success;
+}
+
+
+bool fsCopyFile(const char* path, const char* newPath)
+{
+    int syscall = SYSCALL_FS_COPY_FILE;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(newPath));
+    return success;
+}
+
+bool fsCopyFolder(const char* path, const char* newPath)
+{
+    int syscall = SYSCALL_FS_COPY_FOLDER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(newPath));
+    return success;
+}
+
+
+bool fsFileExists(const char* path)
+{
+    int syscall = SYSCALL_FS_FILE_EXISTS;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+bool fsFolderExists(const char* path)
+{
+    int syscall = SYSCALL_FS_FOLDER_EXISTS;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path));
+    return success;
+}
+
+
+const char** fsGetFilesInPath(const char* path, uint64_t* count)
+{
+    int syscall = SYSCALL_FS_GET_FILES_IN_PATH;
+    const char** files;
+    uint64_t tCount;
+    asm("int $0x31" : "=a"(files), "=b"(tCount) : "a"(syscall), "b"(path));
+    *count = tCount;
+    return files;
+}
+
+const char** fsGetFoldersInPath(const char* path, uint64_t* count)
+{
+    int syscall = SYSCALL_FS_GET_FOLDERS_IN_PATH;
+    const char** folders;
+    uint64_t tCount;
+    asm("int $0x31" : "=a"(folders), "=b"(tCount) : "a"(syscall), "b"(path));
+    *count = tCount;
+    return folders;
+}
+
+const char** fsGetDrivesInRoot(uint64_t* count)
+{
+    int syscall = SYSCALL_FS_GET_DRIVES_IN_ROOT;
+    const char** drives;
+    uint64_t tCount;
+    asm("int $0x31" : "=a"(drives), "=b"(tCount) : "a"(syscall));
+    *count = tCount;
+    return drives;
+}
+
+
+FsInt::FileInfo* fsGetFileInfo(const char* path)
+{
+    int syscall = SYSCALL_FS_GET_FILE_INFO;
+    FsInt::FileInfo* info;
+    asm("int $0x31" : "=a"(info) : "a"(syscall), "b"(path));
+    return info;
+}
+
+FsInt::FolderInfo* fsGetFolderInfo(const char* path)
+{
+    int syscall = SYSCALL_FS_GET_FOLDER_INFO;
+    FsInt::FolderInfo* info;
+    asm("int $0x31" : "=a"(info) : "a"(syscall), "b"(path));
+    return info;
+}
+
+
+bool fsReadFileIntoBuffer(const char* path, void* buffer, uint64_t start, uint64_t byteCount)
+{
+    int syscall = SYSCALL_FS_READ_FILE_INTO_BUFFER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(buffer), "d"(start), "S"(byteCount));
+    return success;
+}
+
+bool fsReadFileIntoBuffer(const char* path, void* buffer, uint64_t byteCount)
+{
+    return fsReadFileIntoBuffer(path, buffer, 0, byteCount);
+}
+
+bool fsWriteFileFromBuffer(const char* path, void* buffer, uint64_t byteCount)
+{
+    int syscall = SYSCALL_FS_WRITE_FILE_FROM_BUFFER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(path), "c"(buffer), "d"(byteCount));
+    return success;
+}
+
+bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount)
+{
+    FsInt::FileInfo* info = fsGetFileInfo(path);
+    if (info == NULL)
+        return false;
+
+    *byteCount = info->sizeInBytes;
+    info->Destroy();
+    *buffer = _Malloc(*byteCount);
+    fsReadFileIntoBuffer(path, *buffer, *byteCount);
+    return true;   
+}
+

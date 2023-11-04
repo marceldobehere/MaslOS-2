@@ -928,7 +928,11 @@ bool _tempGenericMessageChecker(GenericMessagePacket* msg)
     return msg->ConvoID == _tempGenericMessageConvoId;
 }
 
-bool IsAddressValidForTask(void* addr, osTask* task)
+bool IsAddressValidForTask(const void* addr)
+{
+    return IsAddressValidForTask(addr, Scheduler::CurrentRunningTask);
+}
+bool IsAddressValidForTask(const void* addr, osTask* task)
 {
     if (task == NULL)
         return false;
@@ -962,6 +966,521 @@ bool IsAddressValidForTask(void* addr, osTask* task)
 #include <libm/cstrTools.h>
 #include <libm/mouseState.h>
 
+
+#include "../fsStuff/fsStuff.h"
+
+void FS_Syscall_handler(int syscall, interrupt_frame* frame)
+{
+    if (syscall == SYSCALL_FS_CREATE_FILE)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            frame->rax = (bool)FS_STUFF::CreateFileIfNotExist(path);
+        }
+    }
+    else if (syscall == SYSCALL_FS_CREATE_FILE_WITH_SIZE)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            uint64_t size = frame->rcx;
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->CreateFile(path2, size) == FilesystemInterface::FSCommandResult.SUCCESS);
+                    _Free((void*)path2);
+                }
+            }
+        }
+    }
+    else if (syscall == SYSCALL_FS_CREATE_FOLDER)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->CreateFolder(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                    _Free((void*)path2);
+                }
+            }
+        }       
+    }
+    else if (syscall == SYSCALL_FS_DELETE_FILE)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->DeleteFile(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_DELETE_FOLDER)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->DeleteFolder(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    // TODO: RENAME/COPY BETWEEN DISKS
+    else if (syscall == SYSCALL_FS_RENAME_FILE)
+    {
+        const char* path = (const char*)frame->rbx;
+        const char* newPath = (const char*)frame->rcx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(newPath))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                if (path2 != NULL && newPath2 != NULL)
+                {
+                    frame->rax = (bool)(fs->RenameFile(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                }
+                if (path2 != NULL)
+                    _Free((void*)path2);
+                if (newPath2 != NULL)
+                    _Free((void*)newPath2);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_RENAME_FOLDER)
+    {
+        const char* path = (const char*)frame->rbx;
+        const char* newPath = (const char*)frame->rcx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(newPath))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                if (path2 != NULL && newPath2 != NULL)
+                {
+                    frame->rax = (bool)(fs->RenameFolder(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                }
+                if (path2 != NULL)
+                    _Free((void*)path2);
+                if (newPath2 != NULL)
+                    _Free((void*)newPath2);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_COPY_FILE)
+    {
+        const char* path = (const char*)frame->rbx;
+        const char* newPath = (const char*)frame->rcx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(newPath))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                if (path2 != NULL && newPath2 != NULL)
+                {
+                    frame->rax = (bool)(fs->CopyFile(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                }
+                if (path2 != NULL)
+                    _Free((void*)path2);
+                if (newPath2 != NULL)
+                    _Free((void*)newPath2);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_COPY_FOLDER)
+    {
+        const char* path = (const char*)frame->rbx;
+        const char* newPath = (const char*)frame->rcx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(newPath))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                if (path2 != NULL && newPath2 != NULL)
+                {
+                    frame->rax = (bool)(fs->CopyFolder(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
+                }
+                if (path2 != NULL)
+                    _Free((void*)path2);
+                if (newPath2 != NULL)
+                    _Free((void*)newPath2);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_FILE_EXISTS)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->FileExists(path2));
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_FOLDER_EXISTS)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->FolderExists(path2));
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_GET_FILES_IN_PATH)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        frame->rbx = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFolderPathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    if (StrEquals(path2, ""))
+                    {
+                        _Free(path2);
+                        path2 = StrCopy("/");
+                    }
+
+                    uint64_t fileCount = 0;
+                    const char** res = fs->GetFiles(path2, &fileCount);
+                    
+                    if (res != NULL)
+                    {
+                        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+                        char** res2 = (char**)taskHeap->_Xmalloc(sizeof(char*) * fileCount, "Malloc for fsGetFiles");
+                        if (IsAddressValidForTask(res2))
+                        {
+                            for (int i = 0; i < fileCount; i++)
+                            {
+                                const char* cV = res[i];
+                                int len = StrLen(cV);
+                                res2[i] = (char*)taskHeap->_Xmalloc(len + 1, "Malloc for fsGetFiles Str");
+                                if (IsAddressValidForTask(res2[i]))
+                                {
+                                    _memcpy((void*)cV, (void*)res2[i], len);
+                                    res2[i][len] = 0;
+                                }
+                            }
+                        }
+
+                        frame->rax = (uint64_t)res2;
+                        frame->rbx = fileCount;
+
+                        for (int i = 0; i < fileCount; i++)
+                            _Free(res[i]);
+                        _Free(res);
+                    }
+
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_GET_FOLDERS_IN_PATH)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        frame->rbx = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            //Serial::Writelnf("FS: %X", fs);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFolderPathFromFullPath(path);
+                //Serial::Writelnf("PATH: \"%s\"", path2);
+                if (path2 != NULL)
+                {
+                    if (StrEquals(path2, ""))
+                    {
+                        _Free(path2);
+                        path2 = StrCopy("/");
+                        //Serial::Writelnf("> PATH: \"%s\"", path2);
+                    }
+
+                    uint64_t folderCount = 0;
+                    const char** res = fs->GetFolders(path2, &folderCount);
+                    //Serial::Writelnf("RES: %X", res);
+                    
+                    if (res != NULL)
+                    {
+                        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+                        char** res2 = (char**)taskHeap->_Xmalloc(sizeof(char*) * folderCount, "Malloc for fsGetFolders");
+                        if (IsAddressValidForTask(res2))
+                        {
+                            for (int i = 0; i < folderCount; i++)
+                            {
+                                const char* cV = res[i];
+                                int len = StrLen(cV);
+                                res2[i] = (char*)taskHeap->_Xmalloc(len + 1, "Malloc for fsGetFolders Str");
+                                if (IsAddressValidForTask(res2[i]))
+                                {
+                                    _memcpy((void*)cV, (void*)res2[i], len);
+                                    res2[i][len] = 0;
+                                }
+                            }
+                        }
+
+                        frame->rax = (uint64_t)res2;
+                        frame->rbx = folderCount;
+
+                        for (int i = 0; i < folderCount; i++)
+                            _Free(res[i]);
+                        _Free(res);
+                    }
+
+                    _Free((void*)path2);
+                }
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_GET_DRIVES_IN_ROOT)
+    {
+        frame->rax = 0;
+        frame->rbx = 0;
+
+        int driveCount = 0;
+        for (int i = 0; i < osData.diskInterfaces.GetCount(); i++)
+        {
+            DiskInterface::GenericDiskInterface* diskInterface = osData.diskInterfaces[i];
+            if (diskInterface->partitionInterface == NULL)
+                continue;
+
+            PartitionInterface::GenericPartitionInterface* partInterface = (PartitionInterface::GenericPartitionInterface*)diskInterface->partitionInterface;
+            for (int i2 = 0; i2 < partInterface->partitionList.GetCount(); i2++)
+            {
+                PartitionInterface::PartitionInfo* partInfo = partInterface->partitionList[i2];
+                if (!partInfo->hidden && partInfo->type == PartitionInterface::PartitionType::Normal)
+                    driveCount++;
+            }
+        }
+
+        if (driveCount > 0)
+        {
+            Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+
+            char** res2 = (char**)taskHeap->_Xmalloc(sizeof(char*) * driveCount, "Malloc for fsGetDisks");
+            if (IsAddressValidForTask(res2))
+            {
+                int i3 = 0;
+                for (int i = 0; i < osData.diskInterfaces.GetCount(); i++)
+                {
+                    DiskInterface::GenericDiskInterface* diskInterface = osData.diskInterfaces[i];
+                    if (diskInterface->partitionInterface == NULL)
+                        continue;
+
+                    PartitionInterface::GenericPartitionInterface* partInterface = (PartitionInterface::GenericPartitionInterface*)diskInterface->partitionInterface;
+                    for (int i2 = 0; i2 < partInterface->partitionList.GetCount(); i2++)
+                    {
+                        PartitionInterface::PartitionInfo* partInfo = partInterface->partitionList[i2];
+                        if (!partInfo->hidden && partInfo->type == PartitionInterface::PartitionType::Normal)
+                        {
+                            const char* driveName = partInfo->driveName;
+                            int len = StrLen(driveName);
+                            res2[i3] = (char*)taskHeap->_Xmalloc(len + 1, "Malloc for fsGetDisks Str");
+                            if (IsAddressValidForTask(res2[i3]))
+                            {
+                                _memcpy((void*)driveName, (void*)res2[i3], len);
+                                res2[i3][len] = 0;
+                            }
+                            i3++;
+                        }
+                    }
+                }
+
+                frame->rax = (uint64_t)res2;
+                frame->rbx = driveCount;
+            }
+        }
+    }
+    else if (syscall == SYSCALL_FS_GET_FILE_INFO)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FsInt::FileInfo* info = FS_STUFF::GetFileInfoFromFullPath(path);
+            if (info != NULL)
+            {
+                Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+                FsInt::FileInfo* info2 = (FsInt::FileInfo*)taskHeap->_Xmalloc(sizeof(FsInt::FileInfo), "Malloc for fsGetFileInfo");
+                if (IsAddressValidForTask(info2))
+                {
+                    info2->baseInfo = (FsInt::BaseInfo*)taskHeap->_Xmalloc(sizeof(FsInt::BaseInfo), "Malloc for fsGetFileInfo baseInfo");
+                    if (IsAddressValidForTask(info2->baseInfo))
+                    {
+                        info2->baseInfo->hidden = info->baseInfo->hidden;
+                        info2->baseInfo->pathLen = info->baseInfo->pathLen;
+                        info2->baseInfo->systemFile = info->baseInfo->systemFile;
+                        info2->baseInfo->writeProtected = info->baseInfo->writeProtected;
+                        info2->baseInfo->path = (char*)taskHeap->_Xmalloc(info->baseInfo->pathLen + 1, "Malloc for fsGetFileInfo baseInfo path");
+                        if (IsAddressValidForTask(info2->baseInfo->path))
+                        {
+                            _memcpy((void*)info->baseInfo->path, (void*)info2->baseInfo->path, info->baseInfo->pathLen);
+                            ((char*)info2->baseInfo->path)[info->baseInfo->pathLen] = 0;
+
+                            info2->sizeInBytes = info->sizeInBytes;
+                            info2->locationInBytes = info->locationInBytes;
+
+                            frame->rax = (uint64_t)info2;
+                        }
+                    }
+                }
+
+                info->Destroy();
+                _Free(info);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_GET_FOLDER_INFO)
+    {
+        const char* path = (const char*)frame->rbx;
+        frame->rax = 0;
+        if (IsAddressValidForTask(path))
+        {
+            FsInt::FolderInfo* info = FS_STUFF::GetFolderInfoFromFullPath(path);
+            if (info != NULL)
+            {
+                Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+                FsInt::FolderInfo* info2 = (FsInt::FolderInfo*)taskHeap->_Xmalloc(sizeof(FsInt::FolderInfo), "Malloc for fsGetFolderInfo");
+                if (IsAddressValidForTask(info2))
+                {
+                    info2->baseInfo = (FsInt::BaseInfo*)taskHeap->_Xmalloc(sizeof(FsInt::BaseInfo), "Malloc for fsGetFolderInfo baseInfo");
+                    if (IsAddressValidForTask(info2->baseInfo))
+                    {
+                        info2->baseInfo->hidden = info->baseInfo->hidden;
+                        info2->baseInfo->pathLen = info->baseInfo->pathLen;
+                        info2->baseInfo->systemFile = info->baseInfo->systemFile;
+                        info2->baseInfo->writeProtected = info->baseInfo->writeProtected;
+                        info2->baseInfo->path = (char*)taskHeap->_Xmalloc(info->baseInfo->pathLen + 1, "Malloc for fsGetFolderInfo baseInfo path");
+                        if (IsAddressValidForTask(info2->baseInfo->path))
+                        {
+                            _memcpy((void*)info->baseInfo->path, (void*)info2->baseInfo->path, info->baseInfo->pathLen);
+                            ((char*)info2->baseInfo->path)[info->baseInfo->pathLen] = 0;
+
+                            frame->rax = (uint64_t)info2;
+                        }
+                    }
+                }
+
+                info->Destroy();
+                _Free(info);
+            }
+        } 
+    }
+    else if (syscall == SYSCALL_FS_READ_FILE_INTO_BUFFER)
+    {
+        const char* path = (const char*)frame->rbx;
+        char* buffer = (char*)frame->rcx;
+        uint64_t start = frame->rdx;
+        uint64_t byteCount = frame->rsi;
+
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(buffer) && IsAddressValidForTask(buffer + byteCount))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->ReadFileBuffer(path2, start, byteCount, buffer) == FilesystemInterface::FSCommandResult.SUCCESS);
+
+                    _Free((void*)path2);
+                }
+            }
+        }
+    }
+    else if (syscall == SYSCALL_FS_WRITE_FILE_FROM_BUFFER)
+    {
+        const char* path = (const char*)frame->rbx;
+        char* buffer = (char*)frame->rcx;
+        uint64_t byteCount = frame->rdx;
+
+        frame->rax = 0;
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(buffer) && IsAddressValidForTask(buffer + byteCount))
+        {
+            FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
+            if (fs != NULL)
+            {
+                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                if (path2 != NULL)
+                {
+                    frame->rax = (bool)(fs->WriteFile(path2, byteCount, buffer) == FilesystemInterface::FSCommandResult.SUCCESS);
+
+                    _Free((void*)path2);
+                }
+            }
+        }
+    }
+    else
+    {
+        Serial::Writelnf("Unknown FS syscall: %d", syscall);
+    }
+
+
+}
+
 void Syscall_handler(interrupt_frame* frame)
 {
     //Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
@@ -986,7 +1505,7 @@ void Syscall_handler(interrupt_frame* frame)
         int argC = Scheduler::CurrentRunningTask->argC;
         char** argV = (char**)taskHeap->_Xmalloc(sizeof(const char*) * argC, "Malloc for argV");
         //Serial::Writelnf("> Malloced argV %X, (argc: %d, argv: %X)", argV, argC, Scheduler::CurrentRunningTask->argV);
-        if (argV != NULL)
+        if (IsAddressValidForTask(argV))
             for (int i = 0; i < argC; i++)
             {
                 const char* cV = Scheduler::CurrentRunningTask->argV[i];
@@ -995,7 +1514,7 @@ void Syscall_handler(interrupt_frame* frame)
 
                 argV[i] = (char*)taskHeap->_Xmalloc(len + 1, "Malloc argV Str");
                 //Serial::Writelnf("> Malloced argV %X", argV[i]);
-                if (argV[i] != NULL)
+                if (IsAddressValidForTask(argV[i]))
                 {
                     //Serial::Writelnf("> Copying argV %X", argV[i]);
                     _memcpy((void*)cV, (void*)argV[i], len);
@@ -1017,19 +1536,19 @@ void Syscall_handler(interrupt_frame* frame)
             Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
 
             ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
-            if (env != NULL)
+            if (IsAddressValidForTask(env))
             {
                 PSF1_FONT* font2 = (PSF1_FONT*)taskHeap->_Xmalloc(sizeof(PSF1_FONT), "Malloc for font");
-                if (font2 != NULL)
+                if (IsAddressValidForTask(font2))
                 {
                     font2->psf1_Header = (PSF1_HEADER*)taskHeap->_Xmalloc(sizeof(PSF1_HEADER), "Malloc for font header");
-                    if (font2->psf1_Header != NULL)
+                    if (IsAddressValidForTask(font2->psf1_Header))
                     {
                         *font2->psf1_Header = *GlobalRenderer->psf1_font->psf1_Header;
 
                         int amt = (font2->psf1_Header->mode + 1) * 256 * font2->psf1_Header->charsize;
                         font2->glyphBuffer = (void*)taskHeap->_Xmalloc(amt, "Malloc for font glyph buffer");
-                        if (font2->glyphBuffer != NULL)
+                        if (IsAddressValidForTask(font2->glyphBuffer))
                         {
                             _memcpy(GlobalRenderer->psf1_font->glyphBuffer, font2->glyphBuffer, amt);
                         }
@@ -1049,7 +1568,7 @@ void Syscall_handler(interrupt_frame* frame)
             Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
 
             ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
-            if (env != NULL)
+            if (IsAddressValidForTask(env))
             {
                 env->globalFont = GlobalRenderer->psf1_font;
                 env->globalFrameBuffer = GlobalRenderer->framebuffer;
@@ -1260,7 +1779,7 @@ void Syscall_handler(interrupt_frame* frame)
 
         MouseState* packet = (MouseState*)taskHeap->_Xmalloc(sizeof(MouseState), "Malloc for mouse state");
 
-        if (packet != NULL)
+        if (IsAddressValidForTask(packet))
         {
             packet->MouseX = Mouse::MousePosition.x;
             packet->MouseY = Mouse::MousePosition.y;
@@ -1360,6 +1879,10 @@ void Syscall_handler(interrupt_frame* frame)
                 }
             }
         }
+    }
+    else if (syscall >= 700 && syscall <= 999)
+    {
+        FS_Syscall_handler(syscall, frame);
     }
     else
     {

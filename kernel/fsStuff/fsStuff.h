@@ -30,6 +30,7 @@ namespace FS_STUFF
 
     FilesystemInterface::GenericFilesystemInterface* GetFsInterfaceFromFullPath(const char* path);
     FilesystemInterface::FileInfo* GetFileInfoFromFullPath(const char* path);
+    FilesystemInterface::FolderInfo* GetFolderInfoFromFullPath(const char* path);
 
     //bool OpenFile(const char* path);
     //void RunTerminalCommand(const char* terminalCommand, const char* terminalWindowTitle, bool hideTerminalWindow, bool autoCloseTerminalWindow);

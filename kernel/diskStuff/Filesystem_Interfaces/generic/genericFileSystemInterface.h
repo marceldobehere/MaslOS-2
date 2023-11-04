@@ -1,5 +1,5 @@
 #pragma once
-#include "fileSystemStructs.h"
+#include <libm/fsStuff/fsInfo/fileSystemStructs.h>
 //#include "../../../../memory/heap.h"
 //#include "../../Partition_Interfaces/generic/genericPartitionInterface.h"
 

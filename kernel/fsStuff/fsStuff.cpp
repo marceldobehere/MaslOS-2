@@ -162,6 +162,28 @@ namespace FS_STUFF
         return inf;       
     }
 
+    FilesystemInterface::FolderInfo* GetFolderInfoFromFullPath(const char* path)
+    {
+        FilesystemInterface::GenericFilesystemInterface* fsInterface = FS_STUFF::GetFsInterfaceFromFullPath(path);
+        if (fsInterface == NULL)
+            return NULL;
+        
+        char* relPath = FS_STUFF::GetFolderPathFromFullPath(path);
+        if (relPath == NULL)
+            return NULL;
+
+        if (!fsInterface->FolderExists(relPath))
+        {
+            _Free(relPath);
+            return NULL;
+        }
+
+        FilesystemInterface::FolderInfo* inf = fsInterface->GetFolderInfo(relPath);
+
+        _Free(relPath);
+        return inf;
+    }
+
     FilesystemInterface::GenericFilesystemInterface* GetFsInterfaceFromFullPath(const char* path)
     {
         if (path == NULL)
