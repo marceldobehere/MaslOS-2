@@ -3,11 +3,14 @@
 #ifndef _KERNEL_SRC
 void _memcpy(void* src, void* dest, uint64_t size)
 {
-    char* d = (char*)dest;
-    char* s = (char*)src;
-
-    for (uint64_t i = 0; i < size; i++)
-       *(d++) = *(s++);
+    const char* _src  = (const char*)src;
+    char* _dest = (char*)dest;
+    while (size--)
+    {
+        *_dest = *_src;
+        _dest++;
+        _src++;
+    }
 }
 
 void _memset(void* dest, uint8_t value, uint64_t size)

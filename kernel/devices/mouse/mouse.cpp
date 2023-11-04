@@ -20,7 +20,7 @@ namespace Mouse
 {
     bool clicks[3] = {false, false, false};
     uint64_t clickTimes[3] = {0, 0, 0};
-    Queue<MousePacket>* mousePackets;
+    Lockable<Queue<MousePacket>*> mousePackets;
 
     MPoint IMousePosition;
     MPoint MousePosition;
@@ -205,9 +205,8 @@ namespace Mouse
         outb(0x64, 0xA8);
         Mousewait();
 
-        
 
-        mousePackets = new Queue<MousePacket>(4);
+        mousePackets = Lockable<Queue<MousePacket>*>(new Queue<MousePacket>(4));
 
         for (int i = 0; i < 3; i++)
         {
@@ -294,7 +293,13 @@ namespace Mouse
                 MouseCycle = 0;
 
                 AddToStack();
-                mousePackets->Enqueue(MousePacket(mousePacketArr));
+                if (!mousePackets.IsLocked())
+                {
+                    mousePackets.Lock();
+                    mousePackets.obj->Enqueue(MousePacket(mousePacketArr));
+                    mousePackets.Unlock();
+                }
+                
                 RemoveFromStack();
 
                 break;
@@ -564,19 +569,32 @@ namespace Mouse
     void ProcessMousePackets(int limit)
     {
         AddToStack();
-        int l = mousePackets->GetCount();
+        if (mousePackets.IsLocked())
+            return;
+        
+        mousePackets.Lock();
+        
+        
+        int l = mousePackets.obj->GetCount();
         if (l > limit)
             l = limit;
         for (int i = 0; i < l; i++)
-        {
-            ProcessMousePacket(mousePackets->Dequeue());
-        }
+            ProcessMousePacket(mousePackets.obj->Dequeue());
+        
+        mousePackets.Unlock();
         RemoveFromStack();
     }
 
     int MousePacketsAvailable()
     {
-        return mousePackets->GetCount();
+        int count = 0;
+        if (!mousePackets.IsLocked())
+        {
+            mousePackets.Lock();
+            count = mousePackets.obj->GetCount();
+            mousePackets.Unlock();
+        }
+        return count;
     }
 
     MiniMousePacket ProcessMousePacket(MousePacket packet)

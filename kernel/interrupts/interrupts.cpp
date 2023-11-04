@@ -236,6 +236,7 @@ __attribute__((interrupt)) void KeyboardInt_handler(interrupt_frame* frame)
 __attribute__((interrupt)) void MouseInt_handler(interrupt_frame* frame)
 { 
     AddToStack();
+    //Serial::Writelnf("INT> MOUSE START");
     //Panic("GENERIC INTERRUPT BRUH", true);   
     //osStats.lastMouseCall = PIT::TimeSinceBootMS();
     //io_wait();
@@ -262,6 +263,7 @@ __attribute__((interrupt)) void MouseInt_handler(interrupt_frame* frame)
 
     PIC_EndSlave();
     //PIC_EndMaster();
+    //Serial::Writelnf("INT> MOUSE END");
     RemoveFromStack();
 }
 
@@ -722,6 +724,9 @@ bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid, uint
 
 bool InterruptGoingOn = false;
 int currentInterruptCount = 0;
+int lastInt = 0;
+
+Mouse::MiniMousePacket lastMousePacket = Mouse::InvalidMousePacket;
 
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
@@ -731,12 +736,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     //Serial::Writelnf("INT> INT %d, (%X, %X)", frame->interrupt_number, frame->cr3, frame->cr0);
 
     AddToStack();
-    
-    
+
 
     if (InterruptGoingOn)
     {
-        Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT!", frame->interrupt_number);
+        Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT %d!", frame->interrupt_number, lastInt);
         //Panic("INT IN INT", true);
         
         for (int i = 0; i < 20; i++)
@@ -744,6 +748,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
         //return;
     }
+    lastInt = frame->interrupt_number;
     InterruptGoingOn = true;
 
     int rnd = RND::RandomInt();
@@ -752,7 +757,10 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     if (frame->interrupt_number == 32)
         TempPitRoutine(frame);
     else if (frame->interrupt_number == 0x31)
+    {
         Syscall_handler(frame);
+        //Serial::Writeln("> SYS DONE");
+    }
     else if (frame->interrupt_number == 254)
         Serial::Writelnf("> Generic Interrupt");
     else
@@ -777,8 +785,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writelnf("ERROR CODE: %d", frame->error_code);
 
 
-        if (osData.booting)
+        if (osData.inBootProcess)
+        {
+            Serial::Writelnf("INT> CRASH IN BOOT IS FATAL -> HALT");
             while (true);
+        }
 
         if (Scheduler::CurrentRunningTask != NULL)
         {
@@ -827,7 +838,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         return;
     }
 
-
+    //Serial::Write("<#");
     if (Scheduler::DesktopTask != NULL && !Scheduler::DesktopTask->removeMe)
     {
         int keysToDo = min(150, Keyboard::KeysAvaiable());
@@ -861,30 +872,65 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         int mouseToDo = min(150, Mouse::MousePacketsAvailable());
         for (int i = 0; i < mouseToDo; i++)
         {
-            MousePacket mPacket = Mouse::mousePackets->Dequeue();
+            if (Mouse::mousePackets.IsLocked())
+                break;
+        
+            Mouse::mousePackets.Lock();
+            MousePacket mPacket = Mouse::mousePackets.obj->Dequeue();
+            Mouse::mousePackets.Unlock();
+
             //Serial::Writelnf("INT> Doing mouse packet");
             Mouse::MiniMousePacket packet = Mouse::ProcessMousePacket(mPacket);
             if (!packet.Valid)
                 continue;
 
 
-            // TODO: add hold and release stuff here
             MouseMessagePacket mousePacket = MouseMessagePacket(packet.X, packet.Y);
-            
+
+            mousePacket.Left = packet.LeftButton;
+            mousePacket.Right = packet.RightButton;
+            mousePacket.Middle = packet.MiddleButton;
+
+            mousePacket.PrevLeft = lastMousePacket.LeftButton;
+            mousePacket.PrevRight = lastMousePacket.RightButton;
+            mousePacket.PrevMiddle = lastMousePacket.MiddleButton;
+
+            bool clickDone = false;
+
+            if (packet.LeftButton && !lastMousePacket.LeftButton)
+                clickDone = true;
+            if (packet.RightButton && !lastMousePacket.RightButton)
+                clickDone = true;
+            if (packet.MiddleButton && !lastMousePacket.MiddleButton)
+                clickDone = true;
+
+            lastMousePacket = packet;
+
+            if (clickDone)
+            {
+                mousePacket.Type = MouseMessagePacketType::MOUSE_CLICK;
+                //Serial::Writelnf("INT> Sending mouse click packet to desktop task");
+            }
+
+            //Serial::Writelnf("INT> Sending mouse packet to desktop task 2");
             GenericMessagePacket* packet2 = new GenericMessagePacket(
                 MessagePacketType::MOUSE_EVENT,
                 (uint8_t*)&mousePacket,
                 sizeof(MouseMessagePacket)
             );
+            //Serial::Writelnf("INT> Sending mouse packet to desktop task 3");
             
             //Serial::Writelnf("INT> Sending mouse packet to desktop task");
             SendMessageToTask(packet2, Scheduler::DesktopTask->pid, 1);
+            //Serial::Writelnf("INT> Sending mouse packet to desktop task 4");
             
             packet2->Free();
             _Free(packet2);
+
+            //Serial::Writelnf("INT> Sending mouse packet to desktop task 5");
         }
     }
-    
+    //Serial::Write("#>");
 
     if (Scheduler::CurrentRunningTask == NULL)
     {
@@ -1483,7 +1529,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
 
 void Syscall_handler(interrupt_frame* frame)
 {
-    //Serial::Writelnf("> Syscall: %d, task %X", frame->rax, (uint64_t)Scheduler::CurrentRunningTask);
+    //Serial::Writelnf("> Syscall: %d (%X, %X, %X, %X), task %X", frame->rax, frame->rbx, frame->rcx, frame->rdx, frame->rsi, (uint64_t)Scheduler::CurrentRunningTask);
     if (Scheduler::CurrentRunningTask == NULL)
         return;
 
@@ -1623,12 +1669,12 @@ void Syscall_handler(interrupt_frame* frame)
         else
             Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
-    else if(syscall ==SYSCALL_SERIAL_PRINT_CHAR)
+    else if (syscall == SYSCALL_SERIAL_PRINT_CHAR)
     {
         char ch = (char)frame->rbx;
         Serial::Write(ch);
     }
-    else if(syscall == SYSCALL_SERIAL_READ_CHAR)
+    else if (syscall == SYSCALL_SERIAL_READ_CHAR)
     {
         char chr = 0;
         if (Serial::CanRead())
@@ -1636,7 +1682,7 @@ void Syscall_handler(interrupt_frame* frame)
         
         frame->rax = chr;
     }
-    else if(syscall == SYSCALL_SERIAL_CAN_READ_CHAR)
+    else if (syscall == SYSCALL_SERIAL_CAN_READ_CHAR)
     {
         frame->rax = Serial::CanRead();
     }
@@ -1833,16 +1879,20 @@ void Syscall_handler(interrupt_frame* frame)
 
             if (oldPacketPtr != NULL)
             {
-                queue->Remove(oldPacketPtr);
+                AddToStack();
                 GenericMessagePacket* oldPacket = *oldPacketPtr;
+                queue->Remove(oldPacketPtr);
                 Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
                 if (oldPacket != NULL && taskHeap != NULL)
                 {
+                    AddToStack();
                     GenericMessagePacket* newPacket = oldPacket->Copy(taskHeap);
                     oldPacket->Free();
                     _Free(oldPacket);
                     frame->rax = (uint64_t)newPacket;
+                    RemoveFromStack();
                 }
+                RemoveFromStack();
             }
         }
     }
@@ -1852,7 +1902,7 @@ void Syscall_handler(interrupt_frame* frame)
 
         frame->rax = 0;
         GenericMessagePacket* oldPacket = (GenericMessagePacket*)frame->rbx;
-        if (oldPacket != NULL)
+        if (IsAddressValidForTask(oldPacket, Scheduler::CurrentRunningTask))
         {
             osTask* task = Scheduler::CurrentRunningTask;
             if (task != NULL)
@@ -1864,10 +1914,10 @@ void Syscall_handler(interrupt_frame* frame)
                 if (allowSend && otherTask == NULL)
                     allowSend = false;
 
-                if (allowSend && oldPacket->Type == MessagePacketType::KEY_EVENT && !task->isKernelModule)
+                if (allowSend && (oldPacket->Type == MessagePacketType::KEY_EVENT && !task->isKernelModule))
                     allowSend = false;
 
-                if (allowSend && oldPacket->Type == MessagePacketType::MOUSE_EVENT && !task->isKernelModule)
+                if (allowSend && (oldPacket->Type == MessagePacketType::MOUSE_EVENT && !task->isKernelModule))
                     allowSend = false;
                 
                 if (allowSend)

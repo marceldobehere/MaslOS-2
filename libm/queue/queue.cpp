@@ -111,13 +111,16 @@ template <typename T> T* Queue<T>::First(bool(*condFunction)(T))
 {
     if (freed)
         return NULL;
+    if (condFunction == NULL)
+        return NULL;
     
     for (int64_t i = 0; i < count; i++)
     {
-        T* item = &arr[(head + i) % arrSize];
+        T* item = arr + ((head + i) % arrSize);
         if (condFunction(*item))
             return item;
     }
+    
     return NULL;
 }
 
@@ -130,7 +133,7 @@ template <typename T> void Queue<T>:: Remove(T* item)
     int64_t index = -1;
     for (int64_t i = 0; i < count; i++)
     {
-        T* item2 = &arr[(head + i) % arrSize];
+        T* item2 = arr + ((head + i) % arrSize);
         if (item2 == item)
         {
             index = i;

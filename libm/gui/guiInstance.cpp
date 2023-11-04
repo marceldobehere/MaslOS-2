@@ -91,13 +91,116 @@ int GetBaseComponentAttributeSize(GuiInstanceBaseAttributeType type)
     return 0;
 }
 
+#ifndef _KERNEL_SRC
+#include <libm/heap/heap.h>
+#endif
+#ifdef _KERNEL_SRC
+#include "../../kernel/memory/heap.h"
+#endif
+
 #include <libm/syscallManager.h>
 #include <libm/cstr.h>
+#include <libm/msgPackets/mousePacket/mousePacket.h>
+#include <libm/msgPackets/keyPacket/keyPacket.h>
+
 
 void GuiInstance::Render()
 {
     if (screen == NULL)
         return;
+
+    /*
+        if (gui->screen != NULL && gui->waitTask == NULL)
+    {
+        Position p = window->GetMousePosRelativeToWindow();
+        
+        if (oldActive == window)
+            gui->screen->MouseClicked(GuiComponentStuff::MouseClickEventInfo(GuiComponentStuff::Position(p.x, p.y), L, R, M));
+    }
+    */
+
+   //screen->KeyHit(GuiComponentStuff::KeyHitEventInfo(scancode, QWERTYKeyboard::Translate(scancode, lshift || rshift)));
+
+    {
+        GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_KB_STUFF);
+        if (mPacket != NULL)
+        {
+            if (mPacket->Size >= sizeof(KeyMessagePacket))
+            {
+                KeyMessagePacket* kbMsg = (KeyMessagePacket*)mPacket->Data;
+                
+                if (kbMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+                    screen->KeyHit(GuiComponentStuff::KeyHitEventInfo(kbMsg->Scancode, kbMsg->KeyChar));
+            }
+
+            mPacket->Free();
+            _Free(mPacket);
+        }
+    }
+
+    {
+        GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_MOUSE_STUFF);
+        if (mPacket != NULL)
+        {
+            if (mPacket->Size >= sizeof(MouseMessagePacket))
+            {
+                MouseMessagePacket* mouseMsg = (MouseMessagePacket*)mPacket->Data;
+                if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
+                {
+                    GuiComponentStuff::MouseClickEventInfo info = GuiComponentStuff::MouseClickEventInfo(
+                        GuiComponentStuff::Position(
+                            mouseMsg->MouseX - window->Dimensions.x, 
+                            mouseMsg->MouseY - window->Dimensions.y
+                        ),
+                        mouseMsg->Left, mouseMsg->Right, mouseMsg->Middle
+                    );
+                    screen->MouseClicked(info);
+                }
+            }
+
+            mPacket->Free();
+            _Free(mPacket);
+        }
+    }
+
+    screen->CheckUpdates();
+    //window->Updates->Clear();
+
+    while (screen->finalUpdatedFields->GetCount() > 0)
+    {
+        GuiComponentStuff::Field bruh = screen->finalUpdatedFields->LastElement();
+        screen->finalUpdatedFields->RemoveLast();
+
+        GuiComponentStuff::ComponentFramebuffer bruhus = GuiComponentStuff::ComponentFramebuffer
+            (
+                window->Buffer->Width,
+                window->Buffer->Height,
+                (uint32_t*)window->Buffer->BaseAddress
+            );
+
+        screen->renderer->Render(screen->position, bruh, &bruhus);
+
+        // send update
+        SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
+    }
+}
+
+    //screen->Render(GuiComponentStuff::Field(GuiComponentStuff::Position(), GuiComponentStuff::Position(window->size.width - 1, window->size.height - 1)));
+    // long t = window->size.height * (long)window->size.width;
+
+    // for (long i = 0; i < t; i++)
+    //     ((uint32_t*)window->framebuffer->BaseAddress)[i] = screen->renderer->componentFrameBuffer->pixels[i];
+
+        // serialPrint("> Sending Update: (");
+        // serialPrint(to_string(bruh.TL.x));
+        // serialPrint(", ");
+        // serialPrint(to_string(bruh.TL.y));
+        // serialPrint(") - (");
+        // serialPrint(to_string(bruh.BR.x));
+        // serialPrint(", ");
+        // serialPrint(to_string(bruh.BR.y));
+        // serialPrintLn(")");
+
 
     // TODO: IMPLEMENT ONCE TASKS EXIST (IF I DECIDE TO USE THEM)
     // if (waitTask == NULL && !waitingForTask && waitTask2 != NULL)
@@ -153,44 +256,6 @@ void GuiInstance::Render()
     //     waitingForTask = false;
     // //window->renderer->Clear(Colors.orange);
 
-    screen->CheckUpdates();
-    //window->Updates->Clear();
-
-    while (screen->finalUpdatedFields->GetCount() > 0)
-    {
-        GuiComponentStuff::Field bruh = screen->finalUpdatedFields->LastElement();
-        screen->finalUpdatedFields->RemoveLast();
-
-        GuiComponentStuff::ComponentFramebuffer bruhus = GuiComponentStuff::ComponentFramebuffer
-            (
-                window->Buffer->Width,
-                window->Buffer->Height,
-                (uint32_t*)window->Buffer->BaseAddress
-            );
-
-        screen->renderer->Render(screen->position, bruh, &bruhus);
-
-        // serialPrint("> Sending Update: (");
-        // serialPrint(to_string(bruh.TL.x));
-        // serialPrint(", ");
-        // serialPrint(to_string(bruh.TL.y));
-        // serialPrint(") - (");
-        // serialPrint(to_string(bruh.BR.x));
-        // serialPrint(", ");
-        // serialPrint(to_string(bruh.BR.y));
-        // serialPrintLn(")");
-
-
-        // send update
-        SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
-    }
-    
-    //screen->Render(GuiComponentStuff::Field(GuiComponentStuff::Position(), GuiComponentStuff::Position(window->size.width - 1, window->size.height - 1)));
-    // long t = window->size.height * (long)window->size.width;
-
-    // for (long i = 0; i < t; i++)
-    //     ((uint32_t*)window->framebuffer->BaseAddress)[i] = screen->renderer->componentFrameBuffer->pixels[i];
-}
 
 GuiComponentStuff::BaseComponent* GuiInstance::GetComponentFromId(uint64_t id)
 {

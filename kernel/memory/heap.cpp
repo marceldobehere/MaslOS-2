@@ -416,9 +416,16 @@ bool HeapCheck(bool wait)
     return true;
 }
 
+bool inMalloc = false;
 
 void* _Xmalloc(int64_t size, const char* text, const char* func, const char* file, int line)
 {
+    if (inMalloc)
+    {
+        Panic("MALLOCING IN MALLOC!", true);
+    }
+    inMalloc = true;
+
     //Serial::Writelnf("Mallocing: %X bytes", size);
     mCount++;
     AddToStack();
@@ -435,7 +442,11 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
     }
 
     if (!mallocToCache)
+    {
+        inMalloc = false;
         UpdateMallocCache();
+        inMalloc = true;
+    }
 
     if (size == MallocCacheSize && !mallocToCache && PIT::Inited)
     {
@@ -457,7 +468,7 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
                 tempHdr->line = line;
                 tempHdr->time = PIT::TimeSinceBootMS();
 
-
+                inMalloc = false;
                 RemoveFromStack();
                 return MallocCache16BytesAddr[i];
             }
@@ -492,6 +503,7 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
 
             TrySwitchToBackupHeap();
             Panic("Trying to access invalid HeapSegment Header!", true);
+            inMalloc = false;
             RemoveFromStack();
             return NULL;
         }
@@ -518,6 +530,7 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
                 mallocCount++;
                 usedHeapCount++;
                 usedHeapAmount += size;
+                inMalloc = false;
                 RemoveFromStack();
                 //Serial::Writeln("> Malloced (1) to 0x{}", ConvertHexToString(((uint64_t)current + sizeof(HeapSegHdr))));
                 return (void*)((uint64_t)current + sizeof(HeapSegHdr));
@@ -534,6 +547,7 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
                 mallocCount++;
                 usedHeapCount++;
                 usedHeapAmount += size;
+                inMalloc = false;
                 RemoveFromStack();
                 //Serial::Writeln("> Malloced (2) to 0x{}", ConvertHexToString(((uint64_t)current + sizeof(HeapSegHdr))));
                 return (void*)((uint64_t)current + sizeof(HeapSegHdr));
@@ -546,6 +560,7 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
     }
     //GlobalRenderer->Println("Requesting more RAM.");
 
+    inMalloc = false;
     //Serial::Writelnf("> Gotta expand Heap");
     if (ExpandHeap(size))
     {
@@ -557,9 +572,10 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
         //mallocCount++;
         RemoveFromStack();
         //Serial::Writelnf("> Sub Malloc Done");
-
+        
         return res;
     }
+    inMalloc = true;
 
     // GlobalRenderer->ClearDotted(Colors.green);
     // while (true);
@@ -567,6 +583,8 @@ void* _Xmalloc(int64_t size, const char* text, const char* func, const char* fil
 
     Panic("MALLOC FAILED!!!", true);
 
+
+    inMalloc = false;
     RemoveFromStack();
     return NULL;
 }

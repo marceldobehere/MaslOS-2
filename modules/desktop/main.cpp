@@ -80,6 +80,7 @@ void InitStuff()
     MousePosition.y = 0;
 
     oldMousePos = MousePosition;
+    oldMousePos.x += 10;
     
 
     windows = new List<Window*>(5);
@@ -158,38 +159,39 @@ int main(int argc, char** argv)
 
     InitStuff();
 
-    Window* window = new Window(50, 30, 200, 200, "Test Window 1", RND::RandomInt(), getPid());
-    windows->Add(window);
-    _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
+    // Window* window = new Window(50, 30, 200, 200, "Test Window 1", RND::RandomInt(), getPid());
+    // windows->Add(window);
+    // _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
 
-    {
-        WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
-            0, 0, window->Buffer->Width, window->Buffer->Height, 
-            window->ID,
-            (uint32_t*)window->Buffer->BaseAddress
-        );
+    // {
+    //     WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
+    //         0, 0, window->Buffer->Width, window->Buffer->Height, 
+    //         window->ID,
+    //         (uint32_t*)window->Buffer->BaseAddress
+    //     );
 
-        GenericMessagePacket* msg = packet->ToGenericMessagePacket();
+    //     GenericMessagePacket* msg = packet->ToGenericMessagePacket();
 
-        msgSendMessage(msg, getPid());
+    //     msgSendMessage(msg, getPid());
 
-        msg->Free();
-        _Free(msg);
+    //     msg->Free();
+    //     _Free(msg);
 
-        packet->Free();
-        _Free(packet);
-    }
+    //     packet->Free();
+    //     _Free(packet);
+    // }
 
-    activeWindow = window;
+    // activeWindow = window;
+    activeWindow = NULL;
 
-    actualScreenRenderer->Clear(Colors.black);
-    actualScreenRenderer->Println("WINDOW 0x{}", ConvertHexToString((uint64_t)window->Buffer), Colors.yellow);
+    //actualScreenRenderer->Clear(Colors.black);
+    //actualScreenRenderer->Println("WINDOW 0x{}", ConvertHexToString((uint64_t)window->Buffer), Colors.yellow);
     
 
 
     Clear(true);
     RenderWindows();
-    ActuallyRenderWindow(window, true);
+    //ActuallyRenderWindow(window, true);
 
     DrawFrame();
 
@@ -284,41 +286,63 @@ uint64_t DrawFrame()
             break;
         if (msg->Type == MessagePacketType::MOUSE_EVENT)
         {
-            MouseMessagePacket* mouseMsg = (MouseMessagePacket*)msg->Data;
-            if (mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE)
+            if (msg->Size == sizeof(MouseMessagePacket) && msg->Data != NULL)
             {
+                MouseMessagePacket* mouseMsg = (MouseMessagePacket*)msg->Data;
                 MousePosition.x = mouseMsg->MouseX;
                 MousePosition.y = mouseMsg->MouseY;
+                
+                if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
+                {   
+                    if (activeWindow != NULL)
+                    {
+                        GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::MOUSE_EVENT, msg->Data, sizeof(MouseMessagePacket));
+                        msgSendConv(msgNew, activeWindow->PID, CONVO_ID_WM_MOUSE_STUFF);
+                        msgNew->Free();
+                        _Free(msgNew);
+                    }
+                }
             }
         }
         else if (msg->Type == MessagePacketType::KEY_EVENT)
         {
-            KeyMessagePacket* keyMsg = (KeyMessagePacket*)msg->Data;
-            if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+            if (msg->Size == sizeof(KeyMessagePacket) && msg->Data != NULL)
             {
-                actualScreenRenderer->CursorPosition.x = 0;
-                actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
+                KeyMessagePacket* keyMsg = (KeyMessagePacket*)msg->Data;
+                if (activeWindow != NULL)
+                {
+                    GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));
+                    msgSendConv(msgNew, activeWindow->PID, CONVO_ID_WM_KB_STUFF);
+                    msgNew->Free();
+                    _Free(msgNew);
+                }
 
-                actualScreenRenderer->Clear(
-                    0, actualScreenRenderer->CursorPosition.y, 
-                    160, actualScreenRenderer->CursorPosition.y + 16, 
-                    Colors.black
-                );
+                if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+                {
+                    actualScreenRenderer->CursorPosition.x = 0;
+                    actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
-                actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
-            }
-            else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
-            {
-                actualScreenRenderer->CursorPosition.x = 0;
-                actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
+                    actualScreenRenderer->Clear(
+                        0, actualScreenRenderer->CursorPosition.y, 
+                        160, actualScreenRenderer->CursorPosition.y + 16, 
+                        Colors.black
+                    );
 
-                actualScreenRenderer->Clear(
-                    0, actualScreenRenderer->CursorPosition.y, 
-                    160, actualScreenRenderer->CursorPosition.y + 16, 
-                    Colors.black
-                );
+                    actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
+                }                
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
+                {
+                    actualScreenRenderer->CursorPosition.x = 0;
+                    actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
-                actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
+                    actualScreenRenderer->Clear(
+                        0, actualScreenRenderer->CursorPosition.y, 
+                        160, actualScreenRenderer->CursorPosition.y + 16, 
+                        Colors.black
+                    );
+
+                    actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
+                }
             }
         }
         else if (msg->Type == MessagePacketType::WINDOW_BUFFER_EVENT)
@@ -335,6 +359,8 @@ uint64_t DrawFrame()
             Window* window = new Window(350, 30, 400, 200, "Created Test Window", newWindowId, pidFrom);
             windows->Add(window);
             _memset(window->Buffer->BaseAddress, 0x20, window->Buffer->BufferSize);
+
+            activeWindow = window;
 
             //Clear(true);
             //RenderWindows();

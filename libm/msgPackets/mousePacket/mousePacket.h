@@ -4,17 +4,16 @@
 enum MouseMessagePacketType : uint8_t
 {
     MOUSE_MOVE,
-    MOUSE_HOLD,
-    MOUSE_RELEASE,
+    MOUSE_CLICK,
 };
 
-class MouseMessagePacket
+struct MouseMessagePacket
 {
 public:
-    MouseMessagePacketType Type;
     int MouseX, MouseY;
+    MouseMessagePacketType Type;
     bool Left, Right, Middle;
+    bool PrevLeft, PrevRight, PrevMiddle;
 
     MouseMessagePacket(int mouseX, int mouseY);
-    MouseMessagePacket(bool hold, bool left, bool right, bool middle);
 };

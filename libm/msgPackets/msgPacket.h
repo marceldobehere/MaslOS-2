@@ -18,19 +18,26 @@ enum MessagePacketType : uint8_t
     WINDOW_SET_EVENT
 };
 
-class GenericMessagePacket
+// CONVO IDS FOR STANDARDIZED STUFF
+#define CONVO_ID_WM_MOUSE_STUFF     0xFF000100
+#define CONVO_ID_WM_KB_STUFF           0xFF000101
+
+#define CONVO_ID_WM_WINDOW_UPDATE 0xFF000110
+
+
+struct GenericMessagePacket
 {
 public:
-    MessagePacketType Type;
-    uint8_t* Data;
     uint64_t Size;
     uint64_t FromPID;
     uint64_t ConvoID;
-
+    uint8_t* Data;
+    MessagePacketType Type;
+    
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size);
     GenericMessagePacket* Copy();
     void Free();
-
+    
     GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size, Heap::HeapManager* manager);
     GenericMessagePacket* Copy(Heap::HeapManager* manager);
     void Free(Heap::HeapManager* manager);

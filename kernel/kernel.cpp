@@ -23,6 +23,7 @@ void boot(void* _bootInfo)
 
     osData.NO_INTERRUPTS = false;
     osData.booting = false;
+    osData.inBootProcess = true;
     osData.maxNonFatalCrashCount = 5;
     MStackData::stackPointer = 0;
     for (int i = 0; i < 1000; i++)
@@ -42,6 +43,8 @@ void boot(void* _bootInfo)
     PrintAll = true;
     
     InitKernel(bootInfo);
+
+    osData.inBootProcess = false;
 
     PIT::Sleep(100);
 

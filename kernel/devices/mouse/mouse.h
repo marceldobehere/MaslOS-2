@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <libm/math.h>
 #include <libm/queue/queue_mousePacket.h>
+#include <libm/lock/lock.h>
 
 namespace Mouse
 {
@@ -11,7 +12,7 @@ namespace Mouse
 
     extern int mouseCycleSkip;
 
-    extern Queue<MousePacket>* mousePackets;
+    extern Lockable<Queue<MousePacket>*> mousePackets;
 
     void Mousewait();
 

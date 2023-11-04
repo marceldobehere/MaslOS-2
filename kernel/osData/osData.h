@@ -26,6 +26,7 @@ struct OSData
     bool exit;
     bool booting;
     bool verboseBoot;
+    bool inBootProcess;
 //     KernelInfo* kernelInfo;
 //     List<Window*> windows;
 //     Queue<Window*> windowsToGetActive;
