@@ -20,11 +20,11 @@
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>
 #include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
 
-
 char buffer[512];
 
 int main(int argc, char** argv)
 {
+    return 0;
     initWindowManagerStuff();
     programWait(2000);
     
@@ -153,11 +153,12 @@ int main(int argc, char** argv)
 
         {
             GuiComponentStuff::ButtonComponent* btn = new GuiComponentStuff::ButtonComponent("CLICK\nME\nPLS", 
-            Colors.black, Colors.dgray, Colors.gray, 
-            Colors.bgreen, Colors.yellow, Colors.bred, 
-            GuiComponentStuff::ComponentSize(150, 80),
-            GuiComponentStuff::Position(210, 160), testGui->screen
+                Colors.black, Colors.dgray, Colors.gray, 
+                Colors.bgreen, Colors.yellow, Colors.bred, 
+                GuiComponentStuff::ComponentSize(150, 80),
+                GuiComponentStuff::Position(210, 160), testGui->screen
             );
+            
             //btn->mouseClickedCallBack = TestClickHandler;
             //btn->keyHitCallBack = TestKeyHandler;
 

@@ -104,9 +104,14 @@ class Window
     bool Resizeable;
     bool Closeable;
 
+    bool IsActive;
+    bool IsFrozen;
+
     bool OldShowTitleBar;
     bool OldShowBorder;
     bool OldHidden;
+    bool OldIsActive;
+    bool OldIsFrozen;
 
     uint32_t DefaultBorderColor;
     uint32_t SelectedBorderColor;
@@ -132,7 +137,7 @@ class Window
     Window();
     Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid);
 
-    void UpdateUsingPartialWindow(Window* window, bool updateIdAndPid);
+    void UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool updateActive);
 
     void ResizeFramebuffer(int width, int height);
 

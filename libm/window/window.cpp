@@ -20,6 +20,8 @@ Window::Window()
     Moveable = true;
     Resizeable = true;
     Closeable = true;
+    IsActive = false;
+    IsFrozen = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -31,6 +33,8 @@ Window::Window()
     OldShowTitleBar = ShowTitleBar;
     OldShowBorder = ShowBorder;
     OldHidden = Hidden;
+    OldIsActive = IsActive;
+    OldIsFrozen = IsFrozen;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -66,6 +70,8 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     Moveable = true;
     Resizeable = true;
     Closeable = true;
+    IsActive = false;
+    IsFrozen = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -76,6 +82,8 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     OldShowTitleBar = ShowTitleBar;
     OldShowBorder = ShowBorder;
     OldHidden = Hidden;
+    OldIsActive = IsActive;
+    OldIsFrozen = IsFrozen;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -189,8 +197,14 @@ void Window::_CheckDimensionChange()
         Dimensions.height != OldDimensions.height)
     {
         ResizeFramebuffer(Dimensions.width, Dimensions.height);
+
+        int maxW = max(Dimensions.width, OldDimensions.width);
+        int maxH = max(Dimensions.height, OldDimensions.height);
+
         OldDimensions.width = Dimensions.width;
         OldDimensions.height = Dimensions.height;
+
+        Updates->Add(WindowUpdate(-1, -23, maxW, maxH, true));
     }
 }
 
@@ -277,7 +291,7 @@ void Window::UpdateCheck()
     _CheckVisChange();
 }
 
-void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)
+void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool updateActive)
 {
     // TODO apply the changes
 
@@ -314,13 +328,21 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid)
     SelectedTitleColor = window->SelectedTitleColor;
     // DefaultTitleBackgroundColor
     DefaultTitleBackgroundColor = window->DefaultTitleBackgroundColor;
-
+    // IsFrozen
+    IsFrozen = window->IsFrozen;
+    
     if (updateIdAndPid)
     {
         // ID
         ID = window->ID;
         // PID
         PID = window->PID;
+    }
+
+    if (updateActive)
+    {
+        // IsActive
+        IsActive = window->IsActive;
     }
 
     UpdateCheck();

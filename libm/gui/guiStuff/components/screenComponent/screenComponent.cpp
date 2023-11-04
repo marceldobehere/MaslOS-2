@@ -4,7 +4,7 @@
 
 namespace GuiComponentStuff
 {
-    ScreenComponent::ScreenComponent(Window* window)
+    ScreenComponent::ScreenComponent(Window* window, GuiInstance* guiInstance)
     {
         RenderFunc = (void (*)(void*, Field))&Render;
         CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
@@ -15,7 +15,8 @@ namespace GuiComponentStuff
         SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
         GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
         GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
-
+        
+        this->guiInstance = guiInstance;
         this->window = window;
         updateFields = new List<Field>(5);
         finalUpdatedFields = new List<Field>(5);

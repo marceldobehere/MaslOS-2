@@ -58,7 +58,7 @@ namespace ScancodeTranslation
         if (scancode == LeftAlt) return 0x38;
 
         if (scancode == Backspace) return 0x0E;
-        if (scancode == Enter) return '\n';
+        //if (scancode == Enter) return '\n';
         if (scancode == Escape) return  0x01;
         if (scancode == Tab) return 0x0F;
 

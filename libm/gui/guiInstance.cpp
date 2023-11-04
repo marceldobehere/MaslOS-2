@@ -32,7 +32,7 @@ void GuiInstance::Init()
 {
     //window->renderer->Clear(Colors.white);
     allComponents = new List<GuiComponentStuff::BaseComponent*>(10);
-    screen = new GuiComponentStuff::ScreenComponent(window);
+    screen = new GuiComponentStuff::ScreenComponent(window, this);
     allComponents->Add(screen);
     screen->id = 1234;
     //window->renderer->Clear(Colors.white);
@@ -120,6 +120,18 @@ void GuiInstance::Render()
     */
 
    //screen->KeyHit(GuiComponentStuff::KeyHitEventInfo(scancode, QWERTYKeyboard::Translate(scancode, lshift || rshift)));
+
+    {
+        MouseState* temp = envGetMouseState();
+        if (temp != NULL)
+        {
+            mouseState = *temp;
+            mouseState.MouseX -= window->Dimensions.x;
+            mouseState.MouseY -= window->Dimensions.y;
+            _Free(temp);
+        }
+    }
+    
 
     {
         GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_KB_STUFF);
@@ -707,7 +719,7 @@ bool GuiInstance::CreateComponentWithIdAndParent(int64_t id, GuiComponentStuff::
 
     if (type == GuiComponentStuff::ComponentType::SCREEN)
     {
-        GuiComponentStuff::ScreenComponent* scr = new GuiComponentStuff::ScreenComponent(window);
+        GuiComponentStuff::ScreenComponent* scr = new GuiComponentStuff::ScreenComponent(window, this);
         scr->parent = parentComp;
 
         allComponents->Add(scr);

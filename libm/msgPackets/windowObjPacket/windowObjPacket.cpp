@@ -87,6 +87,12 @@ WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacke
     // bool Closeable;
     PartialWindow->Closeable = *(uint8_t*)tBuffer;
     tBuffer += 1;
+    // bool IsActive
+    PartialWindow->IsActive = *(uint8_t*)tBuffer;
+    tBuffer += 1;
+    // bool IsFrozen
+    PartialWindow->IsFrozen = *(uint8_t*)tBuffer;
+    tBuffer += 1;
 
     // uint32_t DefaultBorderColor;
     PartialWindow->DefaultBorderColor = *(uint32_t*)tBuffer;
@@ -145,6 +151,10 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // bool Resizeable;
     count += 1;
     // bool Closeable;
+    count += 1;
+    // bool IsActive
+    count += 1;
+    // bool IsFrozen
     count += 1;
     // uint32_t DefaultBorderColor;
     count += 4;
@@ -211,6 +221,12 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     tBuffer += 1;
     // bool Closeable;
     *(uint8_t*)tBuffer = PartialWindow->Closeable;
+    tBuffer += 1;
+    // bool IsActive
+    *(uint8_t*)tBuffer = PartialWindow->IsActive;
+    tBuffer += 1;
+    // bool IsFrozen
+    *(uint8_t*)tBuffer = PartialWindow->IsFrozen;
     tBuffer += 1;
 
     // uint32_t DefaultBorderColor;

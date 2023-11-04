@@ -21,11 +21,15 @@
 #include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
 
 
+void TestClickHandler(GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo mouse)
+{
+    serialPrintLn("YOOO BUTTON CLICKED!");
+}
+
 char buffer[512];
 
 int main(int argc, char** argv)
 {
-    return 0;
     // int argc = getArgC();
     // char **argv = getArgV();
     //ENV_DATA *env = getEnvData();
@@ -42,7 +46,7 @@ int main(int argc, char** argv)
     globalPrint("A> DESKTOP PID: ");
     globalPrintLn(to_string(desktopPID));
 
-    programWait(2000);
+    programWait(1000);
 
     globalPrintLn("A> Requesting Window...");
     Window* window = requestWindow();
@@ -66,7 +70,7 @@ int main(int argc, char** argv)
     _Free(window->Title);
     window->Title = StrCopy("Hello World!");
     setWindow(window);
-    
+
     globalPrint("A> Window Title (2): \"");
     globalPrint(window->Title);
     globalPrintLn("\"");
@@ -88,6 +92,10 @@ int main(int argc, char** argv)
     globalPrintLn("> ENV FONT ADDR: ");
     globalPrintLn(ConvertHexToString((uint64_t)env->globalFont));
 
+    window->Dimensions.width = 500;
+    window->Dimensions.height = 400;
+    setWindow(window);
+    SendWindowFrameBufferUpdate(window);
 
     TempRenderer* renderer = new TempRenderer(window->Buffer, env->globalFont);
 
@@ -204,7 +212,7 @@ int main(int argc, char** argv)
             GuiComponentStuff::ComponentSize(150, 80),
             GuiComponentStuff::Position(210, 160), testGui->screen
             );
-            //btn->mouseClickedCallBack = TestClickHandler;
+            btn->mouseClickedCallBack = TestClickHandler;
             //btn->keyHitCallBack = TestKeyHandler;
 
             //btn->stickToDefaultColor = true;
@@ -272,8 +280,8 @@ int main(int argc, char** argv)
         programYield();
         //programWait(500);
 
-        if (envGetTimeMs() >= endTime)
-            break;
+        // if (envGetTimeMs() >= endTime)
+        //     break;
     }
 
     programWait(1000);

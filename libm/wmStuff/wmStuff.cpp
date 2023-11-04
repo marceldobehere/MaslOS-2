@@ -89,7 +89,7 @@ void setWindow(uint64_t id, Window* window)
     // after sending the window set, we need to update the window object 
     // to avoid changes that were not permitted by the wm (keep it synchronised)
     Window* partialWindow = getPartialWindow(id);
-    window->UpdateUsingPartialWindow(partialWindow, true);
+    window->UpdateUsingPartialWindow(partialWindow, true, true);
     window->UpdateCheck();
     window->Updates->Clear();
     partialWindow->Free();
@@ -99,7 +99,7 @@ void setWindow(uint64_t id, Window* window)
 void updateWindow(Window* window)
 {
     Window* partialWindow = getPartialWindow(window->ID);
-    window->UpdateUsingPartialWindow(partialWindow, true);
+    window->UpdateUsingPartialWindow(partialWindow, true, true);
     window->UpdateCheck();
     window->Updates->Clear();
     partialWindow->Free();
@@ -144,7 +144,7 @@ Window* requestWindow()
     Window* partial = getPartialWindow(windowId);
 
     Window* newWindow = new Window(0, 0, 0, 0, "", windowId, 0);
-    newWindow->UpdateUsingPartialWindow(partial, true);
+    newWindow->UpdateUsingPartialWindow(partial, true, true);
     newWindow->UpdateCheck();
     newWindow->Updates->Clear();
 

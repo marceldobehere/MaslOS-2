@@ -76,10 +76,9 @@ namespace GuiComponentStuff
         AddToStack();
         if (parent != NULL)
         {
-            // TODO: ADD INSTANCE CONNECTION TO WINDOW OBJ 
-            // GuiInstance* blehus = ((GuiInstance*)((Window*)GetWindow())->instance);
-            // int indx = blehus->GetIndexOfChildFromComponentWithId(parent->id, id);
-            // blehus->RemoveChildFromComponentWithId(parent->id, indx);
+            GuiInstance* blehus = (GuiInstance*)GetGuiInstance();
+            int indx = blehus->GetIndexOfChildFromComponentWithId(parent->id, id);
+            blehus->RemoveChildFromComponentWithId(parent->id, indx);
         }
         
         if (DestroyFunc != NULL)
@@ -118,14 +117,14 @@ namespace GuiComponentStuff
             return this->position + parent->GetAbsoluteComponentPosition();
     }
 
-    void* BaseComponent::GetWindow()
+    void* BaseComponent::GetGuiInstance()
     {
         if (componentType == ComponentType::SCREEN)
-            return (void*)((ScreenComponent*)this)->window;
+            return (void*)((ScreenComponent*)this)->guiInstance;
         else if (parent == NULL)
             return NULL;
         else
-            return parent->GetWindow();
+            return parent->GetGuiInstance();
     }
 
     bool BaseComponent::IsVisible()

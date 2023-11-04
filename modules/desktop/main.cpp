@@ -502,7 +502,7 @@ uint64_t DrawFrame()
                 if (win != NULL)
                 {
                     // serialPrintLn("> WIN SET EVENT");
-                    win->UpdateUsingPartialWindow(fromWind, false);
+                    win->UpdateUsingPartialWindow(fromWind, false, false);
                     win->UpdateCheck();
                 }
                 else
@@ -534,6 +534,7 @@ uint64_t DrawFrame()
 
         {
             window->CurrentTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+            window->IsActive = (window == activeWindow);
             if (window == activeWindow)
             {
                 window->CurrentTitleColor = window->SelectedTitleColor;

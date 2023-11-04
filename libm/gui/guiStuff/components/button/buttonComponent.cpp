@@ -4,8 +4,9 @@
 //#include "../../../../../../userinput/mouse.h"
 #include "../screenComponent/screenComponent.h"
 #include <libm/stubs.h>
-
-
+#include <libm/math.h>
+#include <libm/cstr.h>
+#include <libm/syscallManager.h>
 
 namespace GuiComponentStuff
 {
@@ -76,65 +77,68 @@ namespace GuiComponentStuff
     void ButtonComponent::CheckUpdates()
     {
         AddToStack();
-        // TODO: IMPLEMENT
-        // Window* wind = (Window*)GetWindow();
-        // ::Position mPos = wind->GetMousePosRelativeToWindow();
-        // //position = Position(mPos.x, mPos.y);
-        // Position abs = GetAbsoluteComponentPosition();
-        // ScreenComponent* scr = (ScreenComponent*)GetScreen();
+        GuiInstance* inst = (GuiInstance*)GetGuiInstance();
+        ::Point mPos = {inst->mouseState.MouseX, inst->mouseState.MouseY};
 
-        // ComponentSize tSize = GetActualComponentSize();
+        
+        Position abs = GetAbsoluteComponentPosition();
+        ScreenComponent* scr = (ScreenComponent*)GetScreen();
 
-        // mouseHover =
-        // mPos.x >= abs.x &&
-        // mPos.y >= abs.y &&
-        // mPos.x < abs.x + tSize.FixedX &&
-        // mPos.y < abs.y + tSize.FixedY;
+        ComponentSize tSize = GetActualComponentSize();
 
-        // mouseHover &= !wind->hidden && activeWindow == wind;
-        // mouseClick = mouseHover && MouseClickState[0];
+        mouseHover =
+        mPos.x >= abs.x &&
+        mPos.y >= abs.y &&
+        mPos.x < abs.x + tSize.FixedX &&
+        mPos.y < abs.y + tSize.FixedY;
 
-        // if (mouseHover)
-        //     scr->tempSelectedComponent = this;
+        // serialPrint("MOUSE HOVER:");
+        // serialPrintLn(to_string(scr->window->IsActive));
 
-        // actualButtonStuff->position = position;
-        // actualButtonStuff->size = tSize;
-        // rectComp->size = tSize;
+        mouseHover &= !scr->window->Hidden && scr->window->IsActive;
+        mouseClick = mouseHover && inst->mouseState.Left;
 
-        // ComponentSize textSize = textComp->GetActualComponentSize();
+        if (mouseHover)
+            scr->tempSelectedComponent = this;
 
-        // if (textSize.FixedX < tSize.FixedX)
-        //     textComp->position.x = (tSize.FixedX - textSize.FixedX) / 2;
-        // else
-        //     textComp->position.x = 0;
+        actualButtonStuff->position = position;
+        actualButtonStuff->size = tSize;
+        rectComp->size = tSize;
 
-        // if (textSize.FixedY < tSize.FixedY)
-        //     textComp->position.y = (tSize.FixedY - textSize.FixedY) / 2;
-        // else
-        //     textComp->position.y = 0;
+        ComponentSize textSize = textComp->GetActualComponentSize();
+
+        if (textSize.FixedX < tSize.FixedX)
+            textComp->position.x = (tSize.FixedX - textSize.FixedX) / 2;
+        else
+            textComp->position.x = 0;
+
+        if (textSize.FixedY < tSize.FixedY)
+            textComp->position.y = (tSize.FixedY - textSize.FixedY) / 2;
+        else
+            textComp->position.y = 0;
 
         
 
-        // if (mouseHover && !stickToDefaultColor)
-        // {
-        //     if (mouseClick)
-        //     {
-        //         textComp->fgColor = textColClick;
-        //         rectComp->fillColor = bgColClick;
-        //     }
-        //     else
-        //     {
-        //         textComp->fgColor = textColHover;
-        //         rectComp->fillColor = bgColHover;
-        //     }
-        // }
-        // else
-        // {
-        //     textComp->fgColor = textColDef;
-        //     rectComp->fillColor = bgColDef;
-        // }
+        if (mouseHover && !stickToDefaultColor)
+        {
+            if (mouseClick)
+            {
+                textComp->fgColor = textColClick;
+                rectComp->fillColor = bgColClick;
+            }
+            else
+            {
+                textComp->fgColor = textColHover;
+                rectComp->fillColor = bgColHover;
+            }
+        }
+        else
+        {
+            textComp->fgColor = textColDef;
+            rectComp->fillColor = bgColDef;
+        }
 
-        // actualButtonStuff->CheckUpdates();
+        actualButtonStuff->CheckUpdates();
 
         RemoveFromStack();
     }

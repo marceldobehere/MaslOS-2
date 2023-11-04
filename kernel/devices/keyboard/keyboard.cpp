@@ -58,7 +58,8 @@ namespace Keyboard
                 return;
             }
         }
-        
+
+
         keyboardQueue.Lock();
         keyboardQueue.obj->Enqueue(scancode);
         keyboardQueue.Unlock();
@@ -172,8 +173,6 @@ namespace Keyboard
 
         if (scancode == Key_GeneralAlt)
             return KeyboardScancodeState[Key_LeftAlt] || KeyboardScancodeState[Key_RightAlt];
-
-
 
         if (scancode >= 0 && scancode < KeyboardScancodeStateSize)
             return KeyboardScancodeState[scancode];

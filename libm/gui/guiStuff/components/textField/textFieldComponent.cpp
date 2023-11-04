@@ -6,7 +6,10 @@
 //#include "../../../../../../memory/heap.h"
 #include <libm/stubs.h>
 #include <libm/cstrTools.h>
-
+#include <libm/mouseState.h>
+#include <libm/math.h>
+#include <libm/cstr.h>
+#include <libm/syscallManager.h>
 
 
 namespace GuiComponentStuff
@@ -78,25 +81,24 @@ namespace GuiComponentStuff
     {
         AddToStack();
 
-        // TODO: IMPLEMENT ONCE MOUSE STUFF DONE
-        // Window* wind = (Window*)GetWindow();
-        // ::Position mPos = wind->GetMousePosRelativeToWindow();
-        // Position abs = GetAbsoluteComponentPosition();
-        // ScreenComponent* scr = (ScreenComponent*)GetScreen();
+        GuiInstance* gui = (GuiInstance*)GetGuiInstance();
+        ::Point mPos = {gui->mouseState.MouseX, gui->mouseState.MouseY};
+        Position abs = GetAbsoluteComponentPosition();
+        ScreenComponent* scr = (ScreenComponent*)GetScreen();
 
         ComponentSize tSize = GetActualComponentSize();
 
-        // mouseHover =
-        // mPos.x >= abs.x &&
-        // mPos.y >= abs.y &&
-        // mPos.x < abs.x + tSize.FixedX &&
-        // mPos.y < abs.y + tSize.FixedY;
+        mouseHover =
+        mPos.x >= abs.x &&
+        mPos.y >= abs.y &&
+        mPos.x < abs.x + tSize.FixedX &&
+        mPos.y < abs.y + tSize.FixedY;
 
-        // mouseHover &= !wind->hidden && activeWindow == wind;
-        // mouseClick = mouseHover && MouseClickState[0];
+        mouseHover &= !scr->window->Hidden && scr->window->IsActive;
+        mouseClick = mouseHover && gui->mouseState.Left;
 
-        // if (mouseHover)
-        //     scr->tempSelectedComponent = this;
+        if (mouseHover)
+            scr->tempSelectedComponent = this;
 
         actualTextFieldStuff->position = position;
         actualTextFieldStuff->size = tSize;
@@ -184,7 +186,8 @@ namespace GuiComponentStuff
         }
         else
         {
-            
+            serialPrint("< KEY PRESSED: ");
+            serialPrintLn(to_string((int)info.Scancode));
             char* bleh = (char*)_Malloc(len + 2);
             for (int i = 0; i < len; i++)
                 bleh[i] = (*txt)[i];

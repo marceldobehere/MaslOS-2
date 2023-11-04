@@ -11,6 +11,13 @@ namespace GuiComponentStuff
         SELECTED_COMPONENT_ID = 12
     };
 
+    class ScreenComponent;
+}
+
+#include "../../../guiInstance.h"
+
+namespace GuiComponentStuff
+{
     class ScreenComponent : public BaseComponent
     {
         public:
@@ -22,8 +29,9 @@ namespace GuiComponentStuff
         List<Field>* finalUpdatedFields;
         List<Field>* childrenFields;
         List<bool>* childrenHidden;
+        GuiInstance* guiInstance;
 
-        ScreenComponent(Window* window);
+        ScreenComponent(Window* window, GuiInstance* guiInstance);
         void MouseClicked(MouseClickEventInfo info);
         void KeyHit(KeyHitEventInfo info);
         void Render(Field field);
