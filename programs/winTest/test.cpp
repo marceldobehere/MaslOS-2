@@ -63,7 +63,6 @@ int main(int argc, char** argv)
     globalPrint("A> Window ID: ");
     globalPrintLn(ConvertHexToString(window->ID));
     
-
     globalPrint("A> Window Title (1): \"");
     globalPrint(window->Title);
     globalPrintLn("\"");
