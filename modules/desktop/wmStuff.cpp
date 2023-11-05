@@ -3,7 +3,6 @@
 #include <libm/rendering/virtualRenderer.h>
 #include <libm/cstrTools.h>
 
-
 void UpdatePointerRect(int x1, int y1, int x2, int y2)
 {
     if (x1 < 0)

@@ -31,8 +31,8 @@ struct OSData
 //     List<Window*> windows;
 //     Queue<Window*> windowsToGetActive;
 //     List<Task*> osTasks;
-//     kernelFiles::ZIPFile* windowButtonZIP;
-//     kernelFiles::ZIPFile* windowIconZIP;
+//    kernelFiles::ZIPFile* windowButtonZIP;
+//    kernelFiles::ZIPFile* windowIconZIP;
 //     //Window* realMainWindow;
 //     //Window* realMainWindow2;
 //     //Window* mainTerminalWindow;

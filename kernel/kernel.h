@@ -12,16 +12,16 @@
 struct MaslOsAssetStruct
 {
     // Images
-    kernelFiles::ImageFile* bgImage;
-    kernelFiles::ImageFile* testImage;
-	kernelFiles::ImageFile* bootImage;
-	kernelFiles::ImageFile* MButton;
-	kernelFiles::ImageFile* MButtonS;
+    kernelFiles::DefaultFile* bgImage;
+    kernelFiles::DefaultFile* testImage;
+	kernelFiles::DefaultFile* bootImage;
+	kernelFiles::DefaultFile* MButton;
+	kernelFiles::DefaultFile* MButtonS;
 
     // Zips
-    kernelFiles::ZIPFile* mouseZIP;
-	kernelFiles::ZIPFile* windowButtonZIP;
-	kernelFiles::ZIPFile* windowIconsZIP;
+    kernelFiles::DefaultFile* mouseZIP;
+	kernelFiles::DefaultFile* windowButtonZIP;
+	kernelFiles::DefaultFile* windowIconsZIP;
 
     kernelFiles::ZIPFile* maabZIP;
     kernelFiles::ZIPFile* otherZIP;

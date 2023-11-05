@@ -8,6 +8,7 @@
 #include <libm/msgPackets/windowBufferUpdatePacket/windowBufferUpdatePacket.h>
 #include <libm/queue/queue_windowBufferUpdate.h>
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
+#include <libm/images/bitmapImage.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -89,6 +90,33 @@ void InitStuff()
     ScreenUpdates = new Queue<WindowUpdate>(20);
 
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
+
+    const char* bgPath = "bruh:wmStuff/background.mbif";
+
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile(bgPath, (void**)&buf, &size))
+        {
+            ImageStuff::BitmapImage* img = ImageStuff::ConvertBufferToBitmapImage(buf, size);
+            if (img != NULL)
+            {
+                backgroundImage = new Framebuffer();
+                backgroundImage->Width = img->width;
+                backgroundImage->Height = img->height;
+                backgroundImage->PixelsPerScanLine = backgroundImage->Width;
+                backgroundImage->BufferSize = backgroundImage->Width * backgroundImage->Height * 4;
+                backgroundImage->BaseAddress = _Malloc(backgroundImage->BufferSize, "Background Image Buffer");
+                _memcpy(img->imageBuffer, backgroundImage->BaseAddress, backgroundImage->BufferSize);
+                _Free(img->imageBuffer);
+                _Free(img);
+                drawBackground = true;
+            }
+            _Free(buf);
+        }
+    }
+
+    //while (true);
 }
 
 void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount, int frameCount)
@@ -190,6 +218,8 @@ int main(int argc, char** argv)
 
 
     Clear(true);
+    UpdatePointerRect(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
+    RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
     RenderWindows();
     //ActuallyRenderWindow(window, true);
 

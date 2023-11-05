@@ -443,28 +443,28 @@ extern "C" void _start(void) {
 
     MaslOsAssetStruct assets;
 
-    kernelFiles::ImageFile img_1 = getImage("background.mbif");
+    kernelFiles::DefaultFile img_1 = getKernelFile("background.mbif");
     assets.bgImage = &img_1;
 
-    kernelFiles::ImageFile img_2 = getImage("test.mbif");
+    kernelFiles::DefaultFile img_2 = getKernelFile("test.mbif");
     assets.testImage = &img_2;
 
-    kernelFiles::ImageFile img_3 = getImage("boot.mbif");
+    kernelFiles::DefaultFile img_3 = getKernelFile("boot.mbif");
     assets.bootImage = &img_3;
 
-    kernelFiles::ImageFile img_4 = getImage("MButton.mbif");
+    kernelFiles::DefaultFile img_4 = getKernelFile("MButton.mbif");
     assets.MButton = &img_4;
 
-    kernelFiles::ImageFile img_5 = getImage("MButton_S.mbif");
+    kernelFiles::DefaultFile img_5 = getKernelFile("MButton_S.mbif");
     assets.MButtonS = &img_5;
 
-    kernelFiles::ZIPFile zip_1 = getZIP("mouse.mbzf");
+    kernelFiles::DefaultFile zip_1 = getKernelFile("mouse.mbzf");
     assets.mouseZIP = &zip_1;
 
-    kernelFiles::ZIPFile zip_2 = getZIP("window_buttons.mbzf");
+    kernelFiles::DefaultFile zip_2 = getKernelFile("window_buttons.mbzf");
     assets.windowButtonZIP = &zip_2;
 
-    kernelFiles::ZIPFile zip_3 = getZIP("window_icons.mbzf");
+    kernelFiles::DefaultFile zip_3 = getKernelFile("window_icons.mbzf");
     assets.windowIconsZIP = &zip_3;
 
     kernelFiles::ZIPFile zip_4 = getZIP("maab.mbzf");

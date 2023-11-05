@@ -13,14 +13,14 @@ struct BootInfo
 {
 	Framebuffer* framebuffer;
 	PSF1_FONT* psf1_font;
-    kernelFiles::ImageFile* bgImage;
-    kernelFiles::ImageFile* testImage;
-	kernelFiles::ImageFile* bootImage;
-	kernelFiles::ImageFile* MButton;
-	kernelFiles::ImageFile* MButtonS;
-    kernelFiles::ZIPFile* mouseZIP;
-	kernelFiles::ZIPFile* windowButtonZIP;
-	kernelFiles::ZIPFile* windowIconsZIP;
+    kernelFiles::DefaultFile* bgImage;
+    kernelFiles::DefaultFile* testImage;
+	kernelFiles::DefaultFile* bootImage;
+	kernelFiles::DefaultFile* MButton;
+	kernelFiles::DefaultFile* MButtonS;
+    kernelFiles::DefaultFile* mouseZIP;
+	kernelFiles::DefaultFile* windowButtonZIP;
+	kernelFiles::DefaultFile* windowIconsZIP;
 	kernelFiles::ZIPFile* maabZIP;
 	kernelFiles::ZIPFile* otherZIP;
 	kernelFiles::DefaultFile* programs;
