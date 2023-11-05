@@ -1432,9 +1432,6 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
                         }
                     }
                 }
-
-                info->Destroy();
-                _Free(info);
             }
         } 
     }
@@ -1468,9 +1465,6 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
                         }
                     }
                 }
-
-                info->Destroy();
-                _Free(info);
             }
         } 
     }
@@ -1490,7 +1484,8 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
                 const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
-                    frame->rax = (bool)(fs->ReadFileBuffer(path2, start, byteCount, buffer) == FilesystemInterface::FSCommandResult.SUCCESS);
+                    const char* res = fs->ReadFileBuffer(path2, start, byteCount, buffer);
+                    frame->rax = (bool)(res == FilesystemInterface::FSCommandResult.SUCCESS);
 
                     _Free((void*)path2);
                 }

@@ -141,14 +141,14 @@ void InitKernel(BootInfo* bootInfo)
     {
 
         uint64_t totSize = 500000;
-        // for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
-        // {
-        //     totSize += bootInfo->maabZIP->files[i].size;
-        // }
-        // for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
-        // {
-        //     totSize += bootInfo->otherZIP->files[i].size;
-        // }
+        for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
+        {
+            totSize += bootInfo->maabZIP->files[i].size;
+        }
+        for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
+        {
+            totSize += bootInfo->otherZIP->files[i].size;
+        }
 
         totSize += 6000000;
         uint64_t totSize2 = totSize;
@@ -191,52 +191,52 @@ void InitKernel(BootInfo* bootInfo)
         fsInterface->InitAndSaveFSTable();
         RemoveFromStack();
 
-        // PrintMsgStartLayer("MAAB");
-        // for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
-        // {
-        //     PrintMsgColSL("FILE: \"{}\"", bootInfo->maabZIP->files[i].filename, Colors.yellow);
-        //     PrintMsgCol(" ({} bytes)", to_string(bootInfo->maabZIP->files[i].size), Colors.bgreen);
-        //     fsInterface->CreateFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size);
-        //     fsInterface->WriteFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size, bootInfo->maabZIP->files[i].fileData);
-        // }
-        // PrintMsgEndLayer("MAAB");
+        PrintMsgStartLayer("MAAB");
+        for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
+        {
+            PrintMsgColSL("FILE: \"{}\"", bootInfo->maabZIP->files[i].filename, Colors.yellow);
+            PrintMsgCol(" ({} bytes)", to_string(bootInfo->maabZIP->files[i].size), Colors.bgreen);
+            fsInterface->CreateFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size);
+            fsInterface->WriteFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size, bootInfo->maabZIP->files[i].fileData);
+        }
+        PrintMsgEndLayer("MAAB");
 
 
-        // PrintMsgStartLayer("OTHER");
-        // for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
-        // {
-        //     PrintMsgColSL("ZIP FILE: \"{}\"", bootInfo->otherZIP->files[i].filename, Colors.yellow);
-        //     PrintMsgCol(" ({} bytes)", to_string(bootInfo->otherZIP->files[i].size), Colors.bgreen);
-        //     //bootInfo->otherZIP->files[i];
+        PrintMsgStartLayer("OTHER");
+        for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
+        {
+            PrintMsgColSL("ZIP FILE: \"{}\"", bootInfo->otherZIP->files[i].filename, Colors.yellow);
+            PrintMsgCol(" ({} bytes)", to_string(bootInfo->otherZIP->files[i].size), Colors.bgreen);
+            //bootInfo->otherZIP->files[i];
 
-        //     if (StrLen(bootInfo->otherZIP->files[i].filename) < 5)
-        //         continue;
+            if (StrLen(bootInfo->otherZIP->files[i].filename) < 5)
+                continue;
             
-        //     const char* tempName1 = StrSubstr(bootInfo->otherZIP->files[i].filename, 0, StrLen(bootInfo->otherZIP->files[i].filename) - 5);
-        //     const char* tempName2 = StrCombine(tempName1, "/");
+            const char* tempName1 = StrSubstr(bootInfo->otherZIP->files[i].filename, 0, StrLen(bootInfo->otherZIP->files[i].filename) - 5);
+            const char* tempName2 = StrCombine(tempName1, "/");
 
-        //     //kernelFiles::ZIP::GetFileFromFileName()
-        //     kernelFiles::ZIPFile* zip = kernelFiles::ZIP::GetZIPFromDefaultFile(&bootInfo->otherZIP->files[i]);
-        //     fsInterface->CreateFolder(tempName1);
-        //     PrintMsgStartLayer(tempName1);
-        //     for (int x = 0; x < zip->fileCount; x++)
-        //     {
-        //         const char* tempPath = StrCombine(tempName2, zip->files[x].filename);
-        //         PrintMsgColSL("FILE: \"{}\"", tempPath, Colors.yellow);
-        //         PrintMsgCol(" ({} bytes)", to_string(zip->files[x].size), Colors.bgreen);
-        //         fsInterface->CreateFile(tempPath, zip->files[x].size);
-        //         fsInterface->WriteFile(tempPath, zip->files[x].size, zip->files[x].fileData);
-        //         _Free((void*)tempPath);
-        //     }
-        //     PrintMsgEndLayer(tempName1);
+            //kernelFiles::ZIP::GetFileFromFileName()
+            kernelFiles::ZIPFile* zip = kernelFiles::ZIP::GetZIPFromDefaultFile(&bootInfo->otherZIP->files[i]);
+            fsInterface->CreateFolder(tempName1);
+            PrintMsgStartLayer(tempName1);
+            for (int x = 0; x < zip->fileCount; x++)
+            {
+                const char* tempPath = StrCombine(tempName2, zip->files[x].filename);
+                PrintMsgColSL("FILE: \"{}\"", tempPath, Colors.yellow);
+                PrintMsgCol(" ({} bytes)", to_string(zip->files[x].size), Colors.bgreen);
+                fsInterface->CreateFile(tempPath, zip->files[x].size);
+                fsInterface->WriteFile(tempPath, zip->files[x].size, zip->files[x].fileData);
+                _Free((void*)tempPath);
+            }
+            PrintMsgEndLayer(tempName1);
 
-        //     _Free(tempName1);
-        //     _Free(tempName2);
-        //                 //const char* tempPath = StrCombine("other", bootInfo->otherZIP->files[i].filename);
-        //     //fsInterface->CreateFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size);
-        //     //fsInterface->WriteFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size, bootInfo->otherZIP->files[i].fileData);
-        // }
-        // PrintMsgEndLayer("OTHER");
+            _Free(tempName1);
+            _Free(tempName2);
+                        //const char* tempPath = StrCombine("other", bootInfo->otherZIP->files[i].filename);
+            //fsInterface->CreateFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size);
+            //fsInterface->WriteFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size, bootInfo->otherZIP->files[i].fileData);
+        }
+        PrintMsgEndLayer("OTHER");
         fsInterface->SaveFSTable();
 
         //while (true);

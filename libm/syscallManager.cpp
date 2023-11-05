@@ -473,6 +473,8 @@ bool fsWriteFileFromBuffer(const char* path, void* buffer, uint64_t byteCount)
     return success;
 }
 
+#include <libm/memStuff.h>
+
 bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount)
 {
     FsInt::FileInfo* info = fsGetFileInfo(path);
@@ -482,7 +484,8 @@ bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount)
     *byteCount = info->sizeInBytes;
     info->Destroy();
     *buffer = _Malloc(*byteCount);
-    fsReadFileIntoBuffer(path, *buffer, *byteCount);
-    return true;   
+    _memset(*buffer, 0, *byteCount);
+
+    return fsReadFileIntoBuffer(path, *buffer, *byteCount); 
 }
 

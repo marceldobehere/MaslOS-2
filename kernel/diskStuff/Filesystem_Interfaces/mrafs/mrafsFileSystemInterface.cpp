@@ -287,7 +287,7 @@ namespace FilesystemInterface
         FileInfo* info = GetFile(path);
         if (info != NULL)
             return FSCommandResult.ERROR_FILE_ALREADY_EXISTS;
-        
+
         info = new FileInfo(new BaseInfo(path, false, false, false), 0, 0);
         fsFileList.Add(info);
 
@@ -1129,12 +1129,14 @@ namespace FilesystemInterface
             return FSCommandResult.ERROR_INVALID_PARTITION_OWNER;
 
         FileInfo* info = GetFile(path);
+
         if (info == NULL)
             return FSCommandResult.ERROR_FILE_NOT_FOUND;
 
         if (address + byteCount > info->sizeInBytes)
             return FSCommandResult.ERROR_FILE_TOO_SMALL;
 
+    
         const char* res = partitionInterface->ReadPartition(partitionInfo, address + info->locationInBytes, byteCount, buffer);
         if (res != PartitionInterface::CommandResult.SUCCESS)
             return res;

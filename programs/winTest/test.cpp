@@ -19,6 +19,7 @@
 #include <libm/gui/guiStuff/components/text/textComponent.h>
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>
 #include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
+#include <libm/gui/guiStuff/components/imageRect/imageRectangleComponent.h>
 
 
 void TestClickHandler(GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo mouse)
@@ -135,7 +136,7 @@ int main(int argc, char** argv)
             testRect = new GuiComponentStuff::RectangleComponent(Colors.purple, s, testGui->screen);
             testRect->position = GuiComponentStuff::Position(100, 20);
         }
-
+        testGui->screen->children->Add(testRect);
     
 
         {
@@ -235,7 +236,18 @@ int main(int argc, char** argv)
             testGui->screen->children->Add(txtField);
         }
 
-        testGui->screen->children->Add(testRect);
+        {
+            GuiComponentStuff::ImageRectangleComponent* imgRect = new GuiComponentStuff::ImageRectangleComponent(
+                "bruh:images/rocc.mbif",
+                GuiComponentStuff::ComponentSize(150, 80),
+                testGui->screen
+            );
+            imgRect->id = 996655;
+            imgRect->position = GuiComponentStuff::Position(300, 260);
+
+            testGui->screen->children->Add(imgRect);
+        }
+        
 
 
         {

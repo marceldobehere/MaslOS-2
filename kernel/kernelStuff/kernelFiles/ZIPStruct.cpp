@@ -3,6 +3,7 @@
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
 #include "../../osData/MStack/MStackM.h"
+#include <libm/stubs.h>
 
 namespace kernelFiles
 {
@@ -48,39 +49,39 @@ namespace kernelFiles
             return NULL;
         }
 
-        // ZIPFile* GetZIPFromDefaultFile(DefaultFile* file)
-        // {
-        //     if (file == NULL)
-        //         return NULL;
+        ZIPFile* GetZIPFromDefaultFile(DefaultFile* file)
+        {
+            if (file == NULL)
+                return NULL;
 
-        //     kernelFiles::ZIPFile* zip = (kernelFiles::ZIPFile*)_Malloc(sizeof(kernelFiles::ZIPFile));
+            kernelFiles::ZIPFile* zip = (kernelFiles::ZIPFile*)_Malloc(sizeof(kernelFiles::ZIPFile));
 
-        //     zip->size = *((uint64_t*)((uint64_t)file->fileData + 0));
-        //     zip->fileCount = *((uint32_t*)((uint64_t)file->fileData + 8));
-        //     zip->files = (kernelFiles::DefaultFile*)_Malloc(sizeof(kernelFiles::DefaultFile) * zip->fileCount);
-        //     uint64_t tOffset = 12;
-        //     for (int i = 0; i < zip->fileCount; i++)
-        //     {
-        //         zip->files[i].filenameSize = *((uint32_t*)((uint64_t)file->fileData + tOffset));
-        //         tOffset += 4;
+            zip->size = *((uint64_t*)((uint64_t)file->fileData + 0));
+            zip->fileCount = *((uint32_t*)((uint64_t)file->fileData + 8));
+            zip->files = (kernelFiles::DefaultFile*)_Malloc(sizeof(kernelFiles::DefaultFile) * zip->fileCount);
+            uint64_t tOffset = 12;
+            for (int i = 0; i < zip->fileCount; i++)
+            {
+                zip->files[i].filenameSize = *((uint32_t*)((uint64_t)file->fileData + tOffset));
+                tOffset += 4;
 
-        //         zip->files[i].filename = (char*)_Malloc(zip->files[i].filenameSize + 1);
-        //         for (int x = 0; x < zip->files[i].filenameSize; x++)
-        //             zip->files[i].filename[x] = *((char*)((uint64_t)file->fileData + tOffset++));
-        //         zip->files[i].filename[zip->files[i].filenameSize] = 0;
+                zip->files[i].filename = (char*)_Malloc(zip->files[i].filenameSize + 1);
+                for (int x = 0; x < zip->files[i].filenameSize; x++)
+                    zip->files[i].filename[x] = *((char*)((uint64_t)file->fileData + tOffset++));
+                zip->files[i].filename[zip->files[i].filenameSize] = 0;
             
 
-        //         zip->files[i].size = *((uint64_t*)((uint64_t)file->fileData + tOffset));
+                zip->files[i].size = *((uint64_t*)((uint64_t)file->fileData + tOffset));
                 
-        //         tOffset += 8;
+                tOffset += 8;
 
-        //         zip->files[i].fileData = (void*)((uint64_t)file->fileData + tOffset);
-        //         tOffset += zip->files[i].size;
+                zip->files[i].fileData = (void*)((uint64_t)file->fileData + tOffset);
+                tOffset += zip->files[i].size;
 
-        //     }
+            }
 
-        //     return zip;
-        // }
+            return zip;
+        }
     }
 
     

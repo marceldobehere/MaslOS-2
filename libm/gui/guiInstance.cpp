@@ -771,20 +771,19 @@ bool GuiInstance::CreateComponentWithIdAndParent(int64_t id, GuiComponentStuff::
         allComponents->Add(comp);
         return ComponentAddChild(parentId, comp);
     }
-    // TODO: ADD ONCE IMAGE COMPONENT EXISTS
-    // if (type == GuiComponentStuff::ComponentType::IMAGE_RECT)
-    // {
-    //     GuiComponentStuff::ImageRectangleComponent* comp =
-    //     new GuiComponentStuff::ImageRectangleComponent(
-    //         "",
-    //         GuiComponentStuff::ComponentSize(50, 50),
-    //         parentComp 
-    //     );
-    //     comp->id = id;
+    if (type == GuiComponentStuff::ComponentType::IMAGE_RECT)
+    {
+        GuiComponentStuff::ImageRectangleComponent* comp =
+        new GuiComponentStuff::ImageRectangleComponent(
+            "",
+            GuiComponentStuff::ComponentSize(50, 50),
+            parentComp 
+        );
+        comp->id = id;
 
-    //     allComponents->Add(comp);
-    //     return ComponentAddChild(parentId, comp);
-    // }
+        allComponents->Add(comp);
+        return ComponentAddChild(parentId, comp);
+    }
     if (type == GuiComponentStuff::ComponentType::TEXT)
     {
         GuiComponentStuff::TextComponent* comp =
