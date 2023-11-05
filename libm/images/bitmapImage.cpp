@@ -5,6 +5,11 @@
 
 namespace ImageStuff
 {
+    BitmapImage* ConvertFileToBitmapImage(FileStuff::DefaultFile* file)
+    {
+        return ConvertBufferToBitmapImage((char*)file->fileData, file->size);
+    }
+
     BitmapImage* ConvertBufferToBitmapImage(char* data, uint64_t size)
     {
         AddToStack();

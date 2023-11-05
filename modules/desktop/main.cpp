@@ -26,12 +26,18 @@ List<Window*>* windowsToDelete;
 Window* activeWindow;
 Window* currentActionWindow;
 
+ImageStuff::BitmapImage* windowButtonIcons[countOfButtonIcons];
+
+ImageStuff::BitmapImage* internalWindowIcons[countOfWindowIcons];
+
 MPoint MousePosition;
 MPoint oldMousePos;
 
 Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 
 Queue<WindowUpdate>* ScreenUpdates;
+
+#include <libm/zips/basicZip.h>
 
 void InitStuff()
 {
@@ -113,6 +119,24 @@ void InitStuff()
                 drawBackground = true;
             }
             _Free(buf);
+        }
+    }
+
+    const char* windowButtonPath = "bruh:wmStuff/windowButtons.mbzf";
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile(windowButtonPath, (void**)&buf, &size))
+        {
+            ZipStuff::ZIPFile* zip = ZipStuff::ZIP::GetZIPFromBuffer(buf, size);
+
+            for (int i = 0; i < countOfButtonIcons; i++)
+                windowButtonIcons[i] = ImageStuff::ConvertFileToBitmapImage(ZipStuff::ZIP::GetFileFromFileName(zip, windowButtonIconNames[i]));
+        }
+        else
+        {
+            for (int i = 0; i < countOfButtonIcons; i++)
+                windowButtonIcons[i] = NULL;
         }
     }
 

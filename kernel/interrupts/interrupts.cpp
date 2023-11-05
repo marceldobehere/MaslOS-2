@@ -1686,6 +1686,7 @@ void Syscall_handler(interrupt_frame* frame)
         //MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
         
         char* str = (char*)frame->rbx;
+        Serial::Writelnf("> Global Print %X \"%s\" (%X)", str, str, Scheduler::CurrentRunningTask);
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Print(str);
         else
@@ -1696,10 +1697,13 @@ void Syscall_handler(interrupt_frame* frame)
         //MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
 
         char* str = (char*)frame->rbx;
+        Serial::Writelnf("> Global Println %X \"%s\" (%X)", str, str, Scheduler::CurrentRunningTask);
+
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Println(str);
         else
             Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
+        Serial::Writelnf("< Global Println %X", str);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINT_CHAR)
     {

@@ -281,7 +281,7 @@ void RenderWindowRect(Window* window, int x1, int y1, int x2, int y2)
             if (state == 2)
                 currentActionWindow = window;
 
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.CLOSE_N + state], x - 20, y + 1, 1, 1, border, virtualScreenBuffer);
+            VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.CLOSE_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
             x -= 20;
         }
         {
@@ -293,7 +293,7 @@ void RenderWindowRect(Window* window, int x1, int y1, int x2, int y2)
             if (state == 2)
                 currentActionWindow = window;
 
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.MIN_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
+            VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.MIN_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
             x -= 20;
         }
         {
@@ -305,7 +305,7 @@ void RenderWindowRect(Window* window, int x1, int y1, int x2, int y2)
             if (state == 2)
                 currentActionWindow = window;
 
-            //VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.HIDE_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
+            VirtualRenderer::DrawImage(windowButtonIcons[windowButtonIconEnum.HIDE_N + state], x - 20, y + 1, 1, 1, border, pointerBuffer);
             x -= 20;
         }
 

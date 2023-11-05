@@ -418,7 +418,7 @@ namespace Scheduler
             frame->rflags = 0x202;
         }
 
-
+        Serial::Writelnf("> Started Task with addr %X", task);
 
         SchedulerEnabled = tempEnabled;
         return task;

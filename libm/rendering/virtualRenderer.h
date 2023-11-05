@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include "S-Font.h"
 #include "framebuffer.h"
+#include <libm/images/bitmapImage.h>
 
 namespace VirtualRenderer
 {
@@ -30,7 +31,7 @@ namespace VirtualRenderer
     };
 
 
-    //void DrawImage(kernelFiles::ImageFile* image, int64_t x, int64_t y, int64_t sx, int64_t sy, Border border, PointerFramebuffer* framebuffer);
+    void DrawImage(ImageStuff::BitmapImage* image, int64_t x, int64_t y, int64_t sx, int64_t sy, Border border, PointerBuffer* framebuffer);
 
     void Clear(int64_t x1, int64_t y1, int64_t x2, int64_t y2, Border border, PointerBuffer* framebuffer, uint32_t* col);
 

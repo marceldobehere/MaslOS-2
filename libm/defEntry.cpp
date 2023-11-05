@@ -51,7 +51,7 @@ extern "C" void _start()
     // if (argv != NULL)
     //     _Free(argv);
 
-    int res = main(argc, argv);
+    int res = main(argc, argv); 
     while (true)
         programExit(res);
 }

@@ -10,9 +10,65 @@
 #include <libm/list/list_window.h>
 #include <libm/memStuff.h>
 #include <libm/list/list_basic_msg.h>
+#include <libm/images/bitmapImage.h>
 
 
+static const int countOfButtonIcons = 9;
 
+    static struct _windowButtonIconEnum
+    {
+        static const int 
+        CLOSE_N = 0,
+        CLOSE_S = 1,
+        CLOSE_H = 2,
+
+        MIN_N = 3,
+        MIN_S = 4,
+        MIN_H = 5,
+
+        HIDE_N = 6,
+        HIDE_S = 7,
+        HIDE_H = 8;
+
+    } windowButtonIconEnum;
+
+static const char* const windowButtonIconNames[countOfButtonIcons] = {
+    "close_n.mbif", "close_s.mbif", "close_h.mbif", 
+    "min_n.mbif",   "min_s.mbif",   "min_h.mbif", 
+    "hide_n.mbif",  "hide_s.mbif",  "hide_h.mbif"
+};
+
+
+static struct _windowIconEnum
+{
+    static const int 
+    DEBUG = 0,
+    DEFAULT = 1,
+    TASK_MANAGER = 2,
+    TERMINAL = 3,
+    WARNING = 4,
+    CRASH = 5,
+    GUI_PGM = 6,
+    TESTO_PGM = 7;
+
+} windowIconEnum;
+
+static const int countOfWindowIcons = 8;
+
+static const char* windowIconNames[countOfWindowIcons] = {
+    "debug.mbif",
+    "generic.mbif",
+    "task_manager.mbif",
+    "terminal.mbif",
+    "warning.mbif",
+    "crash.mbif",
+    "gui.mbif",
+    "testo_pgm.mbif"
+};
+
+extern ImageStuff::BitmapImage* windowButtonIcons[countOfButtonIcons];
+
+extern ImageStuff::BitmapImage* internalWindowIcons[countOfWindowIcons];
 
 extern TempRenderer* actualScreenRenderer;
 extern Framebuffer* actualScreenFramebuffer;

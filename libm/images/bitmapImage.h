@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <libm/files/defaultFile.h>
 
 namespace ImageStuff
 {
@@ -12,4 +13,6 @@ namespace ImageStuff
     };
 
     BitmapImage* ConvertBufferToBitmapImage(char* buffer, uint64_t size);
+    BitmapImage* ConvertFileToBitmapImage(FileStuff::DefaultFile* file);
+    
 }
