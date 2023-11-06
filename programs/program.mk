@@ -15,8 +15,8 @@ endif
 
 
 NASMFLAGS ?= -F dwarf -g -f elf64
-CFLAGS   = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../../
-CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../../ -fpermissive -Wno-pmf-conversions 
+CFLAGS   = -ffreestanding -fshort-wchar -mno-red-zone -fPIC -fno-omit-frame-pointer -fno-exceptions -I ../../
+CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fPIC -fno-omit-frame-pointer -fno-exceptions -I ../../ -fpermissive -Wno-pmf-conversions 
 # -w
 
 

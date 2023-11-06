@@ -137,7 +137,7 @@ namespace Elf
         // //Serial::Writelnf("offset: %x\n", offset);
         // _memset(offset, 0, (uint64_t) last_dest / 0x1000 + 1);
 
-        uint64_t pageCount = (uint64_t) size / 0x1000 + 1;
+        uint64_t pageCount = (uint64_t) size / 0x1000 + 5;
         void* offset = GlobalAllocator->RequestPages(pageCount);
         GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, pageCount, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
@@ -150,7 +150,7 @@ namespace Elf
             void* dest = (void*) ((uint64_t) ph.p_vaddr - base + (uint64_t)offset);
             void* src = ((char*) data) + ph.p_offset;
     
-            if (ph.p_type != PT_LOAD && ph.p_type != PT_PHDR && ph.p_type != PT_DYNAMIC) 
+            if (ph.p_type != PT_LOAD)// && ph.p_type != PT_PHDR && ph.p_type != PT_DYNAMIC) 
                 continue;
 
             _memset(dest, 0, ph.p_memsz);
