@@ -62,6 +62,7 @@ namespace Elf
 
     LoadedElfFile borkedElfFile = {NULL, 0, NULL, NULL, false};
 
+
     LoadedElfFile LoadElf(uint8_t* data)
     {
         Elf64_Ehdr* header = (Elf64_Ehdr*) data;
@@ -90,35 +91,59 @@ namespace Elf
         }
         
 
-        Elf64_Phdr* ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
+        Elf64_Phdr* ph = NULL;//(Elf64_Phdr*) (((char*) data) + header->e_phoff);
         //Serial::Writelnf("ELF> ph: %x\n", ph);
 
-        void* last_dest = NULL;
-
-        for (int i = 0; i < header->e_phnum; i++, ph++) 
+        uint64_t base = NULL;
+        for (int i = 0; i < header->e_phnum; i++) 
         {
-            if (ph->p_type != PT_LOAD) 
-                continue;
+            _memcpy(data + header->e_phoff + header->e_phentsize*i, ph, sizeof(ph));
+            base = min(base, ph->p_vaddr);
+        }
     
-            void* tempDest = (void*) ((uint64_t) ph->p_vaddr + ph->p_memsz);
-            if (last_dest == NULL || last_dest < tempDest)
-                last_dest = tempDest;
+        uintptr_t size=0;
+    
+        for (int i = 0; i < header->e_phnum; i++) 
+        {
+            uintptr_t segment_end;
+            _memcpy(data + header->e_phoff + header->e_phentsize*i, ph, sizeof(ph));
+    
+            segment_end = ph->p_vaddr - base + ph->p_memsz;
+            size = max(size, segment_end);
         }
 
-        void* offset = GlobalAllocator->RequestPages((uint64_t) last_dest / 0x1000 + 1);
-        // TODO: might make a check here for kernel modules, so ya cant run or see it as userspace
-        GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, (uint64_t) last_dest / 0x1000 + 1, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        // void* last_dest = NULL;
+
+        // for (int i = 0; i < header->e_phnum; i++, ph++) 
+        // {
+        //     _memcpy(data + header->e_phoff + header->e_phentsize*i, ph, sizeof(ph));
+        //     if (ph->p_type != PT_LOAD) 
+        //         continue;
+    
+        //     void* tempDest = (void*) ((uint64_t) ph->p_vaddr + ph->p_memsz);
+        //     //if (last_dest == NULL || last_dest < tempDest)
+        //     last_dest = tempDest;
+        // }
+
+        // void* offset = GlobalAllocator->RequestPages((uint64_t) last_dest / 0x1000 + 1);
+        // // TODO: might make a check here for kernel modules, so ya cant run or see it as userspace
+        // GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, (uint64_t) last_dest / 0x1000 + 1, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        // offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
+        // //Serial::Writelnf("offset: %x\n", offset);
+        // _memset(offset, 0, (uint64_t) last_dest / 0x1000 + 1);
+
+        void* offset = GlobalAllocator->RequestPages((uint64_t) size / 0x1000 + 1);
+        GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, (uint64_t) size / 0x1000 + 1, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
-        //Serial::Writelnf("offset: %x\n", offset);
-        _memset(offset, 0, (uint64_t) last_dest / 0x1000 + 1);
+        _memset(offset, 0, (uint64_t) size / 0x1000 + 1);
 
         ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
         for (int i = 0; i < header->e_phnum; i++, ph++)
         {
+            _memcpy(data + header->e_phoff + header->e_phentsize*i, ph, sizeof(ph));
             void* dest = (void*) ((uint64_t) ph->p_vaddr + (uint64_t) offset);
             void* src = ((char*) data) + ph->p_offset;
-
-
+            
             if (ph->p_type != PT_LOAD) 
                 continue;
             
@@ -133,7 +158,8 @@ namespace Elf
         file.entryPoint = (void*) (header->e_entry + (uint64_t) offset);
         file.offset = offset;
         file.data = data;
-        file.size = (uint64_t) last_dest / 0x1000 + 1;
+        //file.size = (uint64_t) last_dest / 0x1000 + 1;
+        file.size = (uint64_t) size / 0x1000 + 1;
         file.works = true;
 
         return file;
