@@ -784,6 +784,46 @@ uint64_t DrawFrame()
     return totalPixelCount;
 }
 
+#include <libm/math.h>
+
+Window* getWindowAtMousePosition(int dis)
+{
+    if (MousePosition.y >= mainBuffer->Height - taskbar->Height)
+        return NULL;
+    
+    //GlobalRenderer->Println("Mouse POS Check");
+    for (int64_t i = windows->GetCount() - 1; i >= 0; i--)
+    {
+        if (windows->ElementAt(i)->Hidden)
+            continue;
+
+        WindowDimension dim = windows->ElementAt(i)->Dimensions;
+        MPoint tl = MPoint(dim.x, dim.y);
+        MPoint br = MPoint(dim.x + dim.width, dim.y + dim.height);
+        
+        tl.x--;
+        tl.y--;
+        if (windows->ElementAt(i)->ShowTitleBar)
+            tl.y -= 21;
+        br.x++;
+        br.y++;
+
+        tl.x -= dis;
+        tl.y -= dis;
+        br.x += dis;
+        br.y += dis;
+
+
+        if (MousePosition.x >= tl.x && MousePosition.x <= br.x && MousePosition.y >= tl.y && MousePosition.y <=br.y)
+            return windows->ElementAt(i);
+    }
+    return NULL;   
+}
+
+Window* getWindowAtMousePosition()
+{
+    return getWindowAtMousePosition(8);
+}
 
 /*
 HandleKeyboardList(20);

@@ -1,5 +1,6 @@
 #include "mouseStuff.h"
 #include <libm/rendering/Cols.h>
+#include "main.h"
 
 uint32_t MouseDataMap[] =
 {
@@ -55,4 +56,110 @@ void DrawMousePointer(MPoint point, PointerBuffer* framebuffer)
                     (point.x + x) >= 0 && (point.x + x) < framebuffer->Width)
                     framebuffer->BaseAddress[(point.y + y) * framebuffer->Width + (point.x + x)] = &(MouseDataMap[y * 16 + x]);
         
+}
+
+ZipStuff::ZIPFile* mouseZIP;
+ImageStuff::BitmapImage* currentMouseImage;
+const char* currentMouseImageName;
+const char* oldMouseImageName = "";
+bool dragArr[4] = {false, false, false, false}; //xl yu xr xd
+
+void FigureOutCorrectMouseImage()
+{
+    int maxDis = 8;
+    for (int i = 0; i < 4; i++)
+        dragArr[i] = false;
+    Window* window = getWindowAtMousePosition(maxDis);
+    if (window == NULL || !window->Resizeable)
+    {
+        currentMouseImageName = "default.mbif";
+        
+        return;
+    }
+    
+    int minY = 22;
+    if (!window->ShowTitleBar)
+        minY = 1;
+
+    if (MousePosition.x >= window->Dimensions.x - maxDis && MousePosition.x <= window->Dimensions.x + maxDis)
+    {
+        dragArr[0] = true;
+        if (MousePosition.y >= (window->Dimensions.y - minY) - maxDis && MousePosition.y <= (window->Dimensions.y - minY) + maxDis)
+        {
+            currentMouseImageName = "drag_D_d.mbif";
+            dragArr[1] = true;
+
+        }
+        else if (MousePosition.y >= (window->Dimensions.y + window->Dimensions.height) - maxDis && MousePosition.y <= (window->Dimensions.y + window->Dimensions.height) + maxDis)
+        {
+            currentMouseImageName = "drag_U_d.mbif";
+            dragArr[3] = true;
+        }
+        else 
+        {
+            currentMouseImageName = "drag_x.mbif";
+        }
+    }
+    else if (MousePosition.x >= (window->Dimensions.x + window->Dimensions.width) - maxDis && MousePosition.x <= (window->Dimensions.x + window->Dimensions.width) + maxDis)
+    {
+        dragArr[2] = true;
+        if (MousePosition.y >= (window->Dimensions.y - minY) - maxDis && MousePosition.y <= (window->Dimensions.y - minY) + maxDis)
+        {
+            currentMouseImageName = "drag_U_d.mbif";
+            dragArr[1] = true;
+        }
+        else if (MousePosition.y >= (window->Dimensions.y + window->Dimensions.height) - maxDis && MousePosition.y <= (window->Dimensions.y + window->Dimensions.height) + maxDis)
+        {
+            currentMouseImageName = "drag_D_d.mbif";
+            dragArr[3] = true;
+        }
+        else
+        {
+            currentMouseImageName = "drag_x.mbif";
+        }
+    }
+    else if (MousePosition.y >= (window->Dimensions.y - minY) - maxDis && MousePosition.y <= (window->Dimensions.y - minY) + maxDis)
+    {
+        currentMouseImageName = "drag_y.mbif";
+        dragArr[1] = true;
+    }
+    else if (MousePosition.y >= (window->Dimensions.y + window->Dimensions.height) - maxDis && MousePosition.y <= (window->Dimensions.y + window->Dimensions.height) + maxDis)
+    {
+        currentMouseImageName = "drag_y.mbif";
+        dragArr[3] = true;
+    }
+    else
+    {
+        currentMouseImageName = "default.mbif";
+    }
+}
+
+#include <libm/cstrTools.h>
+
+void DrawMousePointerNew(MPoint point, PointerBuffer* framebuffer)
+{
+    if (windows != NULL)
+    {
+        FigureOutCorrectMouseImage();
+    }
+    if (mouseZIP != NULL)
+    {
+        if (!StrEquals(oldMouseImageName, currentMouseImageName))
+        {
+            oldMouseImageName = currentMouseImageName;
+            ImageStuff::BitmapImage* oldMouseImage = currentMouseImage;
+            currentMouseImage = ImageStuff::ConvertFileToBitmapImage(ZipStuff::ZIP::GetFileFromFileName(mouseZIP, currentMouseImageName));
+            
+            if (oldMouseImage != NULL)
+            {
+                _Free(oldMouseImage->imageBuffer);
+                _Free(oldMouseImage);
+            }
+        }
+    }
+
+    if (currentMouseImage != NULL)
+        VirtualRenderer::DrawImage(currentMouseImage, point.x, point.y, 1, 1, VirtualRenderer::Border(framebuffer), framebuffer);
+    else
+        ;//DrawMouseBuffer(IMousePosition, framebuffer);
 }
