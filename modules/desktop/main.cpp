@@ -140,6 +140,17 @@ void InitStuff()
         }
     }
 
+    mouseZIP = NULL;
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile("bruh:wmStuff/mouse.mbzf", (void**)&buf, &size))
+        {
+            mouseZIP = ZipStuff::ZIP::GetZIPFromBuffer(buf, size);
+            //_Free(buf);
+        }
+    }
+
     //while (true);
 }
 
@@ -679,7 +690,7 @@ uint64_t DrawFrame()
 
     // Draw Mouse
     MPoint tempMousePos = MousePosition;
-    DrawMousePointer(tempMousePos, pointerBuffer);
+    DrawMousePointerNew(tempMousePos, pointerBuffer);
     
     //Render();
 
@@ -766,11 +777,11 @@ uint64_t DrawFrame()
 
 
     totalPixelCount += RenderActualSquare(
-        tempMousePos.x, 
-        tempMousePos.y, 
+        tempMousePos.x - 16, 
+        tempMousePos.y - 16, 
         
-        tempMousePos.x + 16, 
-        tempMousePos.y + 16
+        tempMousePos.x + 32, 
+        tempMousePos.y + 32
     );
     oldMousePos = tempMousePos;
 

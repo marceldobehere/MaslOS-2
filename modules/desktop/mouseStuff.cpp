@@ -157,9 +157,11 @@ void DrawMousePointerNew(MPoint point, PointerBuffer* framebuffer)
             }
         }
     }
+    else
+        currentMouseImage = NULL;
 
     if (currentMouseImage != NULL)
         VirtualRenderer::DrawImage(currentMouseImage, point.x, point.y, 1, 1, VirtualRenderer::Border(framebuffer), framebuffer);
     else
-        ;//DrawMouseBuffer(IMousePosition, framebuffer);
+        DrawMousePointer(point, framebuffer);//DrawMouseBuffer(IMousePosition, framebuffer);
 }
