@@ -165,3 +165,161 @@ void DrawMousePointerNew(MPoint point, PointerBuffer* framebuffer)
     else
         DrawMousePointer(point, framebuffer);//DrawMouseBuffer(IMousePosition, framebuffer);
 }
+
+#include "wmStuff.h"
+bool doingWindowDrag = false;
+MPoint windowDragMouseStart;
+WindowDimension windowDragWindowStart;
+bool windowDragMouseArr[4];
+
+void HandleMouseClickPacket(MouseMessagePacket* packet)
+{
+    if (packet == NULL)
+        return;
+
+    bool tClicks[3] = {false, false, false};
+    bool tHolds[3] = {false, false, false};
+
+    tClicks[0] = packet->Left && !packet->PrevLeft;
+    tHolds[0] = packet->Left && packet->PrevLeft;
+
+    tClicks[1] = packet->Right && !packet->PrevRight;
+    tHolds[1] = packet->Right && packet->PrevRight;
+
+    tClicks[2] = packet->Middle && !packet->PrevMiddle;
+    tHolds[2] = packet->Middle && packet->PrevMiddle;
+
+    // instant reset if mouse ever stopped holding
+    doingWindowDrag &= packet->Left;
+
+    if (tClicks[0] || tClicks[1] || tClicks[2])
+        HandleClick(tClicks[0], tClicks[1], tClicks[2]);
+    if (tHolds[0] || tHolds[1] || tHolds[2])
+        HandleDrag(tHolds[0], tHolds[1], tHolds[2]);
+}
+
+void HandleClick(bool L, bool R, bool M)
+{
+    if (L)
+    {
+        activeWindow = getWindowAtMousePosition(); 
+        if (currentActionWindow == NULL)
+        {
+            if (activeWindow != NULL)
+            {
+                if (activeWindow->ShowTitleBar && activeWindow->Moveable)
+                {
+                    windowDragMouseStart = MousePosition;
+                    windowDragWindowStart = activeWindow->Dimensions;
+                    for (int i = 0; i < 4; i++)
+                        windowDragMouseArr[i] = dragArr[i];
+                    
+                    if (MousePosition.y < activeWindow->Dimensions.y + 22)
+                    {
+                        doingWindowDrag = true;
+                    }
+                    else
+                    {
+                        doingWindowDrag = false;
+                        for (int i = 0; i < 4; i++)
+                        {
+                            windowDragMouseArr[i] = dragArr[i];
+                            doingWindowDrag |= windowDragMouseArr[i];
+                        }
+                    }
+                }
+            }
+        }
+        else if (activeWindow == currentActionWindow)
+        {
+            WindowActionEnum action = GetCurrentAction(activeWindow);
+
+            if (action == WindowActionEnum::_NONE)
+            {
+
+            }
+            else if (action == WindowActionEnum::CLOSE)
+            {
+                AddWindowToBeRemoved(activeWindow);
+            }
+            else if (action == WindowActionEnum::HIDE)
+            {
+                activeWindow->Hidden = !activeWindow->Hidden;
+            }
+            else if (action == WindowActionEnum::MIN_MAX)
+            {
+                serialPrintLn("Warning: Min/Max not implemented yet!");
+            }
+        }
+        else
+        {
+            serialPrintLn("Warning: Active Window and Current Action Window are not the same!");
+        }
+    }
+}
+
+void HandleDrag(bool L, bool R, bool M)
+{
+    if (L)
+    {
+        doingWindowDrag &= activeWindow != NULL;
+        if (doingWindowDrag)
+        {
+            int dx = MousePosition.x - windowDragMouseStart.x;
+            int dy = MousePosition.y - windowDragMouseStart.y;
+
+            if (windowDragMouseArr[0])
+            {
+                activeWindow->Dimensions.x = windowDragWindowStart.x + dx;
+                activeWindow->Dimensions.width = windowDragWindowStart.width - dx;
+
+                if (activeWindow->Dimensions.width < 100)
+                {
+                    activeWindow->Dimensions.x = windowDragWindowStart.x + windowDragWindowStart.width - 100;
+                    activeWindow->Dimensions.width = 100;
+                }
+            }
+            else if (windowDragMouseArr[2])
+            {
+                activeWindow->Dimensions.width = windowDragWindowStart.width + dx;
+
+                if (activeWindow->Dimensions.width < 100)
+                {
+                    activeWindow->Dimensions.width = 100;
+                }
+            }
+
+            if (windowDragMouseArr[1])
+            {
+                activeWindow->Dimensions.y = windowDragWindowStart.y + dy;
+                activeWindow->Dimensions.height = windowDragWindowStart.height - dy;
+
+                if (activeWindow->Dimensions.height < 100)
+                {
+                    activeWindow->Dimensions.y = windowDragWindowStart.y + windowDragWindowStart.height - 100;
+                    activeWindow->Dimensions.height = 100;
+                }
+            }
+            else if (windowDragMouseArr[3])
+            {
+                activeWindow->Dimensions.height = windowDragWindowStart.height + dy;
+
+                if (activeWindow->Dimensions.height < 100)
+                {
+                    activeWindow->Dimensions.height = 100;
+                }
+            }
+
+            bool noSideDrag = true;
+            for (int i = 0; i < 4; i++)
+                noSideDrag &= !windowDragMouseArr[i];
+
+            if (noSideDrag)
+            {
+                activeWindow->Dimensions.x = windowDragWindowStart.x + dx;
+                activeWindow->Dimensions.y = windowDragWindowStart.y + dy;
+            }
+        }
+    }
+}
+

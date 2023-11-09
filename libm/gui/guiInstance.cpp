@@ -121,6 +121,10 @@ void GuiInstance::Render()
 
    //screen->KeyHit(GuiComponentStuff::KeyHitEventInfo(scancode, QWERTYKeyboard::Translate(scancode, lshift || rshift)));
 
+    // for now we will request a full update every frame
+    // later the wm will send an update packet if something changes
+    updateWindow(window);
+
     {
         MouseState* temp = envGetMouseState();
         if (temp != NULL)

@@ -11,6 +11,7 @@
 #include <libm/memStuff.h>
 #include <libm/list/list_basic_msg.h>
 #include <libm/images/bitmapImage.h>
+#include <libm/list/list_basic_msg.h>
 
 
 static const int countOfButtonIcons = 9;
@@ -104,3 +105,5 @@ void CheckForDeadWindows();
 
 Window* getWindowAtMousePosition(int dis);
 Window* getWindowAtMousePosition();
+
+void AddWindowToBeRemoved(Window* window);

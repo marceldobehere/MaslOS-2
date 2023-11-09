@@ -281,7 +281,12 @@ int main(int argc, char** argv)
 
     while (true)
     {
-        testGui->Render();
+        for (int i = 0; i < 5; i++)
+        {
+            testGui->Render();
+            programYield();
+        }
+
         testRect->position.x += 5;
         if (testRect->position.x > 300)
             testRect->position.x = 0;

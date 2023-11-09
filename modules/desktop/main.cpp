@@ -36,6 +36,7 @@ MPoint oldMousePos;
 Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 
 Queue<WindowUpdate>* ScreenUpdates;
+List<GenericMessagePacket*>* tempPackets;
 
 #include <libm/zips/basicZip.h>
 
@@ -92,6 +93,7 @@ void InitStuff()
 
     windows = new List<Window*>(5);
     windowsToDelete = new List<Window*>(3);
+    tempPackets = new List<GenericMessagePacket*>(5);
 
     ScreenUpdates = new Queue<WindowUpdate>(20);
 
@@ -326,13 +328,20 @@ void CheckForDeadWindows()
         Window* window = windows->ElementAt(i);
         if (!pidExists(window->PID))
         {
-            windows->RemoveAt(i);
-
-            windowsToDelete->Add(window);
+            AddWindowToBeRemoved(window);
 
             i--;
         }
     }   
+}
+
+void AddWindowToBeRemoved(Window* window)
+{
+    windowsToDelete->Add(window);
+
+    int idx = windows->GetIndexOf(window);
+    if (idx != -1)
+        windows->RemoveAt(idx);
 }
 
 uint64_t DrawFrame()
@@ -367,6 +376,8 @@ uint64_t DrawFrame()
                         _Free(msgNew);
                     }
                 }
+
+                HandleMouseClickPacket(mouseMsg);
             }
         }
         else if (msg->Type == MessagePacketType::KEY_EVENT)
@@ -410,7 +421,21 @@ uint64_t DrawFrame()
                 }
             }
         }
-        else if (msg->Type == MessagePacketType::WINDOW_BUFFER_EVENT)
+        else
+        {
+            tempPackets->Add(msg);
+            continue;
+        }
+
+        msg->Free();
+        _Free(msg);
+    }
+
+    for (int i = 0; i < tempPackets->GetCount(); i++)
+    {
+        GenericMessagePacket* msg = tempPackets->ElementAt(i);
+
+        if (msg->Type == MessagePacketType::WINDOW_BUFFER_EVENT)
         {
             WindowBufferUpdatePacket* windowBufferUpdatePacket = new WindowBufferUpdatePacket(msg);
 
@@ -472,10 +497,7 @@ uint64_t DrawFrame()
             {
                 if (window->PID == pidFrom)
                 {
-                    windowsToDelete->Add(window);
-
-                    int idx = windows->GetIndexOf(window);
-                    windows->RemoveAt(idx);
+                    AddWindowToBeRemoved(window);
                 }
             }
 
@@ -568,7 +590,7 @@ uint64_t DrawFrame()
                 {
                     // serialPrintLn("> WIN SET EVENT");
                     win->UpdateUsingPartialWindow(fromWind, false, false);
-                    win->UpdateCheck();
+                    //win->UpdateCheck();
                 }
                 else
                 {
@@ -589,6 +611,8 @@ uint64_t DrawFrame()
         msg->Free();
         _Free(msg);
     }
+
+    tempPackets->Clear();
 
     //doUpdate |= updateFramePackets->GetCount() > 0;
 
@@ -743,11 +767,11 @@ uint64_t DrawFrame()
     }
 
     totalPixelCount += RenderActualSquare(
-        oldMousePos.x, 
-        oldMousePos.y, 
+        oldMousePos.x - 32, 
+        oldMousePos.y - 32, 
         
-        oldMousePos.x + 16, 
-        oldMousePos.y + 16
+        oldMousePos.x + 48, 
+        oldMousePos.y + 48
     );
 
 
@@ -777,11 +801,11 @@ uint64_t DrawFrame()
 
 
     totalPixelCount += RenderActualSquare(
-        tempMousePos.x - 16, 
-        tempMousePos.y - 16, 
+        tempMousePos.x - 32, 
+        tempMousePos.y - 32, 
         
-        tempMousePos.x + 32, 
-        tempMousePos.y + 32
+        tempMousePos.x + 48, 
+        tempMousePos.y + 48
     );
     oldMousePos = tempMousePos;
 

@@ -154,10 +154,6 @@ void Window::_CheckDimensionChange()
         int x4 = Dimensions.x + Dimensions.width;
         int y4 = Dimensions.y + Dimensions.height;
 
-
-        // Apparently virtual box crashes here because of a page fault
-        // with some code commented out its either a page fault due to an instruction fetch
-        // without code commented out its apparently due to error code 6 -> Some reserved bit was set to 1 (in userspace)
         int minX = min(x1, x3);
         int minY = min(y1, y3);
 
@@ -169,10 +165,10 @@ void Window::_CheckDimensionChange()
         maxX += 1;
         maxY += 1;
 
-        if (minX < 0)
-            minX = 0;
-        if (minY < 0)
-            minY = 0;
+        // if (minX < 0)
+        //     minX = 0;
+        // if (minY < 0)
+        //     minY = 0;
 
         int width = maxX - minX + 1;
         int height = maxY - minY + 1;
@@ -293,7 +289,8 @@ void Window::UpdateCheck()
 
 void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool updateActive)
 {
-    // TODO apply the changes
+    if (window == NULL)
+        return;
 
     // Title
     if (window->Title != NULL)
