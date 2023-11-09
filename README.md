@@ -10,15 +10,23 @@ Of course it is 64bit and boots using BIOS.
 And it mostly works on real hardware.
 
 ## Goals
- - Scheduler (working)
- - Elf loading (working)
- - User Space (working)
- - Mouse/Keyboard interacting with stuff (in progress)
- - MaslOS Desktop / WM (in progress)
- - Inter Process Communication (in progress)
- - MaslOS GUI Framework (not added yet)
- - SMP (not added yet)
- - idk more stuff
+ + Basics
+   - Scheduler (working)
+   - Elf loading (working)
+   - User Space (working)
+   - Inter Process Communication (working)
+   - Stdio using IPC (soon)
+ + GUI
+   - MaslOS GUI Framework port (working)
+   - Mouse/Keyboard interaction (mostly working)
+   - MaslOS Desktop / WM (mostly working)
+   - Taskbar (work in progress)
+ + Apps
+   - MAAB interpreter (soon)
+   - Apps ported from MaslOS and some extra ones (not yet)
+ + Other
+   - SMP (not added yet)
+   - idk more stuff
 
 
 ## How to build (Linux)
@@ -33,6 +41,7 @@ Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
 
 ## Screenshots
+![WM almost on par with MaslOS](/images/wm%204.png)
 ![More WM progress](/images/wm%203.png)
 ![WM progress](/images/wm%202.png)
 ![Beginning to work on WM](/images/start%20of%20wm%201.png)
