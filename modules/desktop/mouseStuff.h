@@ -20,6 +20,6 @@ void FigureOutCorrectMouseImage();
 void DrawMousePointerNew(MPoint point, PointerBuffer* framebuffer);
 
 #include <libm/msgPackets/mousePacket/mousePacket.h>
-void HandleMouseClickPacket(MouseMessagePacket* packet);
-void HandleClick(bool L, bool R, bool M);
-void HandleDrag(bool L, bool R, bool M);
+bool HandleMouseClickPacket(MouseMessagePacket* packet);
+bool HandleClick(bool L, bool R, bool M);
+bool HandleDrag(bool L, bool R, bool M);

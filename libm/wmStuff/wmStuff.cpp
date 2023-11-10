@@ -98,6 +98,16 @@ void setWindow(uint64_t id, Window* window)
     
     window->UpdateCheck();
     window->Updates->Clear();
+
+    // swallow all update packets
+    for (int i = 0; i < 50; i++)
+    {
+        GenericMessagePacket* msg = msgGetConv(CONVO_ID_WM_WINDOW_UPDATE);
+        if (msg == NULL)
+            break;
+        msg->Free();
+        _Free(msg);
+    }
 }
 
 void updateWindow(Window* window)

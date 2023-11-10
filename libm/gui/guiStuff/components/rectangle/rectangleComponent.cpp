@@ -49,7 +49,7 @@ namespace GuiComponentStuff
         ComponentSize temp = GetActualComponentSize();
         if (oldSize != temp)
         {
-            renderer->Resize(temp);
+            renderer->Resize(temp, false);
             renderer->Fill(fillColor);
             oldSize = temp;
             update = true;

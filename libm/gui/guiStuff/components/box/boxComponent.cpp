@@ -76,7 +76,7 @@ namespace GuiComponentStuff
         ComponentSize temp = GetActualComponentSize();
         if (oldSize != temp)
         {
-            renderer->Resize(temp);
+            renderer->Resize(temp, false);
             
             oldSize = temp;
 

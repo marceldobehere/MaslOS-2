@@ -102,29 +102,56 @@ int GetBaseComponentAttributeSize(GuiInstanceBaseAttributeType type)
 #include <libm/cstr.h>
 #include <libm/msgPackets/mousePacket/mousePacket.h>
 #include <libm/msgPackets/keyPacket/keyPacket.h>
-
+#include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 
 void GuiInstance::Render()
 {
     if (screen == NULL)
         return;
 
-    /*
-        if (gui->screen != NULL && gui->waitTask == NULL)
+    // Window Updates
+    if (true)
     {
-        Position p = window->GetMousePosRelativeToWindow();
-        
-        if (oldActive == window)
-            gui->screen->MouseClicked(GuiComponentStuff::MouseClickEventInfo(GuiComponentStuff::Position(p.x, p.y), L, R, M));
+        bool updateEverHappened = false;;
+        for (int i = 0; i < 500; i++)
+        {
+            GenericMessagePacket* wPacket = msgGetConv(CONVO_ID_WM_WINDOW_UPDATE);
+            if (wPacket != NULL)
+            {
+                if (wPacket->FromPID == desktopPID)
+                {
+                    WindowObjectPacket* gotObj = new WindowObjectPacket(wPacket);
+                    Window* partialWindow = gotObj->PartialWindow;
+                    gotObj->Free();
+                    _Free(gotObj);
+
+                    if (partialWindow != NULL)
+                    {
+                        updateEverHappened = true;
+                        window->UpdateUsingPartialWindow(partialWindow, true, true);
+                        partialWindow->Free();
+                        _Free(partialWindow);
+                    }
+                }
+                
+                wPacket->Free();
+                _Free(wPacket);
+            }
+            else
+                break;
+        }
+        if (updateEverHappened)
+        {
+            window->UpdateCheck();
+            window->Updates->Clear();
+        }
     }
-    */
+    else
+    {
+        updateWindow(window);
+    }
 
-   //screen->KeyHit(GuiComponentStuff::KeyHitEventInfo(scancode, QWERTYKeyboard::Translate(scancode, lshift || rshift)));
-
-    // for now we will request a full update every frame
-    // later the wm will send an update packet if something changes
-    updateWindow(window);
-
+    // Update Mouse Position
     {
         MouseState* temp = envGetMouseState();
         if (temp != NULL)
@@ -136,7 +163,8 @@ void GuiInstance::Render()
         }
     }
     
-
+    // Keyboard Events
+    for (int i = 0; i < 500; i++)
     {
         GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_KB_STUFF);
         if (mPacket != NULL)
@@ -152,8 +180,12 @@ void GuiInstance::Render()
             mPacket->Free();
             _Free(mPacket);
         }
+        else
+            break;
     }
 
+    // Mouse Events
+    for (int i = 0; i < 500; i++)
     {
         GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_MOUSE_STUFF);
         if (mPacket != NULL)
@@ -177,11 +209,14 @@ void GuiInstance::Render()
             mPacket->Free();
             _Free(mPacket);
         }
+        else
+            break;
     }
 
     screen->CheckUpdates();
-    //window->Updates->Clear();
 
+    //serialPrint("> Updates: ");
+    //serialPrintLn(to_string(screen->finalUpdatedFields->GetCount()));
     while (screen->finalUpdatedFields->GetCount() > 0)
     {
         GuiComponentStuff::Field bruh = screen->finalUpdatedFields->LastElement();
@@ -196,27 +231,10 @@ void GuiInstance::Render()
 
         screen->renderer->Render(screen->position, bruh, &bruhus);
 
-        // send update
+        //send update
         SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
     }
 }
-
-    //screen->Render(GuiComponentStuff::Field(GuiComponentStuff::Position(), GuiComponentStuff::Position(window->size.width - 1, window->size.height - 1)));
-    // long t = window->size.height * (long)window->size.width;
-
-    // for (long i = 0; i < t; i++)
-    //     ((uint32_t*)window->framebuffer->BaseAddress)[i] = screen->renderer->componentFrameBuffer->pixels[i];
-
-        // serialPrint("> Sending Update: (");
-        // serialPrint(to_string(bruh.TL.x));
-        // serialPrint(", ");
-        // serialPrint(to_string(bruh.TL.y));
-        // serialPrint(") - (");
-        // serialPrint(to_string(bruh.BR.x));
-        // serialPrint(", ");
-        // serialPrint(to_string(bruh.BR.y));
-        // serialPrintLn(")");
-
 
     // TODO: IMPLEMENT ONCE TASKS EXIST (IF I DECIDE TO USE THEM)
     // if (waitTask == NULL && !waitingForTask && waitTask2 != NULL)

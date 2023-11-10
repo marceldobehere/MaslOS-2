@@ -80,7 +80,7 @@ namespace GuiComponentStuff
                 fgColor != fgColorOld || bgColor != bgColorOld ||
                 oldCenter != center)
             {
-                renderer->Resize(temp);
+                renderer->Resize(temp, false);
                 renderer->Fill(bgColor);
 
                 oldSize = temp;
@@ -99,7 +99,7 @@ namespace GuiComponentStuff
                 fgColor != fgColorOld || bgColor != bgColorOld ||
                 oldCenter != center)
             {
-                renderer->Resize(size);
+                renderer->Resize(size, false);
                 renderer->Fill(bgColor);
                 oldSize = size;
                 renderer->PrintString(text, Position(0, 0), fgColor, bgColor, false, center);

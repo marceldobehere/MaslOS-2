@@ -1744,7 +1744,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_WAIT)
     {
-        Serial::Writelnf("> WAITING PROGRAM %d ms", frame->rbx);
+        //Serial::Writelnf("> WAITING PROGRAM %d ms", frame->rbx);
         Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + frame->rbx;
 
         Scheduler::SchedulerInterrupt(frame);

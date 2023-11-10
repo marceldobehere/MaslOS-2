@@ -342,7 +342,8 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool 
         IsActive = window->IsActive;
     }
 
-    UpdateCheck();
+    // if (doUpdateCheck)
+    //     UpdateCheck();
 }
 
 // void Window::DrawToFramebuffer(Framebuffer* framebuffer, Framebuffer* backbuffer, WindowUpdate update, int x, int y)

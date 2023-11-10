@@ -24,7 +24,7 @@ namespace GuiComponentStuff
 
 
         ComponentRenderer(ComponentSize size);
-        void Resize(ComponentSize size);
+        void Resize(ComponentSize size, bool paint);
         void Render(Position componentPosition, Field field, ComponentFramebuffer* to);
         void Fill(uint32_t col);
         void Fill(uint32_t col, Field field);

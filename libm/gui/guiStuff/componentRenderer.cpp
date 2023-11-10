@@ -34,17 +34,19 @@ namespace GuiComponentStuff
         font = defaultRenderFont;
     }
 
-    void ComponentRenderer::Resize(ComponentSize size)
+    void ComponentRenderer::Resize(ComponentSize size, bool paint)
     {
         AddToStack();
         ComponentFramebuffer* temp = new ComponentFramebuffer(size.FixedX, size.FixedY);
         ComponentFramebuffer* old = componentFrameBuffer;
 
         componentFrameBuffer = temp;
-        Fill(bgCol);
+        if (paint)
+            Fill(bgCol);
         componentFrameBuffer = old;
         
-        Render(Position(0,0), Field(Position(0, 0), Position(old->Width - 1, old->Height - 1)), temp);
+        if (paint)  
+            Render(Position(0,0), Field(Position(0, 0), Position(old->Width - 1, old->Height - 1)), temp);
 
         componentFrameBuffer = temp;
         old->Free();

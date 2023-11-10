@@ -23,6 +23,7 @@ Framebuffer* taskbar;
 
 List<Window*>* windows;
 List<Window*>* windowsToDelete;
+List<Window*>* windowsUpdated;
 Window* activeWindow;
 Window* currentActionWindow;
 
@@ -93,6 +94,7 @@ void InitStuff()
 
     windows = new List<Window*>(5);
     windowsToDelete = new List<Window*>(3);
+    windowsUpdated = new List<Window*>(5);
     tempPackets = new List<GenericMessagePacket*>(5);
 
     ScreenUpdates = new Queue<WindowUpdate>(20);
@@ -218,9 +220,9 @@ int main(int argc, char** argv)
 {
     serialPrintLn("Starting Desktop");
 
-    programSetPriority(1);
+    programSetPriority(2);
 
-    programWait(100);
+    programWait(10);
 
     InitStuff();
 
@@ -350,6 +352,7 @@ uint64_t DrawFrame()
     uint32_t rndCol = (uint32_t)RND::RandomInt();
 
     updateFramePackets->Clear();
+    windowsUpdated->Clear();
 
     bool doUpdate = false;
     int msgCount = min(msgGetCount(), 50);
@@ -366,7 +369,9 @@ uint64_t DrawFrame()
                 MousePosition.x = mouseMsg->MouseX;
                 MousePosition.y = mouseMsg->MouseY;
                 
-                if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
+                bool handled = HandleMouseClickPacket(mouseMsg);
+
+                if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK && !handled)
                 {   
                     if (activeWindow != NULL)
                     {
@@ -377,7 +382,10 @@ uint64_t DrawFrame()
                     }
                 }
 
-                HandleMouseClickPacket(mouseMsg);
+                if (handled && activeWindow != NULL)
+                {
+                    windowsUpdated->AddIfUnique(activeWindow);
+                }
             }
         }
         else if (msg->Type == MessagePacketType::KEY_EVENT)
@@ -623,7 +631,10 @@ uint64_t DrawFrame()
 
         {
             window->CurrentTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+            bool oldActive = window->IsActive;
             window->IsActive = (window == activeWindow);
+            if (oldActive != window->IsActive)
+                windowsUpdated->AddIfUnique(window);
             if (window == activeWindow)
             {
                 window->CurrentTitleColor = window->SelectedTitleColor;
@@ -665,6 +676,22 @@ uint64_t DrawFrame()
             }
 
             window->Updates->Clear();
+
+
+            if (windowsUpdated->Contains(window))
+            {
+                WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(window, false);
+                GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
+
+                msgSendConv(sendMsg, window->PID, CONVO_ID_WM_WINDOW_UPDATE);
+                //programWait(100);
+
+                sendMsg->Free();
+                _Free(sendMsg);
+
+                winObjPacketTo->Free();
+                _Free(winObjPacketTo);
+            }
         }
     }
 
@@ -694,14 +721,6 @@ uint64_t DrawFrame()
 
     //Taskbar::RenderTaskbar();
 
-
-
-    // Handle mouse
-    //ProcessMousePackets();
-    //MousePosition.x = (MousePosition.x + 5) % 600;
-    //MousePosition.y = (MousePosition.y + 7) % 400;
-
-    //doUpdate = true;
 
     doUpdate = updateFramePackets->GetCount() != 0;
 

@@ -172,10 +172,10 @@ MPoint windowDragMouseStart;
 WindowDimension windowDragWindowStart;
 bool windowDragMouseArr[4];
 
-void HandleMouseClickPacket(MouseMessagePacket* packet)
+bool HandleMouseClickPacket(MouseMessagePacket* packet)
 {
     if (packet == NULL)
-        return;
+        return false;
 
     bool tClicks[3] = {false, false, false};
     bool tHolds[3] = {false, false, false};
@@ -192,17 +192,67 @@ void HandleMouseClickPacket(MouseMessagePacket* packet)
     // instant reset if mouse ever stopped holding
     doingWindowDrag &= packet->Left;
 
+    bool res = false;
+
     if (tClicks[0] || tClicks[1] || tClicks[2])
-        HandleClick(tClicks[0], tClicks[1], tClicks[2]);
+        res |= HandleClick(tClicks[0], tClicks[1], tClicks[2]);
     if (tHolds[0] || tHolds[1] || tHolds[2])
-        HandleDrag(tHolds[0], tHolds[1], tHolds[2]);
+        res |= HandleDrag(tHolds[0], tHolds[1], tHolds[2]);
+
+    return res;
 }
 
-void HandleClick(bool L, bool R, bool M)
+bool HandleClick(bool L, bool R, bool M)
 {
+    bool res = false;
     if (L)
     {
+        Window* oldActive = activeWindow;
         activeWindow = getWindowAtMousePosition(); 
+
+        if (activeWindow != NULL)
+        {
+            int idx = windows->GetIndexOf(activeWindow);
+            if (idx != windows->GetCount() - 1)
+            {
+                if (idx != -1)
+                    windows->RemoveAt(idx);
+                windows->Add(activeWindow);
+            }
+
+            if (oldActive != NULL && oldActive != activeWindow)
+            {
+                UpdatePointerRect(
+                    oldActive->Dimensions.x, 
+                    oldActive->Dimensions.y, 
+                    oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
+                    oldActive->Dimensions.y + oldActive->Dimensions.height - 1
+                );
+                ScreenUpdates->Enqueue(WindowUpdate(
+                    oldActive->Dimensions.x, 
+                    oldActive->Dimensions.y, 
+                    oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
+                    oldActive->Dimensions.y + oldActive->Dimensions.height - 1
+                ));
+            }
+
+            if (oldActive != activeWindow)
+            {
+                UpdatePointerRect(
+                    activeWindow->Dimensions.x, 
+                    activeWindow->Dimensions.y, 
+                    activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
+                    activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
+                );
+                ScreenUpdates->Enqueue(WindowUpdate(
+                    activeWindow->Dimensions.x, 
+                    activeWindow->Dimensions.y, 
+                    activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
+                    activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
+                ));
+            }
+        }
+
         if (currentActionWindow == NULL)
         {
             if (activeWindow != NULL)
@@ -217,6 +267,7 @@ void HandleClick(bool L, bool R, bool M)
                     if (MousePosition.y < activeWindow->Dimensions.y + 22)
                     {
                         doingWindowDrag = true;
+                        res = true;
                     }
                     else
                     {
@@ -226,6 +277,7 @@ void HandleClick(bool L, bool R, bool M)
                             windowDragMouseArr[i] = dragArr[i];
                             doingWindowDrag |= windowDragMouseArr[i];
                         }
+                        res |= doingWindowDrag;
                     }
                 }
             }
@@ -241,14 +293,17 @@ void HandleClick(bool L, bool R, bool M)
             else if (action == WindowActionEnum::CLOSE)
             {
                 AddWindowToBeRemoved(activeWindow);
+                res = true;
             }
             else if (action == WindowActionEnum::HIDE)
             {
                 activeWindow->Hidden = !activeWindow->Hidden;
+                res = true;
             }
             else if (action == WindowActionEnum::MIN_MAX)
             {
                 serialPrintLn("Warning: Min/Max not implemented yet!");
+                res = true;
             }
         }
         else
@@ -256,15 +311,19 @@ void HandleClick(bool L, bool R, bool M)
             serialPrintLn("Warning: Active Window and Current Action Window are not the same!");
         }
     }
+
+    return res;
 }
 
-void HandleDrag(bool L, bool R, bool M)
+bool HandleDrag(bool L, bool R, bool M)
 {
+    bool res = true;
     if (L)
     {
         doingWindowDrag &= activeWindow != NULL;
         if (doingWindowDrag)
         {
+            res = true;
             int dx = MousePosition.x - windowDragMouseStart.x;
             int dy = MousePosition.y - windowDragMouseStart.y;
 
@@ -321,5 +380,7 @@ void HandleDrag(bool L, bool R, bool M)
             }
         }
     }
+
+    return res;
 }
 

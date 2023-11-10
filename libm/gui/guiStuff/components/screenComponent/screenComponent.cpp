@@ -52,7 +52,7 @@ namespace GuiComponentStuff
         AddToStack();
         if (oldSize != tSize)
         {
-            renderer->Resize(tSize);
+            renderer->Resize(tSize, false);
             size = tSize;
             oldSize = tSize;
             update = true;
@@ -70,6 +70,7 @@ namespace GuiComponentStuff
 
         for (int i = 0; i < children->GetCount(); i++)
             children->ElementAt(i)->CheckUpdates();
+        
         {
             int cCount = children->GetCount();
             while (childrenFields->GetCount() > cCount)
@@ -84,6 +85,7 @@ namespace GuiComponentStuff
                 childrenHidden->Add(false);
             }
         }
+
         {
             for (int i = 0; i < childrenFields->GetCount(); i++)
             {

@@ -281,18 +281,14 @@ int main(int argc, char** argv)
 
     while (true)
     {
-        for (int i = 0; i < 5; i++)
-        {
-            testGui->Render();
-            programYield();
-        }
+        testGui->Render();
 
-        testRect->position.x += 5;
+        testRect->position.x += 1;
         if (testRect->position.x > 300)
             testRect->position.x = 0;
         
-
-        programYield();
+        programWait(20);
+        //programYield();
         //programWait(500);
 
         // if (envGetTimeMs() >= endTime)

@@ -23,7 +23,7 @@ char buffer[512];
 
 int main(int argc, char** argv)
 {
-    return 0;
+    //return 0;
     initWindowManagerStuff();
     programWait(2000);
     
@@ -220,24 +220,25 @@ int main(int argc, char** argv)
         for (int i = 0; i < 5; i++)
         {
             testGui->Render();
-            testRect->position.x += 5;
-            if (testRect->position.x > 300)
-                testRect->position.x = 0;
-            testRect->position.y += 3;
-            if (testRect->position.y > 100)
-                testRect->position.y = 0;
+            // testRect->position.x += 5;
+            // if (testRect->position.x > 300)
+            //     testRect->position.x = 0;
+            // testRect->position.y += 3;
+            // if (testRect->position.y > 100)
+            //     testRect->position.y = 0;
             
-            programYield();
+            //programYield();
+            programWait(20);
         }
 
-        MouseState* mState = envGetMouseState();
-        window->Dimensions.y = mState->MouseY;
-        _Free(mState);
+        // MouseState* mState = envGetMouseState();
+        // window->Dimensions.y = mState->MouseY;
+        // _Free(mState);
         
-        window->Dimensions.x += 10;
-        if (window->Dimensions.x > 500)
-            window->Dimensions.x = 300;
-        setWindow(window);
+        // window->Dimensions.x += 10;
+        // if (window->Dimensions.x > 500)
+        //     window->Dimensions.x = 300;
+        // setWindow(window);
 
         programWait(20);
     }

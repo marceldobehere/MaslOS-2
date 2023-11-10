@@ -57,7 +57,7 @@ namespace GuiComponentStuff
         if (oldSize != temp)
         {
             renderer->bgCol = bgColor;
-            renderer->Resize(temp);
+            renderer->Resize(temp, true);
             //renderer->Fill(bgColor);
             oldSize = temp;
             update = true;
