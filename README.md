@@ -20,7 +20,7 @@ And it mostly works on real hardware.
    - MaslOS GUI Framework port (working)
    - Mouse/Keyboard interaction (mostly working)
    - MaslOS Desktop / WM (mostly working)
-   - Taskbar (work in progress)
+   - Taskbar (mostly working)
  + Apps
    - MAAB interpreter (soon)
    - Apps ported from MaslOS and some extra ones (not yet)
@@ -41,6 +41,7 @@ Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
 
 ## Screenshots
+![Taskbar yes](/images/wm%205.png)
 ![WM almost on par with MaslOS](/images/wm%204.png)
 ![More WM progress](/images/wm%203.png)
 ![WM progress](/images/wm%202.png)
