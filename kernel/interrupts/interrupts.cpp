@@ -1952,6 +1952,61 @@ void Syscall_handler(interrupt_frame* frame)
     {
         FS_Syscall_handler(syscall, frame);
     }
+    else if (syscall == SYSCALL_CLOSE_PROCESS)
+    {
+        uint64_t pid = frame->rbx;
+        osTask* task = Scheduler::GetTask(pid);
+
+        // add checks if the process belongs to the current process
+        if (task != NULL)
+        {
+            task->removeMe = true;
+            frame->rax = 1;
+        }
+        else
+            frame->rax = 0;
+    }
+    else if (syscall == SYSCALL_START_PROCESS)
+    {
+        // asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(argc), "d"(argv));
+        frame->rax = 0;
+        const char* path = (const char*)frame->rbx;
+        int argc = frame->rcx;
+        const char** argv = (const char**)frame->rdx;
+
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(argv))
+        {
+            bool ok = true;
+            for (int i = 0; i < argc; i++)
+                if (!IsAddressValidForTask(argv[i]))
+                    ok = false;
+            
+            if (ok)
+            {
+                char* resBuffer = NULL;
+                int resLen = 0;
+                if (FS_STUFF::ReadFileFromFullPath(path, &resBuffer, &resLen))
+                {
+                    Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)resBuffer);
+                    if (elf.works)
+                    {
+                        osTask* task = Scheduler::CreateTaskFromElf(elf, argc, argv, true);
+                        Scheduler::AddTask(task);
+                        frame->rax = task->pid;
+
+                        _Free(resBuffer);
+                    }
+                    else
+                        Serial::Writelnf("> Elf file %s is invalid", path);
+                }
+                else
+                    Serial::Writelnf("> File %s does not exist", path);
+                {
+
+                }
+            }
+        }
+    }
     else
     {
         Serial::Writelnf("> Unknown Syscall: %d", syscall);

@@ -249,6 +249,8 @@ void MakeWinActive(Window* oldActive, Window* newActive)
     }
 }
 
+#include <libm/keyboard.h>
+
 bool HandleClick(bool L, bool R, bool M)
 {
     bool res = false;
@@ -305,7 +307,17 @@ bool HandleClick(bool L, bool R, bool M)
             else if (action == WindowActionEnum::CLOSE)
             {
                 AddWindowToBeRemoved(activeWindow);
-                res = true;
+                res = true
+                ;
+                // if shift, fully close the process
+                if (envGetKeyState(Key_GeneralShift))
+                {
+                    closeProcess(activeWindow->PID);
+                }
+                else
+                {
+                    // TODO: send close packet to process
+                }
             }
             else if (action == WindowActionEnum::HIDE)
             {
@@ -340,6 +352,24 @@ bool HandleClick(bool L, bool R, bool M)
                 activeWindow = NULL;
             }
             res = true;
+        }
+    }
+    else if (M)
+    {
+        if (Taskbar::activeTabWindow != NULL)
+        {
+            AddWindowToBeRemoved(Taskbar::activeTabWindow);
+            res = true
+            ;
+            // if shift, fully close the process
+            if (envGetKeyState(Key_GeneralShift))
+            {
+                closeProcess(Taskbar::activeTabWindow->PID);
+            }
+            else
+            {
+                // TODO: send close packet to process
+            }
         }
     }
 

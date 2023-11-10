@@ -94,3 +94,8 @@ bool fsWriteFileFromBuffer(const char* path, void* buffer, uint64_t byteCount);
 bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount);
 
 
+
+
+
+bool closeProcess(uint64_t pid);
+uint64_t startProcess(const char* path, int argc, const char* argv);

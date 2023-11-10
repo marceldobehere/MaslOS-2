@@ -497,3 +497,20 @@ bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount)
     return fsReadFileIntoBuffer(path, *buffer, *byteCount); 
 }
 
+
+
+bool closeProcess(uint64_t pid)
+{
+    int syscall = SYSCALL_CLOSE_PROCESS;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(pid));
+    return success;
+}
+
+uint64_t startProcess(const char* path, int argc, const char* argv)
+{
+    int syscall = SYSCALL_START_PROCESS;
+    uint64_t pid;
+    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(argc), "d"(argv));
+    return pid;
+}
