@@ -29,7 +29,7 @@ namespace Taskbar
     Window* activeTabWindow;
     bool MButtonSelected;
 
-    int8_t Scounter = 0;
+    int Scounter = 0;
 
     void InitTaskbar(ImageStuff::BitmapImage* mButton, ImageStuff::BitmapImage* mButtonS)
     {
@@ -57,14 +57,16 @@ namespace Taskbar
 
     
 
-    void RenderTaskbar()
+    bool RenderTaskbar()
     {
-        int checkVal = 30;
+        int checkVal = 19;
         if (MousePosition.y > mainBuffer->Height - taskbarBuffer->Height - 20)
-            checkVal = 10;
+            checkVal = 5;
+        else
+            activeTabWindow = NULL;
 
         if (Scounter++ < checkVal)
-            return;
+            return false;
         Scounter = 0;
 
 
@@ -298,5 +300,7 @@ namespace Taskbar
 
         UpdatePointerRect(0, ypos, taskbarBuffer->Width - 1, ypos + taskbarBuffer->Height - 1);
         RemoveFromStack();
+
+        return true;
     }
 }

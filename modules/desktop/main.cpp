@@ -757,7 +757,7 @@ uint64_t DrawFrame()
     if (!doUpdate)
         return 0;
 
-    Taskbar::RenderTaskbar();
+    bool taskbarRendered = Taskbar::RenderTaskbar();
 
     while (updateFramePackets->GetCount() > 0)
     {
@@ -810,14 +810,14 @@ uint64_t DrawFrame()
 
 
     
-
-    totalPixelCount += RenderActualSquare(
-        0, 
-        mainBuffer->Height - taskbar->Height, 
-        
-        mainBuffer->Width - 1, 
-        mainBuffer->Height - 1
-    );
+    if (taskbarRendered)
+        totalPixelCount += RenderActualSquare(
+            0, 
+            mainBuffer->Height - taskbar->Height, 
+            
+            mainBuffer->Width - 1, 
+            mainBuffer->Height - 1
+        );
 
 
 

@@ -202,6 +202,53 @@ bool HandleMouseClickPacket(MouseMessagePacket* packet)
     return res;
 }
 
+#include "taskbar.h"
+
+void MakeWinActive(Window* oldActive, Window* newActive)
+{
+    activeWindow = newActive;
+
+    int idx = windows->GetIndexOf(activeWindow);
+    if (idx != windows->GetCount() - 1)
+    {
+        if (idx != -1)
+            windows->RemoveAt(idx);
+        windows->Add(activeWindow);
+    }
+
+    if (oldActive != NULL && oldActive != activeWindow)
+    {
+        UpdatePointerRect(
+            oldActive->Dimensions.x, 
+            oldActive->Dimensions.y, 
+            oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
+            oldActive->Dimensions.y + oldActive->Dimensions.height - 1
+        );
+        ScreenUpdates->Enqueue(WindowUpdate(
+            oldActive->Dimensions.x, 
+            oldActive->Dimensions.y, 
+            oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
+            oldActive->Dimensions.y + oldActive->Dimensions.height - 1
+        ));
+    }
+
+    if (oldActive != activeWindow)
+    {
+        UpdatePointerRect(
+            activeWindow->Dimensions.x, 
+            activeWindow->Dimensions.y, 
+            activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
+            activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
+        );
+        ScreenUpdates->Enqueue(WindowUpdate(
+            activeWindow->Dimensions.x, 
+            activeWindow->Dimensions.y, 
+            activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
+            activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
+        ));
+    }
+}
+
 bool HandleClick(bool L, bool R, bool M)
 {
     bool res = false;
@@ -209,50 +256,14 @@ bool HandleClick(bool L, bool R, bool M)
     {
         Window* oldActive = activeWindow;
         activeWindow = getWindowAtMousePosition(); 
-
+        
+        // Simple Window Click
         if (activeWindow != NULL)
         {
-            int idx = windows->GetIndexOf(activeWindow);
-            if (idx != windows->GetCount() - 1)
-            {
-                if (idx != -1)
-                    windows->RemoveAt(idx);
-                windows->Add(activeWindow);
-            }
-
-            if (oldActive != NULL && oldActive != activeWindow)
-            {
-                UpdatePointerRect(
-                    oldActive->Dimensions.x, 
-                    oldActive->Dimensions.y, 
-                    oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
-                    oldActive->Dimensions.y + oldActive->Dimensions.height - 1
-                );
-                ScreenUpdates->Enqueue(WindowUpdate(
-                    oldActive->Dimensions.x, 
-                    oldActive->Dimensions.y, 
-                    oldActive->Dimensions.x + oldActive->Dimensions.width - 1, 
-                    oldActive->Dimensions.y + oldActive->Dimensions.height - 1
-                ));
-            }
-
-            if (oldActive != activeWindow)
-            {
-                UpdatePointerRect(
-                    activeWindow->Dimensions.x, 
-                    activeWindow->Dimensions.y, 
-                    activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
-                    activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
-                );
-                ScreenUpdates->Enqueue(WindowUpdate(
-                    activeWindow->Dimensions.x, 
-                    activeWindow->Dimensions.y, 
-                    activeWindow->Dimensions.x + activeWindow->Dimensions.width - 1, 
-                    activeWindow->Dimensions.y + activeWindow->Dimensions.height - 1
-                ));
-            }
+            MakeWinActive(oldActive, activeWindow);
         }
 
+        // Window Start Drag
         if (currentActionWindow == NULL)
         {
             if (activeWindow != NULL)
@@ -282,6 +293,7 @@ bool HandleClick(bool L, bool R, bool M)
                 }
             }
         }
+        // Window Action
         else if (activeWindow == currentActionWindow)
         {
             WindowActionEnum action = GetCurrentAction(activeWindow);
@@ -298,6 +310,7 @@ bool HandleClick(bool L, bool R, bool M)
             else if (action == WindowActionEnum::HIDE)
             {
                 activeWindow->Hidden = !activeWindow->Hidden;
+                activeWindow = NULL;
                 res = true;
             }
             else if (action == WindowActionEnum::MIN_MAX)
@@ -306,9 +319,27 @@ bool HandleClick(bool L, bool R, bool M)
                 res = true;
             }
         }
+        // SUS
         else
         {
             serialPrintLn("Warning: Active Window and Current Action Window are not the same!");
+        }
+
+        // Taskbar Click
+        if (Taskbar::activeTabWindow != NULL)
+        {
+            activeWindow = oldActive;
+            if (activeWindow != Taskbar::activeTabWindow)
+            {
+                MakeWinActive(oldActive, Taskbar::activeTabWindow);
+                activeWindow->Hidden = false;
+            }
+            else
+            {
+                activeWindow->Hidden = true;
+                activeWindow = NULL;
+            }
+            res = true;
         }
     }
 

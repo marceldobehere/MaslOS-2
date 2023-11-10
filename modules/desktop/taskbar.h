@@ -10,6 +10,6 @@ namespace Taskbar
 
     void InitTaskbar(ImageStuff::BitmapImage* MButton, ImageStuff::BitmapImage* mButtonS);
 
-    void RenderTaskbar();
+    bool RenderTaskbar();
 }
 
