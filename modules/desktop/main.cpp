@@ -145,8 +145,26 @@ void InitStuff()
         }
         else
         {
-            for (int i = 0; i < countOfButtonIcons; i++)
+            for (int i = 0; i < countOfButtonIcons; i++)    
                 windowButtonIcons[i] = NULL;
+        }
+    }
+
+    const char* windowIconsPath = "bruh:wmStuff/windowIcons.mbzf";
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile(windowIconsPath, (void**)&buf, &size))
+        {
+            ZipStuff::ZIPFile* zip = ZipStuff::ZIP::GetZIPFromBuffer(buf, size);
+
+            for (int i = 0; i < countOfWindowIcons; i++)
+                internalWindowIcons[i] = ImageStuff::ConvertFileToBitmapImage(ZipStuff::ZIP::GetFileFromFileName(zip, windowIconNames[i]));
+        }
+        else
+        {
+            for (int i = 0; i < countOfWindowIcons; i++)    
+                internalWindowIcons[i] = NULL;
         }
     }
 

@@ -71,6 +71,7 @@ extern ImageStuff::BitmapImage* windowButtonIcons[countOfButtonIcons];
 
 extern ImageStuff::BitmapImage* internalWindowIcons[countOfWindowIcons];
 
+
 extern TempRenderer* actualScreenRenderer;
 extern Framebuffer* actualScreenFramebuffer;
 extern Framebuffer* mainBuffer;

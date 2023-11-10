@@ -166,18 +166,19 @@ namespace Taskbar
                 RemoveFromStack();
 
                 // TODO: Add Icons and add Rendering them lol
-                // AddToStack();
-                // bool drawIcon = (window->icon != NULL);
-                // if (drawIcon)
-                //     drawIcon = (window->icon->height == iconSize && window->icon->width == iconSize);
-                // RemoveFromStack();
+                ImageStuff::BitmapImage* icon = internalWindowIcons[windowIconEnum.TERMINAL];
+                AddToStack();
+                bool drawIcon = (icon != NULL);
+                if (drawIcon)
+                    drawIcon = (icon->height == iconSize && icon->width == iconSize);
+                RemoveFromStack();
 
-                // AddToStack();
-                // if (drawIcon)
-                //     renderer->DrawImage(window->icon, x + 6, ydiff, 1, 1);
-                // else
-                //     renderer->Clear(x + 6, ydiff, x + 5 + iconSize, height - (ydiff+1), Colors.black); // Clear Icon Rect
-                // RemoveFromStack();
+                AddToStack();
+                if (drawIcon)
+                    renderer->DrawImage(icon, x + 6, ydiff, 1, 1);
+                else
+                    renderer->Clear(x + 6, ydiff, x + 5 + iconSize, height - (ydiff+1), Colors.black); // Clear Icon Rect
+                RemoveFromStack();
 
                 AddToStack();
                 {
