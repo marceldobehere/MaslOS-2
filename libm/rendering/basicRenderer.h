@@ -4,6 +4,7 @@
 #include <libm/math.h>
 #include <libm/rendering/framebuffer.h>
 #include <libm/rendering/S-Font.h>
+#include <libm/images/bitmapImage.h>
 
 class TempRenderer
 {
@@ -49,4 +50,8 @@ class TempRenderer
         void Cls();
         
         TempRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font);
+
+        void DrawImage(ImageStuff::BitmapImage* image, int64_t x, int64_t y, int64_t sx, int64_t sy);
 };
+
+void GlobalDrawImage(ImageStuff::BitmapImage* image, int64_t x, int64_t y, int64_t sx, int64_t sy, Framebuffer* framebuffer);

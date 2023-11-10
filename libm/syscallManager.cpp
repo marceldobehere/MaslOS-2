@@ -218,6 +218,14 @@ uint64_t envGetTimeMs()
     return timeMs;
 }
 
+RTC_Info* envGetTimeRTC()
+{
+    int syscall = SYSCALL_ENV_GET_TIME_RTC;
+    RTC_Info* info;
+    asm("int $0x31" : "=a"(info) : "a"(syscall));
+    return info;
+}
+
 uint64_t randomUint64()
 {
     int syscall = SYSCALL_RNG_UINT64;

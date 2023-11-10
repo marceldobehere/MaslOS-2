@@ -41,6 +41,8 @@ List<GenericMessagePacket*>* tempPackets;
 
 #include <libm/zips/basicZip.h>
 
+#include "taskbar.h"
+
 void InitStuff()
 {
     ENV_DATA* env = getEnvData();
@@ -73,7 +75,7 @@ void InitStuff()
     {
         taskbar = new Framebuffer();
         taskbar->Width = actualScreenFramebuffer->Width;
-        taskbar->Height = 24;
+        taskbar->Height = 40;
         taskbar->PixelsPerScanLine = taskbar->Width;
         taskbar->BufferSize = taskbar->Width * taskbar->Height * 4;
         taskbar->BaseAddress = _Malloc(taskbar->BufferSize, "Taskbar Buffer");
@@ -100,6 +102,10 @@ void InitStuff()
     ScreenUpdates = new Queue<WindowUpdate>(20);
 
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
+
+    startMenuWindow = NULL;
+
+
 
     const char* bgPath = "bruh:wmStuff/background.mbif";
 
@@ -155,7 +161,29 @@ void InitStuff()
         }
     }
 
-    //while (true);
+    ImageStuff::BitmapImage* mButton = NULL;
+    const char* mButtonPath = "bruh:wmStuff/MButton.mbif";
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile(mButtonPath, (void**)&buf, &size))
+        {
+            mButton = ImageStuff::ConvertBufferToBitmapImage(buf, size);
+        }
+    }
+
+    ImageStuff::BitmapImage* mButtonS = NULL;
+    const char* mButtonSPath = "bruh:wmStuff/MButtonS.mbif";
+    {
+        char* buf;
+        uint64_t size = 0;
+        if (fsReadFile(mButtonSPath, (void**)&buf, &size))
+        {
+            mButtonS = ImageStuff::ConvertBufferToBitmapImage(buf, size);
+        }
+    }
+
+    Taskbar::InitTaskbar(mButton, mButtonS);
 }
 
 void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, uint64_t totalPixelCount, int frameCount)
@@ -719,8 +747,6 @@ uint64_t DrawFrame()
     }
     windowsToDelete->Clear();
 
-    //Taskbar::RenderTaskbar();
-
 
     doUpdate = updateFramePackets->GetCount() != 0;
 
@@ -731,11 +757,7 @@ uint64_t DrawFrame()
     if (!doUpdate)
         return 0;
 
-    // Draw Mouse
-    MPoint tempMousePos = MousePosition;
-    DrawMousePointerNew(tempMousePos, pointerBuffer);
-    
-    //Render();
+    Taskbar::RenderTaskbar();
 
     while (updateFramePackets->GetCount() > 0)
     {
@@ -785,6 +807,24 @@ uint64_t DrawFrame()
         _Free(packet);
     }
 
+
+
+    
+
+    totalPixelCount += RenderActualSquare(
+        0, 
+        mainBuffer->Height - taskbar->Height, 
+        
+        mainBuffer->Width - 1, 
+        mainBuffer->Height - 1
+    );
+
+
+
+    // Draw Mouse
+    MPoint tempMousePos = MousePosition;
+    DrawMousePointerNew(tempMousePos, pointerBuffer);
+    
     totalPixelCount += RenderActualSquare(
         oldMousePos.x - 32, 
         oldMousePos.y - 32, 
@@ -793,9 +833,17 @@ uint64_t DrawFrame()
         oldMousePos.y + 48
     );
 
+    totalPixelCount += RenderActualSquare(
+        tempMousePos.x - 32, 
+        tempMousePos.y - 32, 
+        
+        tempMousePos.x + 48, 
+        tempMousePos.y + 48
+    );
+    oldMousePos = tempMousePos;
 
     int pixelSum = 0;
-    int maxPixelsPerFrame = 3000;
+    int maxPixelsPerFrame = 10000;
     
     while (ScreenUpdates->GetCount() > 0)
     {
@@ -819,14 +867,6 @@ uint64_t DrawFrame()
     // //ScreenUpdates->Clear();
 
 
-    totalPixelCount += RenderActualSquare(
-        tempMousePos.x - 32, 
-        tempMousePos.y - 32, 
-        
-        tempMousePos.x + 48, 
-        tempMousePos.y + 48
-    );
-    oldMousePos = tempMousePos;
 
     // Remove Mouse
     UpdatePointerRect(tempMousePos.x - 32, tempMousePos.y - 32, tempMousePos.x + 64, tempMousePos.y + 64);

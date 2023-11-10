@@ -295,7 +295,7 @@ void TempPitRoutine(interrupt_frame* frame)
     //     osData.serialManager->DoStuff();
 
 
-    if (_pitCount++ >= 80)   
+    if (_pitCount++ >= 80 && false)   
     {
         _pitCount = 0;
         
@@ -1011,7 +1011,7 @@ bool IsAddressValidForTask(const void* addr, osTask* task)
 #include <libm/heap/heap.h>
 #include <libm/cstrTools.h>
 #include <libm/mouseState.h>
-
+#include <libm/rtc/rtcInfo.h>
 
 #include "../fsStuff/fsStuff.h"
 
@@ -1768,6 +1768,25 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_ENV_GET_TIME_MS)
     {
         frame->rax = PIT::TimeSinceBootMS();
+    }
+    else if (syscall == SYSCALL_ENV_GET_TIME_RTC)
+    {
+        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+
+        RTC_Info* info2 = (RTC_Info*)taskHeap->_Xmalloc(sizeof(RTC_Info), "Malloc for RTC_Info");
+        if (IsAddressValidForTask(info2))
+        {
+            RTC_Info info;
+            info.Day = RTC::Day;
+            info.Month = RTC::Month;
+            info.Year = RTC::Year;
+            info.Hour = RTC::Hour;
+            info.Minute = RTC::Minute;
+            info.Second = RTC::Second;
+
+            *info2 = info;
+            frame->rax = (uint64_t)info2;
+        }
     }
     else if (syscall == SYSCALL_ENV_GET_DESKTOP_PID)
     {

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "env/env.h"
+#include "rtc/rtcInfo.h"
 
 int getArgC();
 char** getArgV();
@@ -32,6 +33,7 @@ int programSetPriority(int priority);
 
 uint64_t envGetTimeMs();
 uint64_t envGetDesktopPid();
+RTC_Info* envGetTimeRTC();
 
 uint64_t randomUint64();
 

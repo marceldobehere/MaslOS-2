@@ -86,6 +86,7 @@ extern List<Window*>* windows;
 extern List<Window*>* windowsToDelete;
 extern Window* activeWindow;
 extern Window* currentActionWindow;
+extern Window* startMenuWindow;
 
 extern MPoint MousePosition;
 
