@@ -156,14 +156,25 @@ namespace GuiComponentStuff
             
             int pps = componentFrameBuffer->Width;
 
-            for (int64_t y = max(pos.y, 0); y < eY; y++)
+            if (transparent)
             {
-                for (int64_t x = max(pos.x, 0); x < eX; x++)
+                for (int64_t y = max(pos.y, 0); y < eY; y++)
                 {
-                    if ((*fontPtr & (0b10000000 >> (x - pos.x))) > 0)
-                        *(unsigned int *)(pixPtr + x + (y * pps)) = fgCol;
+                    for (int64_t x = max(pos.x, 0); x < eX; x++)
+                        if ((*fontPtr & (0b10000000 >> (x - pos.x))) > 0)
+                            *(unsigned int *)(pixPtr + x + (y * pps)) = fgCol;
+                    fontPtr++;
                 }
-                fontPtr++;
+            }
+            else
+            {
+                for (int64_t y = max(pos.y, 0); y < eY; y++)
+                {
+                    for (int64_t x = max(pos.x, 0); x < eX; x++)
+                        *(unsigned int *)(pixPtr + x + (y * pps)) = 
+                            ((*fontPtr & (0b10000000 >> (x - pos.x))) > 0) ? fgCol : bgCol;
+                    fontPtr++;
+                }
             }
         }
         

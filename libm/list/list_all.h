@@ -34,3 +34,4 @@
 
 #include "./list_mrafsFsInterface.h"
 
+#include "./list_consoleChar.h"

@@ -25,6 +25,7 @@ namespace GuiComponentStuff
         TEXTFIELD = 6,
         IMAGE_RECT = 7,
         CANVAS = 8,
+        ADVANCED_TEXT = 9
     };
 
 

@@ -39,6 +39,8 @@ Queue<WindowBufferUpdatePacket*>* updateFramePackets;
 Queue<WindowUpdate>* ScreenUpdates;
 List<GenericMessagePacket*>* tempPackets;
 
+uint64_t lastFrameTime = 0;
+
 #include <libm/zips/basicZip.h>
 
 #include "taskbar.h"
@@ -104,6 +106,8 @@ void InitStuff()
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 
     startMenuWindow = NULL;
+
+    lastFrameTime = envGetTimeMs();
 
 
 
@@ -777,6 +781,14 @@ uint64_t DrawFrame()
     doUpdate |= MousePosition != oldMousePos;
 
     doUpdate |= ScreenUpdates->GetCount() != 0;
+
+    uint64_t currTime = envGetTimeMs();
+    if (lastFrameTime + 500 < currTime)
+    {
+        lastFrameTime = currTime;
+        doUpdate = true;
+        Taskbar::Scounter = 10000;
+    }
 
     if (!doUpdate)
         return 0;

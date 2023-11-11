@@ -5,6 +5,7 @@
 #include "guiStuff/components/imageRect/imageRectangleComponent.h"
 #include "guiStuff/components/textField/textFieldComponent.h"
 #include "guiStuff/components/canvas/canvasComponent.h"
+#include "guiStuff/components/advancedText/advancedTextComponent.h"
 #include <libm/rendering/Cols.h>
 #include <libm/wmStuff/wmStuff.h>
 
@@ -786,6 +787,20 @@ bool GuiInstance::CreateComponentWithIdAndParent(int64_t id, GuiComponentStuff::
     {
         GuiComponentStuff::RectangleComponent* comp =
         new GuiComponentStuff::RectangleComponent(
+            Colors.black,
+            GuiComponentStuff::ComponentSize(50, 50),
+            parentComp 
+        );
+        comp->id = id;
+
+        allComponents->Add(comp);
+        return ComponentAddChild(parentId, comp);
+    }
+    if (type == GuiComponentStuff::ComponentType::ADVANCED_TEXT)
+    {
+        GuiComponentStuff::AdvancedTextComponent* comp =
+        new GuiComponentStuff::AdvancedTextComponent(
+            Colors.white,
             Colors.black,
             GuiComponentStuff::ComponentSize(50, 50),
             parentComp 

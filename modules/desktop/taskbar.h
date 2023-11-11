@@ -8,6 +8,8 @@ namespace Taskbar
     extern Window* activeTabWindow;
     extern bool MButtonSelected;
 
+    extern int Scounter;
+
     void InitTaskbar(ImageStuff::BitmapImage* MButton, ImageStuff::BitmapImage* mButtonS);
 
     bool RenderTaskbar();
