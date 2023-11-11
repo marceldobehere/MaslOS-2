@@ -22,7 +22,7 @@ And it mostly works on real hardware.
    - MaslOS Desktop / WM (mostly working)
    - Taskbar (mostly working)
  + Apps
-   - Terminal (work in progress)
+   - Terminal (basics be working)
    - Explorer (soon)
    - Notepad (soon)
    - Paint (soon)
@@ -64,6 +64,7 @@ Then download/clone the repo and run the `run.cmd` file
 
 
 ## Screenshots
+![Working more on the terminal](/images/wm%203.png)
 ![Working on the terminal](/images/terminal%201.gif)
 ![Taskbar yes](/images/wm%205.png)
 ![WM almost on par with MaslOS](/images/wm%204.png)
