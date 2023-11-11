@@ -49,8 +49,11 @@ Go into the MaslOS2 Folder and run the `CRUN.sh` file
 Install QEMU if you haven't.
 
 Download/clone the repo.
-Run the `cDisk.sh` file to generate an empty disk so QEMU can boot
-~~Run the `JUST RUN.sh` file to run~~ i forgot to add the file lol
+
+Run the `cDisk.sh` file to generate an empty disk so QEMU can boot correctly.
+
+~~Run the `JUST RUN.sh` file to run it!~~ (i forgot to add the file lol)
+
 
 
 ## Screenshots
