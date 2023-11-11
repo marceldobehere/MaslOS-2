@@ -115,7 +115,7 @@ void GuiInstance::Render()
         bool updateEverHappened = false;;
         for (int i = 0; i < 500; i++)
         {
-            GenericMessagePacket* wPacket = msgGetConv(CONVO_ID_WM_WINDOW_UPDATE);
+            GenericMessagePacket* wPacket = msgGetConv(window->CONVO_ID_WM_WINDOW_UPDATE);
             if (wPacket != NULL)
             {
                 if (wPacket->FromPID == desktopPID)
@@ -166,7 +166,7 @@ void GuiInstance::Render()
     // Keyboard Events
     for (int i = 0; i < 500; i++)
     {
-        GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_KB_STUFF);
+        GenericMessagePacket* mPacket = msgGetConv(window->CONVO_ID_WM_KB_STUFF);
         if (mPacket != NULL)
         {
             if (mPacket->Size >= sizeof(KeyMessagePacket))
@@ -187,7 +187,7 @@ void GuiInstance::Render()
     // Mouse Events
     for (int i = 0; i < 500; i++)
     {
-        GenericMessagePacket* mPacket = msgGetConv(CONVO_ID_WM_MOUSE_STUFF);
+        GenericMessagePacket* mPacket = msgGetConv(window->CONVO_ID_WM_MOUSE_STUFF);
         if (mPacket != NULL)
         {
             if (mPacket->Size >= sizeof(MouseMessagePacket))

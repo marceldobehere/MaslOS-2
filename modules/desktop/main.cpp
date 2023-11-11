@@ -390,6 +390,9 @@ void AddWindowToBeRemoved(Window* window)
     int idx = windows->GetIndexOf(window);
     if (idx != -1)
         windows->RemoveAt(idx);
+
+    if (activeWindow == window)
+        activeWindow = NULL;
 }
 
 uint64_t DrawFrame()
@@ -422,7 +425,7 @@ uint64_t DrawFrame()
                     if (activeWindow != NULL)
                     {
                         GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::MOUSE_EVENT, msg->Data, sizeof(MouseMessagePacket));
-                        msgSendConv(msgNew, activeWindow->PID, CONVO_ID_WM_MOUSE_STUFF);
+                        msgSendConv(msgNew, activeWindow->PID, activeWindow->CONVO_ID_WM_MOUSE_STUFF);
                         msgNew->Free();
                         _Free(msgNew);
                     }
@@ -442,7 +445,7 @@ uint64_t DrawFrame()
                 if (activeWindow != NULL)
                 {
                     GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));
-                    msgSendConv(msgNew, activeWindow->PID, CONVO_ID_WM_KB_STUFF);
+                    msgSendConv(msgNew, activeWindow->PID, activeWindow->CONVO_ID_WM_KB_STUFF);
                     msgNew->Free();
                     _Free(msgNew);
                 }
@@ -729,7 +732,7 @@ uint64_t DrawFrame()
                 WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(window, false);
                 GenericMessagePacket* sendMsg = winObjPacketTo->ToGenericMessagePacket();
 
-                msgSendConv(sendMsg, window->PID, CONVO_ID_WM_WINDOW_UPDATE);
+                msgSendConv(sendMsg, window->PID, window->CONVO_ID_WM_WINDOW_UPDATE);
                 //programWait(100);
 
                 sendMsg->Free();
@@ -747,7 +750,7 @@ uint64_t DrawFrame()
         Window* window = windowsToDelete->ElementAt(i);
 
         UpdatePointerRect(
-        window->Dimensions.x - 1,
+            window->Dimensions.x - 1,
             window->Dimensions.y - 24,
             window->Dimensions.x + window->Dimensions.width + 1,
             window->Dimensions.y + window->Dimensions.height + 1
@@ -759,6 +762,9 @@ uint64_t DrawFrame()
             window->Dimensions.x + window->Dimensions.width + 1,
             window->Dimensions.y + window->Dimensions.height + 1
             ));
+
+        if (activeWindow == window)
+            activeWindow = NULL;
 
         window->Free();
         _Free(window);

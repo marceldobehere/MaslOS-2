@@ -19,10 +19,7 @@ enum MessagePacketType : uint8_t
 };
 
 // CONVO IDS FOR STANDARDIZED STUFF
-#define CONVO_ID_WM_MOUSE_STUFF     0xFF000100
-#define CONVO_ID_WM_KB_STUFF           0xFF000101
 
-#define CONVO_ID_WM_WINDOW_UPDATE 0xFF000110
 
 
 struct GenericMessagePacket

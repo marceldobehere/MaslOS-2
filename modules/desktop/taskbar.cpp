@@ -165,7 +165,7 @@ namespace Taskbar
                     renderer->Clear(x, 2, x + size, height - 3, defaultTabBackgroundColor); // Clear whole Rect
                 RemoveFromStack();
 
-                // TODO: Add Icons and add Rendering them lol
+                // TODO: Add Icons to executeables someday and use them hear
                 ImageStuff::BitmapImage* icon = internalWindowIcons[windowIconEnum.TERMINAL];
                 AddToStack();
                 bool drawIcon = (icon != NULL);

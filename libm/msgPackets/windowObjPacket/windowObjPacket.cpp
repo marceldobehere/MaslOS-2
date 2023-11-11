@@ -124,6 +124,20 @@ WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacke
     tBuffer += 8;
     // uint64_t PID;
     PartialWindow->PID = *(uint64_t*)tBuffer;
+    tBuffer += 8;
+
+    // uint64_t CONVO_ID_WM_MOUSE_STUFF
+    PartialWindow->CONVO_ID_WM_MOUSE_STUFF = *(uint64_t*)tBuffer;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_KB_STUFF
+    PartialWindow->CONVO_ID_WM_KB_STUFF = *(uint64_t*)tBuffer;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_UPDATE
+    PartialWindow->CONVO_ID_WM_WINDOW_UPDATE = *(uint64_t*)tBuffer;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_CLOSED
+    PartialWindow->CONVO_ID_WM_WINDOW_CLOSED = *(uint64_t*)tBuffer;
+    tBuffer += 8;
 }
 GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
 {
@@ -177,6 +191,15 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint64_t ID;
     count += 8;
     // uint64_t PID;
+    count += 8;
+
+    // uint64_t CONVO_ID_WM_MOUSE_STUFF
+    count += 8;
+    // uint64_t CONVO_ID_WM_KB_STUFF
+    count += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_UPDATE
+    count += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_CLOSED
     count += 8;
 
 
@@ -259,6 +282,20 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     tBuffer += 8;
     // uint64_t PID;
     *(uint64_t*)tBuffer = PartialWindow->PID;
+    tBuffer += 8;
+    
+    // uint64_t CONVO_ID_WM_MOUSE_STUFF
+    *(uint64_t*)tBuffer = PartialWindow->CONVO_ID_WM_MOUSE_STUFF;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_KB_STUFF
+    *(uint64_t*)tBuffer = PartialWindow->CONVO_ID_WM_KB_STUFF;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_UPDATE
+    *(uint64_t*)tBuffer = PartialWindow->CONVO_ID_WM_WINDOW_UPDATE;
+    tBuffer += 8;
+    // uint64_t CONVO_ID_WM_WINDOW_CLOSED
+    *(uint64_t*)tBuffer = PartialWindow->CONVO_ID_WM_WINDOW_CLOSED;
+    tBuffer += 8;
 
 
     GenericMessagePacket* msg = NULL;

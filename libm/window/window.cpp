@@ -49,6 +49,11 @@ Window::Window()
 
     ID = 0;
     PID = 0;
+
+    CONVO_ID_WM_MOUSE_STUFF = 0;
+    CONVO_ID_WM_KB_STUFF = 0;
+    CONVO_ID_WM_WINDOW_UPDATE = 0;
+    CONVO_ID_WM_WINDOW_CLOSED = 0;
 }
 
 Window::Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid)
@@ -99,6 +104,11 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
 
     ID = id;
     PID = pid;
+
+    CONVO_ID_WM_MOUSE_STUFF = RND::RandomInt();
+    CONVO_ID_WM_KB_STUFF = RND::RandomInt();
+    CONVO_ID_WM_WINDOW_UPDATE = RND::RandomInt();
+    CONVO_ID_WM_WINDOW_CLOSED = RND::RandomInt();
 
     ResizeFramebuffer(width, height);
 }
@@ -327,6 +337,15 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool 
     DefaultTitleBackgroundColor = window->DefaultTitleBackgroundColor;
     // IsFrozen
     IsFrozen = window->IsFrozen;
+    
+    // CONVO_ID_WM_MOUSE_STUFF
+    CONVO_ID_WM_MOUSE_STUFF = window->CONVO_ID_WM_MOUSE_STUFF;
+    // CONVO_ID_WM_KB_STUFF
+    CONVO_ID_WM_KB_STUFF = window->CONVO_ID_WM_KB_STUFF;
+    // CONVO_ID_WM_WINDOW_UPDATE
+    CONVO_ID_WM_WINDOW_UPDATE = window->CONVO_ID_WM_WINDOW_UPDATE;
+    // CONVO_ID_WM_WINDOW_CLOSED
+    CONVO_ID_WM_WINDOW_CLOSED = window->CONVO_ID_WM_WINDOW_CLOSED;
     
     if (updateIdAndPid)
     {

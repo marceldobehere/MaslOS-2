@@ -102,7 +102,7 @@ void setWindow(uint64_t id, Window* window)
     // swallow all update packets
     for (int i = 0; i < 50; i++)
     {
-        GenericMessagePacket* msg = msgGetConv(CONVO_ID_WM_WINDOW_UPDATE);
+        GenericMessagePacket* msg = msgGetConv(window->CONVO_ID_WM_WINDOW_UPDATE);
         if (msg == NULL)
             break;
         msg->Free();
@@ -251,4 +251,20 @@ bool SendWindowFrameBufferUpdate(Window* window)
     _Free(packet); 
 
     return res;
+}
+
+bool CheckForWindowClosed(Window* window)
+{
+    if (window == NULL)
+        return true;
+    if (window->ID == 0)
+        return true;
+    
+    GenericMessagePacket* msg = msgGetConv(window->CONVO_ID_WM_WINDOW_CLOSED);
+    if (msg == NULL)
+        return false;
+    
+    msg->Free();
+    _Free(msg);
+    return true;
 }

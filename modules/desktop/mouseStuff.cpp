@@ -191,6 +191,7 @@ bool HandleMouseClickPacket(MouseMessagePacket* packet)
 
     // instant reset if mouse ever stopped holding
     doingWindowDrag &= packet->Left;
+    doingWindowDrag &= activeWindow != NULL;
 
     bool res = false;
 
@@ -208,15 +209,18 @@ void MakeWinActive(Window* oldActive, Window* newActive)
 {
     activeWindow = newActive;
 
-    int idx = windows->GetIndexOf(activeWindow);
-    if (idx != windows->GetCount() - 1)
+    if (activeWindow != NULL)
     {
-        if (idx != -1)
-            windows->RemoveAt(idx);
-        windows->Add(activeWindow);
+        int idx = windows->GetIndexOf(activeWindow);
+        if (idx != windows->GetCount() - 1)
+        {
+            if (idx != -1)
+                windows->RemoveAt(idx);
+            windows->Add(activeWindow);
+        }
     }
 
-    if (oldActive != NULL && oldActive != activeWindow)
+    if (oldActive != activeWindow && oldActive != NULL)
     {
         UpdatePointerRect(
             oldActive->Dimensions.x, 
@@ -232,7 +236,7 @@ void MakeWinActive(Window* oldActive, Window* newActive)
         ));
     }
 
-    if (oldActive != activeWindow)
+    if (oldActive != activeWindow && activeWindow != NULL)
     {
         UpdatePointerRect(
             activeWindow->Dimensions.x, 
@@ -296,7 +300,7 @@ bool HandleClick(bool L, bool R, bool M)
             }
         }
         // Window Action
-        else if (activeWindow == currentActionWindow)
+        else if (activeWindow == currentActionWindow && activeWindow != NULL) 
         {
             WindowActionEnum action = GetCurrentAction(activeWindow);
 
@@ -306,9 +310,7 @@ bool HandleClick(bool L, bool R, bool M)
             }
             else if (action == WindowActionEnum::CLOSE)
             {
-                AddWindowToBeRemoved(activeWindow);
-                res = true
-                ;
+                res = true;
                 // if shift, fully close the process
                 if (envGetKeyState(Key_GeneralShift))
                 {
@@ -316,8 +318,13 @@ bool HandleClick(bool L, bool R, bool M)
                 }
                 else
                 {
-                    // TODO: send close packet to process
+                    GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::WINDOW_DELETE_EVENT, NULL, 0);
+                    msgSendConv(packet, activeWindow->PID, activeWindow->CONVO_ID_WM_WINDOW_CLOSED);
+                    packet->Free();
+                    _Free(packet);
                 }
+
+                AddWindowToBeRemoved(activeWindow);
             }
             else if (action == WindowActionEnum::HIDE)
             {
@@ -338,15 +345,16 @@ bool HandleClick(bool L, bool R, bool M)
         }
 
         // Taskbar Click
-        if (Taskbar::activeTabWindow != NULL)
+        if (activeWindow == NULL && Taskbar::activeTabWindow != NULL)
         {
             activeWindow = oldActive;
-            if (activeWindow != Taskbar::activeTabWindow)
+            if (activeWindow != Taskbar::activeTabWindow) // any other window (including null)
             {
                 MakeWinActive(oldActive, Taskbar::activeTabWindow);
-                activeWindow->Hidden = false;
+                if (activeWindow != NULL)
+                    activeWindow->Hidden = false;
             }
-            else
+            else // same window (cant be null)
             {
                 activeWindow->Hidden = true;
                 activeWindow = NULL;
@@ -358,9 +366,8 @@ bool HandleClick(bool L, bool R, bool M)
     {
         if (Taskbar::activeTabWindow != NULL)
         {
-            AddWindowToBeRemoved(Taskbar::activeTabWindow);
-            res = true
-            ;
+            res = true;
+
             // if shift, fully close the process
             if (envGetKeyState(Key_GeneralShift))
             {
@@ -368,8 +375,12 @@ bool HandleClick(bool L, bool R, bool M)
             }
             else
             {
-                // TODO: send close packet to process
+                GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::WINDOW_DELETE_EVENT, NULL, 0);
+                msgSendConv(packet, activeWindow->PID, activeWindow->CONVO_ID_WM_WINDOW_CLOSED);
+                packet->Free();
+                _Free(packet);
             }
+            AddWindowToBeRemoved(Taskbar::activeTabWindow);
         }
     }
 

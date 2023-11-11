@@ -18,3 +18,5 @@ void deleteWindow(uint64_t id);
 
 bool SendWindowFrameBufferUpdate(Window* window, int x1, int y1, int x2, int y2);
 bool SendWindowFrameBufferUpdate(Window* window);
+
+bool CheckForWindowClosed(Window* window);

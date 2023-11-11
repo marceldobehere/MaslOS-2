@@ -129,6 +129,11 @@ class Window
 
     uint64_t ID;
     uint64_t PID;
+
+    uint64_t CONVO_ID_WM_MOUSE_STUFF;
+    uint64_t CONVO_ID_WM_KB_STUFF;
+    uint64_t CONVO_ID_WM_WINDOW_UPDATE;
+    uint64_t CONVO_ID_WM_WINDOW_CLOSED;
     
     List<WindowUpdate>* Updates;
 

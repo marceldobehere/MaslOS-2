@@ -279,7 +279,7 @@ int main(int argc, char** argv)
 
     uint64_t endTime = envGetTimeMs() + 6000;
 
-    while (true)
+    while (!CheckForWindowClosed(window))
     {
         testGui->Render();
 
@@ -296,8 +296,6 @@ int main(int argc, char** argv)
     }
 
     programWait(1000);
-
-    deleteWindow(window);
 
     window->Free();
     _Free(window);
