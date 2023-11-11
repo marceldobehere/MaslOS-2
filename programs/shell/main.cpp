@@ -19,6 +19,7 @@ bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiCo
 void HandleCommand(const char* input);
 void SplitCommand(const char* input, const char*** args, int* argCount, bool removeQuotes);
 
+const char* currentPath = NULL;
 GuiInstance* guiInst;
 GuiComponentStuff::TextFieldComponent* inTxt;
 GuiComponentStuff::TextComponent* pathTxt;
@@ -35,6 +36,8 @@ int main(int argc, char** argv)
     _Free(window->Title);
     window->Title = StrCopy("Terminal");
     setWindow(window);
+
+    currentPath = StrCopy("bruh:");
     
     {
         guiInst = new GuiInstance(window);
@@ -74,15 +77,17 @@ int main(int argc, char** argv)
             pathTxt = new GuiComponentStuff::TextComponent(
                 guiInst->screen, 
                 Colors.dblue, Colors.bblue | Colors.bgreen, 
-                "<PATH GOES HERE>", 
+                currentPath, 
                 GuiComponentStuff::Position(0, 0)
             );
+            pathTxt->useFixedSize = true;
             guiInst->screen->children->Add(pathTxt);
         }
     
     }
 
     Cls();
+    outTxt->Println();
 
     int inputHeight = 32;
     int pathHeight = 16;
@@ -101,6 +106,12 @@ int main(int argc, char** argv)
             inTxt->size.FixedX = scrSize.FixedX;
             inTxt->size.FixedY = inputHeight;
             inTxt->position.y = scrSize.FixedY - inputHeight;
+
+            if (!StrEquals(pathTxt->text, currentPath))
+            {
+                _Free(pathTxt->text);
+                pathTxt->text = StrCopy(currentPath);
+            }
         }
 
         guiInst->Render();
@@ -113,7 +124,6 @@ void Cls()
 {
     outTxt->Clear();
     outTxt->Println("MaslOS v2", Colors.bgreen);
-    outTxt->Println();
     outTxt->scrollX = 0;
     outTxt->scrollY = 0;
 }
@@ -166,6 +176,34 @@ bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiCo
     return true;
 }
 
+
+// "maab/test.maab", "bruh:maab/"
+// -> "test.maab"
+const char* RemoveCurrentPathFromPath(const char* path, const char* current)
+{
+    if (StrEquals(currentPath, ""))
+        return StrCopy(path);
+    
+    int pathLen = StrLen(path);
+    int currentLen = StrLen(current);
+
+    // Remove the drive part from the current path
+    int currentStart = StrIndexOf(current, ':') + 1;
+    if (currentStart == 0)
+        return StrCopy(path);
+    
+    // Check if the current path is in the path
+    serialPrint("path without drive: ");
+    serialPrintLn(current + currentStart);
+
+    if (!StrStartsWith(path, current + currentStart))
+        return StrCopy(path);
+
+    // Remove the current path from the path
+    int currLen2 = currentLen - currentStart;
+    return StrSubstr(path, currLen2);
+}
+
 void HandleCommand(const char* inputStr)
 {
     const char** args = NULL;
@@ -174,17 +212,6 @@ void HandleCommand(const char* inputStr)
 
     if (argC == 0 || args == NULL)
         return;
-
-    // for (int i = 0; i < argC; i++)
-    // {
-    //     outTxt->Print("\"");
-    //     if (args[i] == NULL)
-    //         outTxt->Print("<NULL>", Colors.bred);
-    //     else
-    //         outTxt->Print(args[i], Colors.bgreen);
-    //     outTxt->Print("\" ");
-    // }
-    // outTxt->Println();
 
     const char* cmd = args[0];
 
@@ -206,11 +233,196 @@ void HandleCommand(const char* inputStr)
         outTxt->Println(" - echo <text>");
         outTxt->Println(" - help");
         outTxt->Println(" - exit");
+        outTxt->Println(" - ls");
+        outTxt->Println(" - cd <path>");
+        outTxt->Println(" - run <file>");
     }
     else if (StrEquals(cmd, "exit"))
     {
         outTxt->Println("Exiting...");
         programExit(0);
+    }
+    else if (StrEquals(cmd, "ls") || StrEquals(cmd, "dir"))
+    {
+        const char* pathToUse;
+        if (argC == 1 || StrEquals(args[1], ""))
+            pathToUse = StrCopy(currentPath);
+        else if (StrIndexOf(args[1], ':') != -1)
+            pathToUse = StrCopy(args[1]);
+        else
+            pathToUse = StrCombine(currentPath, args[1]);
+
+        if (StrIndexOf(pathToUse, ':') != StrLen(pathToUse) - 1 && StrLen(pathToUse) != 0 && !StrEndsWith(pathToUse, "/"))
+            pathToUse = StrCombineAndFree(pathToUse, "/");
+        if (StrIndexOf(pathToUse, ':') == -1 && StrLen(pathToUse) != 0 && !StrEndsWith(pathToUse, ":"))
+            pathToUse = StrCombineAndFree(pathToUse, ":");
+
+        if (StrEquals(pathToUse, ""))
+        {
+            uint64_t driveCount = 0;
+            const char** driveNames = fsGetDrivesInRoot(&driveCount);
+
+            if (driveCount != 0 && driveNames != NULL)
+            {
+                outTxt->Println("Drives in root:");
+                for (int i = 0; i < driveCount; i++)
+                {
+                    outTxt->Print(" - ");
+                    outTxt->Println(driveNames[i]);
+                    _Free(driveNames[i]);
+                }
+                _Free(driveNames);
+            }
+        }
+        else
+        {
+            outTxt->Print("Path: ");
+            outTxt->Println(pathToUse);
+
+            {
+                uint64_t folderCount = 0;
+                const char** folders = fsGetFoldersInPath(pathToUse, &folderCount);
+
+                if (folderCount != 0 && folders != NULL)
+                {
+                    outTxt->Println("Folders:");
+                    for (int i = 0; i < folderCount; i++)
+                    {
+                        const char* lName = folders[i];
+                        const char* sName = RemoveCurrentPathFromPath(lName, pathToUse);
+                        outTxt->Print(" - ");
+                        outTxt->Println(sName);
+                        _Free(folders[i]);
+                    }
+                    _Free(folders);
+                }
+            }
+            {
+                uint64_t fileCount = 0;
+                const char** files = fsGetFilesInPath(pathToUse, &fileCount);
+
+                if (fileCount != 0 && files != NULL)
+                {
+                    outTxt->Println("Files:");
+                    for (int i = 0; i < fileCount; i++)
+                    {
+                        const char* lName = files[i];
+                        const char* sName = RemoveCurrentPathFromPath(lName, pathToUse);
+                        outTxt->Print(" - ");
+                        outTxt->Println(sName);
+                        _Free(files[i]);
+                    }
+                    _Free(files);
+                }
+            }
+        }
+
+
+        _Free(pathToUse);
+    }
+    else if (StrEquals(cmd, "cd"))
+    {
+        if (argC == 1)
+        {
+            _Free(currentPath);
+            currentPath = StrCopy("");
+        }
+        else if (StrEquals(args[1], "..") || StrEquals(args[1], "../"))
+        {
+            if (StrEndsWith(currentPath, ":"))
+            {
+                _Free(currentPath);
+                currentPath = StrCopy("");
+            }
+            else if (StrEndsWith(currentPath, "/"))
+            {
+                const char* temp = currentPath;
+                int idx = StrLastIndexOf(currentPath, '/', 1);
+                if (idx != -1)
+                {
+                    currentPath = StrSubstr(currentPath, 0, idx + 1);
+                    _Free(temp);
+                }
+                else
+                {
+                    idx = StrIndexOf(currentPath, ':');
+                    if (idx != -1)
+                    {
+                        currentPath = StrSubstr(currentPath, 0, idx + 1);
+                        _Free(temp);
+                    }
+                }
+            }
+        }
+        else
+        {
+            const char* pathToUse = StrCopy(args[1]);
+
+            if (StrEndsWith(pathToUse, ":") || StrEndsWith(pathToUse, "/"))
+            {
+                const char* temp = pathToUse;
+                pathToUse = StrSubstr(pathToUse, 0, StrLen(pathToUse) - 1);
+                _Free(temp);
+            }
+
+            const char* combined = StrCombine(currentPath, pathToUse);
+            if (fsFolderExists(combined))
+            {
+                _Free(currentPath);
+                currentPath = StrCopy(combined);
+                if (!StrEndsWith(currentPath, "/"))
+                    currentPath = StrCombineAndFree(currentPath, "/");
+            }
+            else if (fsFolderExists(pathToUse))
+            {
+                _Free(currentPath);
+                currentPath = StrCopy(pathToUse);
+                if (!StrEndsWith(currentPath, "/"))
+                    currentPath = StrCombineAndFree(currentPath, "/");
+            }
+            else
+            {
+                bool isDrive = false;
+                uint64_t driveCount = 0;
+                const char** driveNames = fsGetDrivesInRoot(&driveCount);
+
+                if (driveCount != 0 && driveNames != NULL)
+                {
+                    for (int i = 0; i < driveCount; i++)
+                    {
+                        if (StrEquals(driveNames[i], pathToUse))
+                        {
+                            isDrive = true;
+                            _Free(driveNames[i]);
+                            break;
+                        }
+                        _Free(driveNames[i]);
+                    }
+                    _Free(driveNames);
+                }
+
+                if (isDrive)
+                {
+                    _Free(currentPath);
+                    currentPath = StrCopy(pathToUse);
+                    if (!StrEndsWith(currentPath, ":"))
+                        currentPath = StrCombineAndFree(currentPath, ":");
+                }
+                else
+                {
+                    outTxt->Print("Not a directory: \"", Colors.bred);
+                    outTxt->Print(pathToUse, 0xffFFAA00);
+                    outTxt->Println("\"", Colors.bred);
+                }
+            }
+
+            _Free(combined);
+            _Free(pathToUse);
+        }
+    }
+    else if (StrEquals(cmd, "run"))
+    {
+        outTxt->Println("Not implemented yet", Colors.bred);
     }
     else
     {

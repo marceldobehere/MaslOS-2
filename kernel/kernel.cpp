@@ -44,6 +44,8 @@ void boot(void* _bootInfo)
     
     InitKernel(bootInfo);
 
+    osData.booting = false;
+
     osData.inBootProcess = false;
 
     PIT::Sleep(100);
