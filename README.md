@@ -64,7 +64,7 @@ Then download/clone the repo and run the `run.cmd` file
 
 
 ## Screenshots
-![Working more on the terminal](/images/wm%203.png)
+![Working more on the terminal](/images/wm%206.png)
 ![Working on the terminal](/images/terminal%201.gif)
 ![Taskbar yes](/images/wm%205.png)
 ![WM almost on par with MaslOS](/images/wm%204.png)
