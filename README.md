@@ -22,8 +22,13 @@ And it mostly works on real hardware.
    - MaslOS Desktop / WM (mostly working)
    - Taskbar (mostly working)
  + Apps
+   - Terminal (work in progress)
+   - Explorer (soon)
+   - Notepad (soon)
+   - Paint (soon)
    - MAAB interpreter (soon)
-   - Apps ported from MaslOS and some extra ones (not yet)
+   - Doom (soon)
+   - Other Apps ported from MaslOS and some extra ones (not yet)
  + Other
    - SMP (not added yet)
    - idk more stuff
@@ -38,9 +43,18 @@ And it mostly works on real hardware.
 
 Go into the MaslOS2 Folder and run the `CRUN.sh` file
 
+## How to run (No need to build)
+
+### How to run (Linux) 
+Install QEMU if you haven't.
+
+Download/clone the repo.
+Run the `cDisk.sh` file to generate an empty disk so QEMU can boot
+~~Run the `JUST RUN.sh` file to run~~ i forgot to add the file lol
 
 
 ## Screenshots
+![Working on the terminal](/images/terminal%201.gif)
 ![Taskbar yes](/images/wm%205.png)
 ![WM almost on par with MaslOS](/images/wm%204.png)
 ![More WM progress](/images/wm%203.png)
