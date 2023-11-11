@@ -52,8 +52,15 @@ Download/clone the repo.
 
 Run the `cDisk.sh` file to generate an empty disk so QEMU can boot correctly.
 
-~~Run the `JUST RUN.sh` file to run it!~~ (i forgot to add the file lol)
+Run the `JUST RUN OS.sh` file to run it!
 
+## How to run (Windows)
+
+Install QEMU if you haven't.
+
+Add QEMU To your PATH variable. [If you need help, click here!](https://linuxhint.com/qemu-windows/)
+
+Then download/clone the repo and run the `run.cmd` file
 
 
 ## Screenshots
