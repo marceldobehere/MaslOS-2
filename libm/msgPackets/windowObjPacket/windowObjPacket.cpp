@@ -118,6 +118,9 @@ WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacke
     // uint32_t CurrentTitleBackgroundColor
     PartialWindow->CurrentTitleBackgroundColor = *(uint32_t*)tBuffer;
     tBuffer += 4;
+    // uint32_t DefaultBackgroundColor
+    PartialWindow->DefaultBackgroundColor = *(uint32_t*)tBuffer;
+    tBuffer += 4;
 
     // uint64_t ID;
     PartialWindow->ID = *(uint64_t*)tBuffer;
@@ -185,6 +188,8 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint32_t CurrentTitleColor
     count += 4;
     // uint32_t CurrentTitleBackgroundColor
+    count += 4;
+    // uint32_t DefaultBackgroundColor
     count += 4;
 
 
@@ -275,6 +280,9 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     tBuffer += 4;
     // uint32_t CurrentTitleBackgroundColor
     *(uint32_t*)tBuffer = PartialWindow->CurrentTitleBackgroundColor;
+    tBuffer += 4;
+    // uint32_t DefaultBackgroundColor
+    *(uint32_t*)tBuffer = PartialWindow->DefaultBackgroundColor;
     tBuffer += 4;
 
     // uint64_t ID;

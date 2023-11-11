@@ -39,6 +39,7 @@ Window::Window()
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
     CurrentTitleBackgroundColor = DefaultTitleBackgroundColor;
+    DefaultBackgroundColor = Colors.black;
 
     OldBorderColor = CurrentBorderColor;
     OldTitleColor = CurrentTitleColor;
@@ -83,6 +84,7 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     DefaultTitleColor = Colors.gray;
     SelectedTitleColor = Colors.white;
     DefaultTitleBackgroundColor = Colors.dgray;
+    DefaultBackgroundColor = Colors.black;
 
     OldShowTitleBar = ShowTitleBar;
     OldShowBorder = ShowBorder;
@@ -125,9 +127,6 @@ void Window::ResizeFramebuffer(int width, int height)
     Buffer->BufferSize = width * height * 4;
     Buffer->BaseAddress = _Malloc(Buffer->BufferSize, "Framebuffer Data");
 
-    // possibly optimize by only doing a memset if buffer is null and if it isnt then only clear the empty data
-    _memset(Buffer->BaseAddress, 0, Buffer->BufferSize);
-
     if (oldBuffer != NULL)
     {
         int minX = min(oldBuffer->Width, Buffer->Width);
@@ -140,12 +139,30 @@ void Window::ResizeFramebuffer(int width, int height)
             for (int x = 0; x < minX; x++)
                 newData[x + y * Buffer->PixelsPerScanLine] = oldData[x + y * oldBuffer->PixelsPerScanLine];
 
+        // right area
+        for (int y = 0; y < Buffer->Height; y++)
+            for (int x = minX; x < Buffer->Width; x++)
+                newData[x + y * Buffer->PixelsPerScanLine] = DefaultBackgroundColor;
+
+        // bottom area
+        for (int y = minY; y < Buffer->Height; y++)
+            for (int x = 0; x < minX; x++)
+                newData[x + y * Buffer->PixelsPerScanLine] = DefaultBackgroundColor;
+
         _Free(oldBuffer->BaseAddress);
         _Free(oldBuffer);
+    }
+    else
+    {
+        uint32_t* data = (uint32_t*)Buffer->BaseAddress;
+        for (int y = 0; y < Buffer->Height; y++)
+            for (int x = 0; x < Buffer->Width; x++)
+                data[x + y * Buffer->PixelsPerScanLine] = DefaultBackgroundColor;
     }
 
     Updates->Add(WindowUpdate(0, 0, width, height));
 }
+
 
 void Window::_CheckDimensionChange()
 {
@@ -335,6 +352,8 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool 
     SelectedTitleColor = window->SelectedTitleColor;
     // DefaultTitleBackgroundColor
     DefaultTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+    // DefaultBackgroundColor
+    DefaultBackgroundColor = window->DefaultBackgroundColor;
     // IsFrozen
     IsFrozen = window->IsFrozen;
     

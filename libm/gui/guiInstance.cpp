@@ -56,6 +56,8 @@ void GuiInstance::Init()
         &bruhus
     );
 
+    window->DefaultBackgroundColor = screen->backgroundColor;
+    setWindow(window);
 }
 
 int GetBaseComponentAttributeSize(GuiInstanceBaseAttributeType type)

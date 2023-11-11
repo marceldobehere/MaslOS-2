@@ -118,6 +118,7 @@ class Window
     uint32_t DefaultTitleColor;
     uint32_t SelectedTitleColor;
     uint32_t DefaultTitleBackgroundColor;
+    uint32_t DefaultBackgroundColor;
 
     uint32_t CurrentBorderColor;
     uint32_t CurrentTitleColor;
