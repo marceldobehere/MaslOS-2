@@ -446,7 +446,11 @@ uint64_t DrawFrame()
             if (msg->Size == sizeof(KeyMessagePacket) && msg->Data != NULL)
             {
                 KeyMessagePacket* keyMsg = (KeyMessagePacket*)msg->Data;
-                if (activeWindow != NULL)
+                if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x58) // F12
+                {
+                    uint64_t newPid = startProcess("bruh:programs/shell.elf", 0, NULL);
+                }
+                else if (activeWindow != NULL)
                 {
                     GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));
                     msgSendConv(msgNew, activeWindow->PID, activeWindow->CONVO_ID_WM_KB_STUFF);

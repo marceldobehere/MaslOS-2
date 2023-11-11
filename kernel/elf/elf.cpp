@@ -71,9 +71,9 @@ namespace Elf
             Serial::Writelnf("ELF> DATA IS NULL!");
             return borkedElfFile;
         }
-        if(__builtin_bswap32(header->e_ident.i) != MAGIC) 
+        if(header->e_ident.i != MAGIC) 
         {
-            Serial::Writelnf("ELF> NUMBER IS %x and not %x", __builtin_bswap32(header->e_ident.i), MAGIC);
+            Serial::Writelnf("ELF> NUMBER IS %x and not %x", header->e_ident.i, MAGIC);
             Serial::Writelnf("ELF> (NUMBER IS %x)", header->e_ident.i);
             Serial::Writelnf("ELF> NOT AN ELF!");
             return borkedElfFile; // not an elf

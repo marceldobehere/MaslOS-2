@@ -26,7 +26,7 @@ namespace Elf
 		const char* linker_path;
 	};
 
-    constexpr uint32_t MAGIC        = 0x7f454c46; // ELF Magic as one unit
+    constexpr uint32_t MAGIC        = 0x464C457F; //0x7f454c46; // ELF Magic as one unit
 
     // File Types - ELF-64 Object File Format 1.5d2 p. 5
     constexpr Elf64_Half ET_NONE    = 0x0000;

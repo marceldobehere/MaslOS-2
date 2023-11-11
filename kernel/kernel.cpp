@@ -16,6 +16,7 @@
 #include "interrupts/interrupts.h"
 #include <libm/cstrTools.h>
 #include "paging/PageTableManager.h"
+#include "fsStuff/fsStuff.h"
 
 void boot(void* _bootInfo)
 {
@@ -84,6 +85,11 @@ void boot(void* _bootInfo)
             SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]));
             Serial::Writelnf("MODULE> file: \"%s\" %d", file->name, file->size);
 
+            const char* combined = StrCombine("bruh:modules/", file->name);
+            if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
+                Panic("ADDING FILE FAILED!", true);
+            _Free(combined);
+
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
             if (!elf.works)
                 Panic("FILE NO WORK :(", true);
@@ -115,6 +121,11 @@ void boot(void* _bootInfo)
         {
             SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode->children[i]));
             Serial::Writelnf("PROGRAM> file: %d", file->size);
+
+            const char* combined = StrCombine("bruh:programs/", file->name);
+            if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
+                Panic("ADDING FILE FAILED!", true);
+            _Free(combined);
 
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
             if (!elf.works)

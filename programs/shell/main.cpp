@@ -192,9 +192,6 @@ const char* RemoveCurrentPathFromPath(const char* path, const char* current)
     if (currentStart == 0)
         return StrCopy(path);
     
-    // Check if the current path is in the path
-    serialPrint("path without drive: ");
-    serialPrintLn(current + currentStart);
 
     if (!StrStartsWith(path, current + currentStart))
         return StrCopy(path);
@@ -422,7 +419,53 @@ void HandleCommand(const char* inputStr)
     }
     else if (StrEquals(cmd, "run"))
     {
-        outTxt->Println("Not implemented yet", Colors.bred);
+        if (argC > 1)
+        {
+            const char* pathToUse = StrCopy(args[1]);
+            const char* combined = StrCombine(currentPath, pathToUse);
+
+            if (fsFileExists(combined))
+            {
+                uint64_t newPid = startProcess(combined, argC - 2, args + 2);
+                if (newPid == 0)
+                {
+                    outTxt->Print("Failed to start process: \"", Colors.bred);
+                    outTxt->Print(pathToUse, 0xffFFAA00);
+                    outTxt->Println("\"", Colors.bred);
+                }
+                else
+                {
+                    outTxt->Print("Started process with PID: ", Colors.bgreen);
+                    outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
+                }
+            }
+            else if (fsFileExists(pathToUse))
+            {
+                uint64_t newPid = startProcess(pathToUse, argC - 2, args + 2);
+                if (newPid == 0)
+                {
+                    outTxt->Print("Failed to start process: \"", Colors.bred);
+                    outTxt->Print(pathToUse, 0xffFFAA00);
+                    outTxt->Println("\"", Colors.bred);
+                }
+                else
+                {
+                    outTxt->Print("Started process with PID: ", Colors.bgreen);
+                    outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
+                }
+            }
+            else
+            {
+                outTxt->Print("File not found: \"", Colors.bred);
+                outTxt->Print(pathToUse, 0xffFFAA00);
+                outTxt->Println("\"", Colors.bred);
+            }
+
+            _Free(combined);
+            _Free(pathToUse);
+        }
+        else
+            outTxt->Println("Usage: run <file>");
     }
     else
     {

@@ -334,7 +334,7 @@ namespace FS_STUFF
         const char* res = fsInterface->WriteFile(relPath, bufferLen, (void*) buffer);
 
         _Free(relPath);
-        return true;    
+        return res == FilesystemInterface::FSCommandResult.SUCCESS;    
     }
 
     // TaskReadFile* ReadFileTask(const char* path)

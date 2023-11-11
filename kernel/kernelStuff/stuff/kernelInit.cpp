@@ -296,14 +296,20 @@ void InitKernel(BootInfo* bootInfo)
             PrintMsgCol(" ({} bytes)", to_string(bootInfo->windowIconsZIP->size), Colors.bgreen);
             fsInterface->CreateFile(tPath, bootInfo->windowIconsZIP->size);
             fsInterface->WriteFile(tPath, bootInfo->windowIconsZIP->size, bootInfo->windowIconsZIP->fileData);
-
-            tPath = "wmStuff/programs.mbzf";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->programs->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->programs->size);
-            fsInterface->WriteFile(tPath, bootInfo->programs->size, bootInfo->programs->fileData);
         }
         PrintMsgEndLayer("WM STUFF");
+
+        PrintMsgStartLayer("PROGRAMS");
+        {
+            fsInterface->CreateFolder("programs");
+        }
+        PrintMsgEndLayer("PROGRAMS");
+
+        PrintMsgStartLayer("MODULES");
+        {
+            fsInterface->CreateFolder("modules");
+        }
+        PrintMsgEndLayer("MODULES");
 
         fsInterface->SaveFSTable();
 

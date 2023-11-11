@@ -507,7 +507,7 @@ bool closeProcess(uint64_t pid)
     return success;
 }
 
-uint64_t startProcess(const char* path, int argc, const char* argv)
+uint64_t startProcess(const char* path, int argc, const char** argv)
 {
     int syscall = SYSCALL_START_PROCESS;
     uint64_t pid;

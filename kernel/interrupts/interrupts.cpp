@@ -1974,7 +1974,7 @@ void Syscall_handler(interrupt_frame* frame)
         int argc = frame->rcx;
         const char** argv = (const char**)frame->rdx;
 
-        if (IsAddressValidForTask(path) && IsAddressValidForTask(argv))
+        if (IsAddressValidForTask(path) && (IsAddressValidForTask(argv) || argc == 0))
         {
             bool ok = true;
             for (int i = 0; i < argc; i++)
@@ -1993,11 +1993,10 @@ void Syscall_handler(interrupt_frame* frame)
                         osTask* task = Scheduler::CreateTaskFromElf(elf, argc, argv, true);
                         Scheduler::AddTask(task);
                         frame->rax = task->pid;
-
-                        _Free(resBuffer);
                     }
                     else
                         Serial::Writelnf("> Elf file %s is invalid", path);
+                    _Free(resBuffer);
                 }
                 else
                     Serial::Writelnf("> File %s does not exist", path);
