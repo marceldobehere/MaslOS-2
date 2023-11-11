@@ -30,6 +30,7 @@ char buffer[512];
 
 int main(int argc, char** argv)
 {
+    return 0;
     // int argc = getArgC();
     // char **argv = getArgV();
     //ENV_DATA *env = getEnvData();

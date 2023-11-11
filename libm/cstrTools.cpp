@@ -207,6 +207,13 @@ bool StrEndsWith(const char* og, const char* with)
     return true;
 }
 
+char* StrCombineAndFree(const char* a, const char* b)
+{
+    char* res = StrCombine(a, b);
+    _Free((void*)a);
+    return res;
+}
+
 char* StrCombine(const char* a, const char* b)
 {
     int lenA = StrLen(a);

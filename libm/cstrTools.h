@@ -17,6 +17,7 @@ char* StrSubstr(const char* og, int index);
 bool StrStartsWith(const char* og, const char* with);
 bool StrEndsWith(const char* og, const char* with);
 
+char* StrCombineAndFree(const char* a, const char* b);
 char* StrCombine(const char* a, const char* b);
 char* StrCombine(const char* a, const char* b, const char* c);
 char* StrCombine(const char* a, const char* b, const char* c, const char* d);
