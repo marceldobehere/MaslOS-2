@@ -68,8 +68,6 @@ void boot(void* _bootInfo)
         Scheduler::NothingDoerTask = task;
     }
 
-    const char* bleh = "BLEH TEST";
-
     {
         uint8_t* data = (uint8_t*)bootInfo->programs->fileData;
         //Serial::Writelnf("data: %X", data);
@@ -127,15 +125,14 @@ void boot(void* _bootInfo)
                 Panic("ADDING FILE FAILED!", true);
             _Free(combined);
 
-            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
-            if (!elf.works)
-                Panic("FILE NO WORK :(", true);
+            // Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
+            // if (!elf.works)
+            //     Panic("FILE NO WORK :(", true);
 
-            Serial::Writelnf("> Adding ELF");
+            // Serial::Writelnf("> Adding ELF");
 
-            Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 1, &bleh, true));
-            Serial::Writelnf("> ADDED PROGRAM");
-
+            // Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 0, NULL, true));
+            // Serial::Writelnf("> ADDED PROGRAM");
         }
     }
 

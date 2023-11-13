@@ -308,8 +308,9 @@ int main(int argc, char** argv)
 
     Clear(true);
     UpdatePointerRect(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
-    RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
     RenderWindows();
+    RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
+    
     //ActuallyRenderWindow(window, true);
 
     DrawFrame();
@@ -449,6 +450,13 @@ uint64_t DrawFrame()
                 if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x58) // F12
                 {
                     uint64_t newPid = startProcess("bruh:programs/shell.elf", 0, NULL);
+                }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x57) // F11
+                {
+                    Clear(true);
+                    UpdatePointerRect(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
+                    RenderWindows();
+                    RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
                 }
                 else if (activeWindow != NULL)
                 {

@@ -295,30 +295,30 @@ void TempPitRoutine(interrupt_frame* frame)
     //     osData.serialManager->DoStuff();
 
 
-    if (_pitCount++ >= 80 && false)   
+    if (_pitCount++ >= 80 && true)   
     {
         _pitCount = 0;
         
         Point tempPoint = GlobalRenderer->CursorPosition;
         GlobalRenderer->CursorPosition.x = 0;
-        GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - 16;
+        GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - (osData.inBootProcess ? 16 : 80);
 
         GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
 
         uint32_t currCol = 0;
         
-        currCol = Colors.orange;
-        GlobalRenderer->Print("DATE: ", currCol);
-        GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
-        GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
-        GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
-        GlobalRenderer->Print(" - ", Colors.white);
+        // currCol = Colors.orange;
+        // GlobalRenderer->Print("DATE: ", currCol);
+        // GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
+        // GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
+        // GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
+        // GlobalRenderer->Print(" - ", Colors.white);
 
-        currCol = Colors.yellow;
-        GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
-        GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
-        GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
-        GlobalRenderer->Print(" - ", Colors.white);
+        // currCol = Colors.yellow;
+        // GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
+        // GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
+        // GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
+        // GlobalRenderer->Print(" - ", Colors.white);
 
         currCol = Colors.bgreen;
         GlobalRenderer->Print("HEAP: ", currCol);
@@ -825,6 +825,8 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         }
         Scheduler::CurrentRunningTask = NULL;
 
+        for (int i = 0; i < 20; i++)
+            GlobalRenderer->ClearButDont();
 
         //while (true);
 
