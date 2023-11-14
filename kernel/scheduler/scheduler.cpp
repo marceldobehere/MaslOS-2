@@ -107,6 +107,16 @@ namespace Scheduler
 
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
+            osTask* task = osTasks.obj->ElementAt(i);
+            if (task->waitTillMessage && (task->messages->GetCount() != 0 || task->taskTimeoutDone < PIT::TimeSinceBootMS()))
+            {
+                task->waitTillMessage = false;
+                task->taskTimeoutDone = 0;
+            }
+        }
+
+        for (int i = 0; i < osTasks.obj->GetCount(); i++)
+        {
             osTask* bruhTask = osTasks.obj->ElementAt(i);
 
             if (bruhTask == CurrentRunningTask)
@@ -140,7 +150,7 @@ namespace Scheduler
             if (bruhTask->taskTimeoutDone != 0)
                 continue;
 
-            if (!bruhTask->active)
+            if (!bruhTask->active || bruhTask->waitTillMessage)
                 continue;
 
             if (bruhTask->justYielded)
@@ -192,7 +202,7 @@ namespace Scheduler
             if (currentTask->taskTimeoutDone != 0)
                 continue;
 
-            if (!currentTask->active)
+            if (!currentTask->active || currentTask->waitTillMessage)
                 continue;
 
             if (currentTask->doExit)

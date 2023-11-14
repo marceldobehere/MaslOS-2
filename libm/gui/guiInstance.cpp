@@ -107,7 +107,7 @@ int GetBaseComponentAttributeSize(GuiInstanceBaseAttributeType type)
 #include <libm/msgPackets/keyPacket/keyPacket.h>
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 
-void GuiInstance::Render()
+void GuiInstance::Update()
 {
     if (screen == NULL)
         return;
@@ -115,7 +115,7 @@ void GuiInstance::Render()
     // Window Updates
     if (true)
     {
-        bool updateEverHappened = false;;
+        bool updateEverHappened = false;
         for (int i = 0; i < 500; i++)
         {
             GenericMessagePacket* wPacket = msgGetConv(window->CONVO_ID_WM_WINDOW_UPDATE);
@@ -130,8 +130,8 @@ void GuiInstance::Render()
 
                     if (partialWindow != NULL)
                     {
-                        updateEverHappened = true;
                         window->UpdateUsingPartialWindow(partialWindow, true, true);
+                        updateEverHappened = true;
                         partialWindow->Free();
                         _Free(partialWindow);
                     }
@@ -215,11 +215,24 @@ void GuiInstance::Render()
         else
             break;
     }
+}
+
+void GuiInstance::Render(bool update)
+{
+    if (screen == NULL)
+        return;
+    
+    if (update)
+        Update();
 
     screen->CheckUpdates();
 
     //serialPrint("> Updates: ");
     //serialPrintLn(to_string(screen->finalUpdatedFields->GetCount()));
+
+    int x1, y1, x2, y2;
+    bool set = false;
+    int counter = 0;
     while (screen->finalUpdatedFields->GetCount() > 0)
     {
         GuiComponentStuff::Field bruh = screen->finalUpdatedFields->LastElement();
@@ -234,64 +247,41 @@ void GuiInstance::Render()
 
         screen->renderer->Render(screen->position, bruh, &bruhus);
 
-        //send update
-        SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
+        if (true)
+        {
+            if (!set || x1 > bruh.TL.x)
+                x1 = bruh.TL.x;
+            if (!set || y1 > bruh.TL.y)
+                y1 = bruh.TL.y;
+            if (!set || x2 < bruh.BR.x)
+                x2 = bruh.BR.x;
+            if (!set || y2 < bruh.BR.y)
+                y2 = bruh.BR.y;
+            set = true;
+        }
+        else
+        {
+            //send update
+            SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
+        }
+        
+        if (++counter > 10)
+        {
+            counter = 0;
+            if (set)
+            {
+                SendWindowFrameBufferUpdate(window, x1, y1, x2, y2);
+                set = false;
+            }
+        }
+    }
+
+    if (set)
+    {
+        SendWindowFrameBufferUpdate(window, x1, y1, x2, y2);
+        set = false;
     }
 }
-
-    // TODO: IMPLEMENT ONCE TASKS EXIST (IF I DECIDE TO USE THEM)
-    // if (waitTask == NULL && !waitingForTask && waitTask2 != NULL)
-    // {
-    //     //Serial::Writeln("Switching to Task2");
-    //     waitTask = waitTask2;
-    //     waitTask2 = NULL;
-    // }
-
-    // if (waitTask != NULL)
-    // {
-    //     DoTask(waitTask);
-    //     if (waitTask->GetDone())
-    //     {
-    //         if (OnWaitTaskDoneCallback != NULL)
-    //             OnWaitTaskDoneCallback(OnWaitTaskDoneHelp, waitTask);
-
-    //         FreeTask(waitTask);
-    //         waitTask = NULL;
-
-
-    //         GuiComponentStuff::ComponentFramebuffer bruhus = GuiComponentStuff::ComponentFramebuffer
-    //         (
-    //             window->framebuffer->Width,
-    //             window->framebuffer->Height,
-    //             (uint32_t*)window->framebuffer->BaseAddress
-    //         );
-
-    //         screen->renderer->Render(
-    //             screen->position, 
-    //             GuiComponentStuff::Field(
-    //                 GuiComponentStuff::Position(), 
-    //                 screen->GetActualComponentSize()
-    //             ), 
-    //             &bruhus
-    //         );
-    //         window->resizeable = oldResizeable;
-    //         window->closeable = true;
-    //     }
-    //     else
-    //     {
-    //         if (waitingForTask)
-    //             return;
-    //         waitingForTask = true;
-    //         window->renderer->ClearDotted(Colors.black);
-    //         window->closeable = false;
-    //         oldResizeable = window->resizeable;
-    //         window->resizeable = false;
-    //         return;
-    //     }
-    // }
-    // else
-    //     waitingForTask = false;
-    // //window->renderer->Clear(Colors.orange);
 
 
 GuiComponentStuff::BaseComponent* GuiInstance::GetComponentFromId(uint64_t id)

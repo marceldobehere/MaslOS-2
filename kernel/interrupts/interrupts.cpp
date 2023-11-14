@@ -714,6 +714,7 @@ bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid, uint
     if (otherTask == NULL)
         return false;
 
+    //Serial::Writelnf("> Sending2 %d from %X to %X", oldPacket->Size, sourcePid, otherTask->pid);
     GenericMessagePacket* newPacket = oldPacket->Copy();
     otherTask->messages->Enqueue(newPacket);
     return true;
@@ -1751,6 +1752,14 @@ void Syscall_handler(interrupt_frame* frame)
 
         Scheduler::SchedulerInterrupt(frame);
     }
+    else if (syscall == SYSCALL_WAIT_MSG)
+    {
+        Scheduler::CurrentRunningTask->waitTillMessage = true;
+        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 10;
+        Scheduler::CurrentRunningTask->justYielded = true;
+
+        Scheduler::SchedulerInterrupt(frame);
+    }
     else if (syscall == SYSCALL_SET_PRIORITY)
     {
         int prio = frame->rbx;
@@ -1906,6 +1915,7 @@ void Syscall_handler(interrupt_frame* frame)
                 if (oldPacket != NULL && taskHeap != NULL)
                 {
                     AddToStack();
+                    //Serial::Writelnf("> %X: %d msgs left.", Scheduler::CurrentRunningTask, queue->GetCount());
                     GenericMessagePacket* newPacket = oldPacket->Copy(taskHeap);
                     oldPacket->Free();
                     _Free(oldPacket);
@@ -1942,6 +1952,7 @@ void Syscall_handler(interrupt_frame* frame)
                 
                 if (allowSend)
                 {
+                    Serial::Writelnf("> Sending %d from %X to %X", oldPacket->Size, task->pid, otherTask->pid);
                     GenericMessagePacket* newPacket = oldPacket->Copy();
                     newPacket->FromPID = task->pid;
                     otherTask->messages->Enqueue(newPacket);

@@ -196,6 +196,12 @@ void programWait(int timeMs)
     asm("int $0x31" : : "a"(syscall), "b"(timeMs));
 }
 
+void programWaitMsg()
+{
+    int syscall = SYSCALL_WAIT_MSG;
+    asm("int $0x31" : : "a"(syscall));
+}
+
 void programYield()
 {
     int syscall = SYSCALL_YIELD;

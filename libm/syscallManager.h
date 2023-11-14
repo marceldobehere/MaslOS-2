@@ -30,6 +30,7 @@ void programCrash();
 void programWait(int timeMs);
 void programYield();
 int programSetPriority(int priority);
+void programWaitMsg();
 
 uint64_t envGetTimeMs();
 uint64_t envGetDesktopPid();

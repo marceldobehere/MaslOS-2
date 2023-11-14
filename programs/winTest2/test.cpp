@@ -219,7 +219,7 @@ int main(int argc, char** argv)
     {
         for (int i = 0; i < 5; i++)
         {
-            testGui->Render();
+            testGui->Render(true);
             // testRect->position.x += 5;
             // if (testRect->position.x > 300)
             //     testRect->position.x = 0;
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
             //     testRect->position.y = 0;
             
             //programYield();
-            programWait(20);
+            programWaitMsg();
         }
 
         // MouseState* mState = envGetMouseState();

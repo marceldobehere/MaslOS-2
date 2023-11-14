@@ -282,7 +282,7 @@ int main(int argc, char** argv)
 
     while (!CheckForWindowClosed(window))
     {
-        testGui->Render();
+        testGui->Render(true);
 
         testRect->position.x += 1;
         if (testRect->position.x > 300)

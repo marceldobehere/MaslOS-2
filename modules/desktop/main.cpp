@@ -15,7 +15,7 @@ Framebuffer* actualScreenFramebuffer;
 Framebuffer* mainBuffer;
 PointerBuffer* pointerBuffer;
 
-uint32_t defaultBackgroundColor = 0xFF202030;
+uint32_t defaultBackgroundColor = Colors.black;
 bool drawBackground = false;
 Framebuffer* backgroundImage = NULL;
 
@@ -269,53 +269,19 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
 int main(int argc, char** argv)
 {
     serialPrintLn("Starting Desktop");
-
-    programSetPriority(2);
-
-    programWait(10);
-
+    programSetPriority(1);
     InitStuff();
 
-    // Window* window = new Window(50, 30, 200, 200, "Test Window 1", RND::RandomInt(), getPid());
-    // windows->Add(window);
-    // _memset(window->Buffer->BaseAddress, 0x80, window->Buffer->BufferSize);
-
-    // {
-    //     WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
-    //         0, 0, window->Buffer->Width, window->Buffer->Height, 
-    //         window->ID,
-    //         (uint32_t*)window->Buffer->BaseAddress
-    //     );
-
-    //     GenericMessagePacket* msg = packet->ToGenericMessagePacket();
-
-    //     msgSendMessage(msg, getPid());
-
-    //     msg->Free();
-    //     _Free(msg);
-
-    //     packet->Free();
-    //     _Free(packet);
-    // }
-
-    // activeWindow = window;
     activeWindow = NULL;
 
-    //actualScreenRenderer->Clear(Colors.black);
-    //actualScreenRenderer->Println("WINDOW 0x{}", ConvertHexToString((uint64_t)window->Buffer), Colors.yellow);
-    
-
-
+    // Clear and Redraw
     Clear(true);
     UpdatePointerRect(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
     RenderWindows();
     RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
-    
-    //ActuallyRenderWindow(window, true);
+
 
     DrawFrame();
-
-
 
     serialPrintLn("Starting Main Loop");
     
@@ -341,7 +307,8 @@ int main(int argc, char** argv)
             frameTime += endTime - startTime;
 
             //programWait(10);
-            programYield();
+            //programYield();
+            programWaitMsg();
 
             uint64_t endTime2 = envGetTimeMs();
 
@@ -742,7 +709,6 @@ uint64_t DrawFrame()
 
             window->Updates->Clear();
 
-
             if (windowsUpdated->Contains(window))
             {
                 WindowObjectPacket* winObjPacketTo = new WindowObjectPacket(window, false);
@@ -758,6 +724,8 @@ uint64_t DrawFrame()
                 _Free(winObjPacketTo);
             }
         }
+
+        
     }
 
 
@@ -910,9 +878,9 @@ uint64_t DrawFrame()
         if ((pixelSum > maxPixelsPerFrame) && ScreenUpdates->GetCount() < 5)
             break;
     }
-    // serialPrint("UPDATES LEFT: ");
-    // serialPrintLn(to_string(ScreenUpdates->GetCount()));
-    // //ScreenUpdates->Clear();
+    //serialPrint("UPDATES LEFT: ");
+    //serialPrintLn(to_string(ScreenUpdates->GetCount()));
+    //ScreenUpdates->Clear();
 
 
 

@@ -54,6 +54,7 @@ struct osTask
 	const char** argV;
 	int argC;
 
+	bool waitTillMessage = false;
 	//int requestedPages;
 
 	//bool active;

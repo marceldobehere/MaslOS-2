@@ -94,6 +94,7 @@ int main(int argc, char** argv)
     while (!CheckForWindowClosed(window))
     {
         // Update Positions and Sizes
+        guiInst->Update();
         {
             GuiComponentStuff::ComponentSize scrSize =  guiInst->screen->size;
             outTxt->size.FixedX = scrSize.FixedX;
@@ -114,7 +115,7 @@ int main(int argc, char** argv)
             }
         }
 
-        guiInst->Render();
+        guiInst->Render(false);
         
         programWait(20);
     }

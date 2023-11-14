@@ -76,7 +76,8 @@ class GuiInstance// : public DefaultInstance
     GuiInstance(Window* window);
     void Free();
     void Init();
-    void Render();
+    void Render(bool update);
+    void Update();
 
     GuiComponentStuff::BaseComponent* GetComponentFromId(uint64_t id);
     GuiComponentStuff::BaseComponent* GetChildFromComponentWithId(uint64_t id, int index);
