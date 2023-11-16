@@ -141,6 +141,7 @@ class Window
     Framebuffer* Buffer;
 
     Window();
+    Window(uint64_t id);
     Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid);
 
     void UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool updateActive);

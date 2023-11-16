@@ -1952,7 +1952,7 @@ void Syscall_handler(interrupt_frame* frame)
                 
                 if (allowSend)
                 {
-                    Serial::Writelnf("> Sending %d from %X to %X", oldPacket->Size, task->pid, otherTask->pid);
+                    // Serial::Writelnf("> Sending %d from %X to %X", oldPacket->Size, task->pid, otherTask->pid);
                     GenericMessagePacket* newPacket = oldPacket->Copy();
                     newPacket->FromPID = task->pid;
                     otherTask->messages->Enqueue(newPacket);

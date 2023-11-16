@@ -2,6 +2,7 @@
 #include "../stubs.h"
 #include "../syscallManager.h"
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
+#include <libm/cstr.h>
 
 uint64_t desktopPID;
 
@@ -54,7 +55,7 @@ Window* getPartialWindow(uint64_t id)
         _Free(winObj);
     }
 
-    GenericMessagePacket* winGet = msgWaitConv(convoId, 5000);
+    GenericMessagePacket* winGet = msgWaitConv(convoId, 3000);
 
     if (winGet == NULL)
         return NULL;
@@ -148,7 +149,7 @@ Window* requestWindow()
         winReq->Free();
     }
 
-    GenericMessagePacket* winCreate = msgWaitConv(convoId, 5000);
+    GenericMessagePacket* winCreate = msgWaitConv(convoId, 3000);
     if (winCreate == NULL)
         return NULL;
     
@@ -158,14 +159,18 @@ Window* requestWindow()
 
 
     Window* partial = getPartialWindow(windowId);
-
-    Window* newWindow = new Window(0, 0, 0, 0, "", windowId, 0);
-    if (partial != NULL)
+    if (partial == NULL)
     {
-        newWindow->UpdateUsingPartialWindow(partial, true, true);
-        partial->Free();
-        _Free(partial);
+        winCreate->Free();
+        _Free(winCreate);
+        return NULL;
     }
+
+    Window* newWindow = new Window(windowId);
+    newWindow->UpdateUsingPartialWindow(partial, true, true);
+    partial->Free();
+    _Free(partial);
+
     newWindow->UpdateCheck();
     newWindow->Updates->Clear();
 
@@ -258,6 +263,8 @@ bool CheckForWindowClosed(Window* window)
     if (window == NULL)
         return true;
     if (window->ID == 0)
+        return true;
+    if (window->CONVO_ID_WM_WINDOW_CLOSED == 0)
         return true;
     
     GenericMessagePacket* msg = msgGetConv(window->CONVO_ID_WM_WINDOW_CLOSED);

@@ -57,6 +57,56 @@ Window::Window()
     CONVO_ID_WM_WINDOW_CLOSED = 0;
 }
 
+Window::Window(uint64_t id)
+{
+    Title = StrCopy("");
+    OldTitle = StrCopy(Title);
+
+    Dimensions = WindowDimension();
+    OldDimensions = Dimensions;
+
+    ShowTitleBar = true;
+    ShowBorder = true;
+    Hidden = false;
+    Moveable = true;
+    Resizeable = true;
+    Closeable = true;
+    IsActive = false;
+    IsFrozen = false;
+
+    DefaultBorderColor = Colors.dgray;
+    SelectedBorderColor = Colors.bgreen;
+    DefaultTitleColor = Colors.gray;
+    SelectedTitleColor = Colors.white;
+    DefaultTitleBackgroundColor = Colors.dgray;
+
+    OldShowTitleBar = ShowTitleBar;
+    OldShowBorder = ShowBorder;
+    OldHidden = Hidden;
+    OldIsActive = IsActive;
+    OldIsFrozen = IsFrozen;
+
+    CurrentBorderColor = DefaultBorderColor;
+    CurrentTitleColor = DefaultTitleColor;
+    CurrentTitleBackgroundColor = DefaultTitleBackgroundColor;
+    DefaultBackgroundColor = Colors.black;
+
+    OldBorderColor = CurrentBorderColor;
+    OldTitleColor = CurrentTitleColor;
+    OldTitleBackgroundColor = CurrentTitleBackgroundColor;
+
+    Updates = new List<WindowUpdate>();
+    Buffer = NULL;
+
+    ID = id;
+    PID = 0;
+
+    CONVO_ID_WM_MOUSE_STUFF = 0;
+    CONVO_ID_WM_KB_STUFF = 0;
+    CONVO_ID_WM_WINDOW_UPDATE = 0;
+    CONVO_ID_WM_WINDOW_CLOSED = 0;
+}
+
 Window::Window(int x, int y, int width, int height, const char* title, uint64_t id, uint64_t pid)
 {
     Title = StrCopy(title);

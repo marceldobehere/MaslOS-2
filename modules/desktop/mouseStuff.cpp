@@ -376,7 +376,7 @@ bool HandleClick(bool L, bool R, bool M)
             else
             {
                 GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::WINDOW_DELETE_EVENT, NULL, 0);
-                msgSendConv(packet, activeWindow->PID, activeWindow->CONVO_ID_WM_WINDOW_CLOSED);
+                msgSendConv(packet, Taskbar::activeTabWindow->PID, Taskbar::activeTabWindow->CONVO_ID_WM_WINDOW_CLOSED);
                 packet->Free();
                 _Free(packet);
             }

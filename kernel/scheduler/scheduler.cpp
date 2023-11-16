@@ -479,69 +479,86 @@ namespace Scheduler
             osTasks.obj->RemoveAt(index);
             //Serial::Writelnf("> Removed task at index %d", index);
             RemoveFromStack();
+        }
 
-            if (task->argV != NULL)
+        if (task->argV != NULL)
+        {
+            for (int i = 0; i < task->argC; i++)
             {
-                for (int i = 0; i < task->argC; i++)
-                {
-                    AddToStack();
-                    _Free((void*)task->argV[i]);
-                    RemoveFromStack();
-                }
-
                 AddToStack();
-                _Free(task->argV);
+                _Free((void*)task->argV[i]);
                 RemoveFromStack();
             }
 
-            // free task
             AddToStack();
-            if (task->requestedPages != NULL)
-            {
-                AddToStack();
-                for (int i = 0; i < task->requestedPages->GetCount(); i++)
-                {
-                    //Serial::Writelnf("> Freeing page %X", (uint64_t)task->requestedPages->ElementAt(i));
-                    GlobalAllocator->FreePage((void*)task->requestedPages->ElementAt(i));
-                }
-                RemoveFromStack();
-
-                AddToStack();
-                //Serial::Writelnf("> Freeing requested pages");
-                task->requestedPages->Free();
-                _Free(task->requestedPages);
-                task->requestedPages = NULL;
-                RemoveFromStack();
-            }
-            RemoveFromStack();
-
-            AddToStack();
-            if (task->kernelStack != NULL)
-            {
-                //Serial::Writelnf("> Freeing kernel stack");
-                GlobalAllocator->FreePages(task->kernelStack - MEM_AREA_TASK_KERNEL_STACK_OFFSET, KERNEL_STACK_PAGE_SIZE);
-                task->kernelStack = NULL;
-            }
-            RemoveFromStack();
-
-            AddToStack();
-            if (task->userStack != NULL)
-            {
-                //Serial::Writelnf("> Freeing user stack");
-                GlobalAllocator->FreePages(task->userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE);
-                task->userStack = NULL;
-            }
-            RemoveFromStack();
-
-            AddToStack();
-            if (task->pageTableContext != NULL)
-            {
-                //Serial::Writelnf("> Freeing page table");
-                GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
-                task->pageTableContext = NULL;
-            }
+            _Free(task->argV);
             RemoveFromStack();
         }
+
+        // free task
+        AddToStack();
+        if (task->requestedPages != NULL)
+        {
+            AddToStack();
+            for (int i = 0; i < task->requestedPages->GetCount(); i++)
+            {
+                //Serial::Writelnf("> Freeing page %X", (uint64_t)task->requestedPages->ElementAt(i));
+                GlobalAllocator->FreePage((void*)task->requestedPages->ElementAt(i));
+            }
+            RemoveFromStack();
+
+            AddToStack();
+            //Serial::Writelnf("> Freeing requested pages");
+            task->requestedPages->Free();
+            _Free(task->requestedPages);
+            task->requestedPages = NULL;
+            RemoveFromStack();
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->kernelStack != NULL)
+        {
+            //Serial::Writelnf("> Freeing kernel stack");
+            GlobalAllocator->FreePages(task->kernelStack - MEM_AREA_TASK_KERNEL_STACK_OFFSET, KERNEL_STACK_PAGE_SIZE);
+            task->kernelStack = NULL;
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->userStack != NULL)
+        {
+            //Serial::Writelnf("> Freeing user stack");
+            GlobalAllocator->FreePages(task->userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE);
+            task->userStack = NULL;
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->pageTableContext != NULL)
+        {
+            //Serial::Writelnf("> Freeing page table");
+            GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
+            task->pageTableContext = NULL;
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->messages != NULL)
+        {
+            while (task->messages->GetCount() > 0)
+            {
+                GenericMessagePacket* msg = task->messages->Dequeue();
+                if (msg == NULL)
+                    continue;
+                msg->Free();
+                _Free(msg);
+            }
+            task->messages->Free();
+            _Free(task->messages);
+            task->messages = NULL;
+        }
+        RemoveFromStack();
 
         {
             Elf::FreeElf(task->elfFile);

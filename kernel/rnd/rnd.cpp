@@ -29,7 +29,7 @@ namespace RND
 
     uint64_t RandomInt()
     {
-        int amt = lehmer64() & 0x0F;
+        int amt = (lehmer64() & 0x0F) + 7;
         for (int i = 0; i < amt; ++i)
             lehmer64();
 

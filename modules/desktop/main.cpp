@@ -365,6 +365,10 @@ void AddWindowToBeRemoved(Window* window)
 
     if (activeWindow == window)
         activeWindow = NULL;
+    if (Taskbar::activeTabWindow == window)
+        Taskbar::activeTabWindow = NULL;
+    if (currentActionWindow == window)
+        currentActionWindow = NULL;
 }
 
 uint64_t DrawFrame()
