@@ -118,6 +118,8 @@ void PageFrameAllocator::FreePage(void* address)
 
 void* PageFrameAllocator::RequestPages(int count)
 {
+    if (count == 0)
+        Panic("Request 0 Pages!", true);
     reqCount += count;
     int tCount = count;
     for (; pageBitmapIndex < PageBitMap.Size * 8; pageBitmapIndex++)
