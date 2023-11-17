@@ -22,11 +22,15 @@ And it mostly works on real hardware.
    - MaslOS Desktop / WM (mostly working)
    - Taskbar (mostly working)
  + Apps
+   - Tic Tac Toe (working)
+   - Flappy Rocc (soon)
+   - Snake (soon)
    - Terminal (basics be working)
-   - Explorer (soon)
-   - Notepad (soon)
-   - Paint (soon)
-   - MAAB interpreter (soon)
+   - Explorer (working)
+   - Notepad (basics be working)
+   - Paint (mostly working)
+   + MAAB interpreter (mostly working / output is currently routed to serial until i add stdio)
+     - Pong
    - Doom (soon)
    - Other Apps ported from MaslOS and some extra ones (not yet)
  + Other
