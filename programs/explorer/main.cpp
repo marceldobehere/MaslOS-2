@@ -201,6 +201,8 @@ void OnFileClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiCompone
     serialPrint("Trying to open \"");
     serialPrint(pathThing);
     serialPrintLn("\"");
+
+    startFile(pathThing);
 }
 
 void OnDriveClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiComponentStuff::MouseClickEventInfo info)

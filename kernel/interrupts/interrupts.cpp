@@ -2020,6 +2020,49 @@ void Syscall_handler(interrupt_frame* frame)
             }
         }
     }
+    else if (syscall == SYSCALL_START_FILE)
+    {
+        frame->rax = 0;
+        const char* path = (const char*)frame->rbx;
+
+        if (IsAddressValidForTask(path))
+        {
+            const char* actualPath = NULL;
+            if (StrEndsWith(path, ".txt"))
+                actualPath = "bruh:programs/notepad.elf";
+            if (StrEndsWith(path, ".maab"))
+                actualPath = "bruh:programs/maab.elf";
+            if (StrEndsWith(path, ".elf"))
+                actualPath = "bruh:modules/elfLauncher.elf";
+
+            if (actualPath != NULL)
+            {
+                const char** tempArgV = (const char**)_Malloc(sizeof(const char**));
+                tempArgV[0] = StrCopy(path);
+
+                char* resBuffer = NULL;
+                int resLen = 0;
+                if (FS_STUFF::ReadFileFromFullPath(actualPath, &resBuffer, &resLen))
+                {
+                    Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)resBuffer);
+                    if (elf.works)
+                    {
+                        osTask* task = Scheduler::CreateTaskFromElf(elf, 1, tempArgV, true);
+                        Scheduler::AddTask(task);
+                        frame->rax = task->pid;
+                    }
+                    else
+                        Serial::Writelnf("> Elf file %s is invalid", path);
+                    _Free(resBuffer);
+                }
+                else
+                    Serial::Writelnf("> File %s does not exist", path);
+
+                _Free(tempArgV[0]);
+                _Free(tempArgV);
+            }
+        }
+    }
     else
     {
         Serial::Writelnf("> Unknown Syscall: %d", syscall);

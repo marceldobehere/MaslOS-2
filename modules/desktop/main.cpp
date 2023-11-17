@@ -494,7 +494,7 @@ uint64_t DrawFrame()
             uint64_t pidFrom = msg->FromPID;
             uint64_t newWindowId = RND::RandomInt();
 
-            Window* window = new Window(100, 100, 400, 300, "Window", newWindowId, pidFrom);
+            Window* window = new Window(100 + RND::RandomInt() % 100, 100 + RND::RandomInt() % 100, 400, 300, "Window", newWindowId, pidFrom);
             windows->Add(window);
             _memset(window->Buffer->BaseAddress, 0x20, window->Buffer->BufferSize);
 

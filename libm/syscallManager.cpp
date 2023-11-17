@@ -520,3 +520,11 @@ uint64_t startProcess(const char* path, int argc, const char** argv)
     asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(argc), "d"(argv));
     return pid;
 }
+
+uint64_t startFile(const char* path)
+{
+    int syscall = SYSCALL_START_FILE;
+    uint64_t pid;
+    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path));
+    return pid;
+}
