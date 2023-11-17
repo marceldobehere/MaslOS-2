@@ -1,6 +1,6 @@
 #include "canvasComponent.h"
 #include <libm/stubs.h>
-//#include "../../../../../../osData/osData.h"
+#include <libm/gui/guiInstance.h>
 #include <libm/cstrTools.h>
 #include <libm/math.h>
 
@@ -76,7 +76,24 @@ namespace GuiComponentStuff
             updateFields->RemoveLast();
             parent->updateFields->Add(tempField + position);
         }
-            
+        
+        GuiInstance* gui = (GuiInstance*)GetGuiInstance();
+        ::Point mPos = {gui->mouseState.MouseX, gui->mouseState.MouseY};
+        Position abs = GetAbsoluteComponentPosition();
+        ScreenComponent* scr = (ScreenComponent*)GetScreen();
+
+        ComponentSize tSize = GetActualComponentSize();
+
+        bool mouseHover =
+        mPos.x >= abs.x &&
+        mPos.y >= abs.y &&
+        mPos.x < abs.x + tSize.FixedX &&
+        mPos.y < abs.y + tSize.FixedY;
+
+        mouseHover &= !scr->window->Hidden && scr->window->IsActive;
+
+        if (mouseHover)
+            scr->tempSelectedComponent = this;
         
 
         RemoveFromStack();
