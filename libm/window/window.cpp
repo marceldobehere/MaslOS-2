@@ -364,7 +364,7 @@ void Window::UpdateCheck()
     _CheckVisChange();
 }
 
-void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool updateActive)
+void Window::UpdateUsingPartialWindow(Window* window, bool updateId, bool updatePid, bool updateActive)
 {
     if (window == NULL)
         return;
@@ -416,10 +416,14 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateIdAndPid, bool 
     // CONVO_ID_WM_WINDOW_CLOSED
     CONVO_ID_WM_WINDOW_CLOSED = window->CONVO_ID_WM_WINDOW_CLOSED;
     
-    if (updateIdAndPid)
+    if (updateId)
     {
         // ID
         ID = window->ID;
+    }
+
+    if (updatePid)
+    {
         // PID
         PID = window->PID;
     }

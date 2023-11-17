@@ -92,7 +92,7 @@ void setWindow(uint64_t id, Window* window)
     Window* partialWindow = getPartialWindow(id);
     if (partialWindow != NULL)
     {
-        window->UpdateUsingPartialWindow(partialWindow, true, true);
+        window->UpdateUsingPartialWindow(partialWindow, true, true, true);
         partialWindow->Free();
         _Free(partialWindow);
     }
@@ -116,7 +116,7 @@ void updateWindow(Window* window)
     Window* partialWindow = getPartialWindow(window->ID);
     if (partialWindow == NULL)
         return;
-    window->UpdateUsingPartialWindow(partialWindow, true, true);
+    window->UpdateUsingPartialWindow(partialWindow, true, true, true);
     window->UpdateCheck();
     window->Updates->Clear();
     partialWindow->Free();
@@ -139,12 +139,16 @@ void deleteWindow(uint64_t id)
 
     // TODO: maybe make it blocking and wait for a result
 }
-
 Window* requestWindow()
+{
+    requestWindow(0);
+}
+
+Window* requestWindow(uint64_t id)
 {
     uint64_t convoId;
     {
-        GenericMessagePacket* winReq = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, NULL, 0);
+        GenericMessagePacket* winReq = new GenericMessagePacket(MessagePacketType::WINDOW_CREATE_EVENT, (uint8_t*)(&id), 8);
         convoId = msgSendConv(winReq, desktopPID);
         winReq->Free();
     }
@@ -167,7 +171,7 @@ Window* requestWindow()
     }
 
     Window* newWindow = new Window(windowId);
-    newWindow->UpdateUsingPartialWindow(partial, true, true);
+    newWindow->UpdateUsingPartialWindow(partial, true, true, true);
     partial->Free();
     _Free(partial);
 

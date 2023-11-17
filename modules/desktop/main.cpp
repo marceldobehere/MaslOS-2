@@ -489,10 +489,15 @@ uint64_t DrawFrame()
 
             updateFramePackets->Enqueue(windowBufferUpdatePacket);
         }
-        else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && msg->Size == 0)
+        else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && msg->Size == 0 || msg->Size == 8)
         {
             uint64_t pidFrom = msg->FromPID;
-            uint64_t newWindowId = RND::RandomInt();
+            uint64_t newWindowId = 0;
+            if (msg->Size == 8)
+                newWindowId = *(uint64_t*)msg->Data;
+                
+            if (newWindowId == 0)
+                newWindowId = RND::RandomInt();
 
             Window* window = new Window(100 + RND::RandomInt() % 100, 100 + RND::RandomInt() % 100, 400, 300, "Window", newWindowId, pidFrom);
             windows->Add(window);
@@ -637,7 +642,7 @@ uint64_t DrawFrame()
                 if (win != NULL)
                 {
                     // serialPrintLn("> WIN SET EVENT");
-                    win->UpdateUsingPartialWindow(fromWind, false, false);
+                    win->UpdateUsingPartialWindow(fromWind, true, false, false);
                     //win->UpdateCheck();
                 }
                 else

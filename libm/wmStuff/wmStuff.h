@@ -12,6 +12,7 @@ Window* getPartialWindow(uint64_t id);
 void updateWindow(Window* window);
 void setWindow(Window* window);
 void setWindow(uint64_t id, Window* window);
+Window* requestWindow(uint64_t id);
 Window* requestWindow();
 void deleteWindow(Window* window);
 void deleteWindow(uint64_t id);

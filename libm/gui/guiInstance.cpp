@@ -130,7 +130,7 @@ void GuiInstance::Update()
 
                     if (partialWindow != NULL)
                     {
-                        window->UpdateUsingPartialWindow(partialWindow, true, true);
+                        window->UpdateUsingPartialWindow(partialWindow, true, true, true);
                         updateEverHappened = true;
                         partialWindow->Free();
                         _Free(partialWindow);
