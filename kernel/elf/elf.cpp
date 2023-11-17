@@ -100,7 +100,7 @@ namespace Elf
             if (ph->p_type != PT_LOAD) 
                 continue;
     
-            void* tempDest = (void*) ((uint64_t) ph->p_vaddr + max(ph->p_memsz, ph->p_filesz));
+            void* tempDest = (void*) ((uint64_t) ph->p_vaddr + max(ph->p_offset, max(ph->p_memsz, ph->p_filesz)));
             if (last_dest == NULL || ((int64_t)last_dest < (int64_t)tempDest))
                 last_dest = tempDest;
         }
