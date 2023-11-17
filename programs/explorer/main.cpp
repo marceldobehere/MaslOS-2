@@ -1,571 +1,445 @@
-#include <libm/syscallManager.h>
-#include <libm/rendering/basicRenderer.h>
-#include <libm/rendering/Cols.h>
-#include <libm/cstr.h>
-#include <libm/cstrTools.h>
-#include <libm/wmStuff/wmStuff.h>
-#include <libm/rnd/rnd.h>
-#include <libm/stubs.h>
-#include <libm/keyboard.h>
+#include "main.h"
 
-#include <libm/gui/guiInstance.h>
-#include <libm/gui/guiStuff/components/text/textComponent.h>
-#include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
-#include <libm/gui/guiStuff/components/advancedText/advancedTextComponent.h>
+#include <libm/list/list_basics.h>
+#include <libm/fsStuff/extra/fsExtra.h>
+
+Window* window;
+GuiInstance* guiInstance;
+GuiComponentStuff::BoxComponent* fileListComp;
+GuiComponentStuff::TextFieldComponent* pathComp;
+GuiComponentStuff::ButtonComponent* goUpBtn;
+List<GuiComponentStuff::ButtonComponent*>* folderCompsYes;
+List<const char*>* folderPathsYes;
+List<GuiComponentStuff::ButtonComponent*>* driveCompsYes;
+List<const char*>* drivePathsYes;
+List<GuiComponentStuff::ButtonComponent*>* fileCompsYes;
+List<const char*>* filePathsYes;
 
 
-void Cls();
-bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo info);
-void HandleCommand(const char* input);
-void SplitCommand(const char* input, const char*** args, int* argCount, bool removeQuotes);
-
-const char* currentPath = NULL;
-GuiInstance* guiInst;
-GuiComponentStuff::TextFieldComponent* inTxt;
-GuiComponentStuff::TextComponent* pathTxt;
-GuiComponentStuff::AdvancedTextComponent* outTxt;
+const char* thisPath;
+int ScrollY;
 
 int main(int argc, char** argv)
 {
     initWindowManagerStuff();
-    Window* window = requestWindow();
+    window = requestWindow();
 
     if (window == NULL)
         return 0;
 
     _Free(window->Title);
-    window->Title = StrCopy("Terminal");
+    window->Title = StrCopy("Explorer");
     setWindow(window);
 
-    currentPath = StrCopy("bruh:");
+    thisPath = StrCopy("");
+
+    folderCompsYes = new List<GuiComponentStuff::ButtonComponent*>(4);
+    driveCompsYes = new List<GuiComponentStuff::ButtonComponent*>(4);
+    fileCompsYes = new List<GuiComponentStuff::ButtonComponent*>(4);
+
+    folderPathsYes = new List<const char*>(4);
+    drivePathsYes = new List<const char*>(4);
+    filePathsYes = new List<const char*>(4);
+
+    GuiInstance* gui = new GuiInstance(window);
+    gui->Init();
+    // gui->screen->backgroundColor = Colors.white;
+    // window->DefaultBackgroundColor = Colors.white;
+    // setWindow(window);
+
+    guiInstance = gui;
+
+    guiInstance->CreateComponentWithId(1021, GuiComponentStuff::ComponentType::TEXTFIELD);
+    pathComp = (GuiComponentStuff::TextFieldComponent*)guiInstance->GetComponentFromId(1021);
+    pathComp->position.x = 5*8 + 4;
+    pathComp->position.y = 0;
+
+    pathComp->AdvancedKeyHitCallBackHelp = (void*)NULL;
+    pathComp->AdvancedKeyHitCallBack = PathTypeCallBack;
+    _Free(pathComp->textComp->text);
+    pathComp->textComp->text = StrCopy(thisPath);
+
+    guiInstance->CreateComponentWithId(1023, GuiComponentStuff::ComponentType::BUTTON);
+    goUpBtn = (GuiComponentStuff::ButtonComponent*)guiInstance->GetComponentFromId(1023);
+    goUpBtn->position.x = 0;
+    goUpBtn->position.y = 0;
+    _Free(goUpBtn->textComp->text);
+    goUpBtn->textComp->text = StrCopy("Go Up");
+    goUpBtn->size.FixedY = 16;
+    goUpBtn->size.FixedX = 5*8;
+    goUpBtn->OnMouseClickedCallBack = OnGoUpClick;
+    goUpBtn->OnMouseClickHelp = NULL;
+
+
+    guiInstance->CreateComponentWithId(1022, GuiComponentStuff::ComponentType::BOX);
+    fileListComp = (GuiComponentStuff::BoxComponent*)guiInstance->GetComponentFromId(1022);
+    fileListComp->position.x = 0;
+    fileListComp->position.y = 20;
+
     
-    {
-        guiInst = new GuiInstance(window);
-        guiInst->Init();
-        guiInst->screen->backgroundColor = Colors.black;
-        window->DefaultBackgroundColor = Colors.black;
-        setWindow(window);
 
-        // Output
-        {
-            outTxt = new GuiComponentStuff::AdvancedTextComponent(
-                Colors.white,
-                Colors.black,
-                GuiComponentStuff::ComponentSize(10,10),
-                guiInst->screen
-            );
-            guiInst->screen->children->Add(outTxt);
-        }
+    UpdateSizes();
 
-        // Input
-        {
-            inTxt = new GuiComponentStuff::TextFieldComponent(
-                Colors.white, Colors.dgray,
-                GuiComponentStuff::ComponentSize(100, 32),
-                GuiComponentStuff::Position(0, 0), 
-                guiInst->screen
-            );
-
-            inTxt->AdvancedKeyHitCallBack = SpecialKeyHandler;
-            inTxt->AdvancedKeyHitCallBackHelp = NULL;
-
-            guiInst->screen->children->Add(inTxt);
-        }
+    Reload();
     
-        // Path
-        {
-            pathTxt = new GuiComponentStuff::TextComponent(
-                guiInst->screen, 
-                Colors.dblue, Colors.bblue | Colors.bgreen, 
-                currentPath, 
-                GuiComponentStuff::Position(0, 0)
-            );
-            pathTxt->useFixedSize = true;
-            guiInst->screen->children->Add(pathTxt);
-        }
-    
-    }
-
-    Cls();
-    outTxt->Println();
-
-    int inputHeight = 32;
-    int pathHeight = 16;
     while (!CheckForWindowClosed(window))
     {
-        // Update Positions and Sizes
-        guiInst->Update();
-        {
-            GuiComponentStuff::ComponentSize scrSize =  guiInst->screen->size;
-            outTxt->size.FixedX = scrSize.FixedX;
-            outTxt->size.FixedY = scrSize.FixedY - inputHeight - pathHeight;
-            
-            pathTxt->size.FixedX = scrSize.FixedX;
-            pathTxt->size.FixedY = pathHeight;
-            pathTxt->position.y = scrSize.FixedY - inputHeight - pathHeight;
-
-            inTxt->size.FixedX = scrSize.FixedX;
-            inTxt->size.FixedY = inputHeight;
-            inTxt->position.y = scrSize.FixedY - inputHeight;
-
-            if (!StrEquals(pathTxt->text, currentPath))
-            {
-                _Free(pathTxt->text);
-                pathTxt->text = StrCopy(currentPath);
-            }
-        }
-
-        guiInst->Render(false);
+        guiInstance->Update();
+        UpdateSizes();
+        guiInstance->Render(false);
         
-        programWait(20);
+        programWaitMsg();
     }
 }
 
-void Cls()
+void UpdateSizes()
 {
-    outTxt->Clear();
-    outTxt->Println("MaslOS v2", Colors.bgreen);
-    outTxt->scrollX = 0;
-    outTxt->scrollY = 0;
+    int w = window->Dimensions.width;
+    int h = window->Dimensions.height;
+
+    if (w < 50)
+        w = 50;
+    if (h < 50)
+        h = 50;
+
+    fileListComp->size.FixedX = w;
+    fileListComp->size.FixedY = h - 25;
+    fileListComp->backgroundColor = Colors.white;
+    pathComp->size.FixedX = w - pathComp->position.x;
+    pathComp->size.FixedY = 16;
 }
 
-bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo info)
+const char* GetPath()
 {
-    if (info.Chr == '\n')
+    return StrCopy(thisPath);
+}
+void SetPath(const char* path)
+{
+    _Free(thisPath);
+    thisPath = StrCopy(path);
+}
+
+bool PathTypeCallBack(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo event)
+{
+    if (event.Chr == '\n')
     {
-        // Write command
-        outTxt->Print("> ", Colors.bgray);
-        outTxt->Println(inTxt->textComp->text, Colors.bgray);
-
-        // Get cmd str
-        const char* cmd = StrCopy(inTxt->textComp->text);
-
-        // Reset input
-        _Free(inTxt->textComp->text);
-        inTxt->textComp->text = StrCopy("");
-
-        HandleCommand(cmd);
-        outTxt->Println();
-
-        // Free
-        _Free(cmd);
-
+        //GlobalRenderer->Clear(Colors.orange);
+        SetPath(pathComp->textComp->text);
+        Reload();
         return false;
     }
-    else if (info.Scancode == Key_ArrowUp)
-    {
-        outTxt->scrollY -= 16;
-        return false;
-    }
-    else if (info.Scancode == Key_ArrowDown)
-    {
-        outTxt->scrollY += 16;
-        return false;
-    }
-    else if (info.Scancode == Key_ArrowLeft)
-    {
-        if (outTxt->scrollX >= 8)
-            outTxt->scrollX -= 8;
-        return false;
-    }
-    else if (info.Scancode == Key_ArrowRight)
-    {
-        outTxt->scrollX += 8;
-        return false;
-    }
-
     return true;
 }
 
-
-// "maab/test.maab", "bruh:maab/"
-// -> "test.maab"
-const char* RemoveCurrentPathFromPath(const char* path, const char* current)
+void OnExternalWindowClose(Window* window)
 {
-    if (StrEquals(currentPath, ""))
-        return StrCopy(path);
-    
-    int pathLen = StrLen(path);
-    int currentLen = StrLen(current);
-
-    // Remove the drive part from the current path
-    int currentStart = StrIndexOf(current, ':') + 1;
-    if (currentStart == 0)
-        return StrCopy(path);
-    
-
-    if (!StrStartsWith(path, current + currentStart))
-        return StrCopy(path);
-
-    // Remove the current path from the path
-    int currLen2 = currentLen - currentStart;
-    return StrSubstr(path, currLen2);
+    Free();
 }
 
-void HandleCommand(const char* inputStr)
+void OnExternalWindowResize(Window* window)
 {
-    const char** args = NULL;
-    int argC = 0;
-    SplitCommand(inputStr, &args, &argC, true);
+    UpdateSizes();
+}
 
-    if (argC == 0 || args == NULL)
+void Free()
+{
+    
+    _Free(thisPath);
+    
+    ClearLists();
+    folderCompsYes->Free();
+    folderPathsYes->Free();
+    driveCompsYes->Free();
+    drivePathsYes->Free();
+    fileCompsYes->Free();
+    filePathsYes->Free();
+
+    
+}
+
+void ClearLists()
+{
+    for (int i = 0; i < folderPathsYes->GetCount(); i++)
+        _Free((void*)folderPathsYes->ElementAt(i)); 
+    for (int i = 0; i < drivePathsYes->GetCount(); i++)
+        _Free((void*)drivePathsYes->ElementAt(i)); 
+    for (int i = 0; i < filePathsYes->GetCount(); i++)
+        _Free((void*)filePathsYes->ElementAt(i));
+
+    folderCompsYes->Clear();
+    folderPathsYes->Clear();
+    driveCompsYes->Clear();
+    drivePathsYes->Clear();
+    fileCompsYes->Clear();
+    filePathsYes->Clear();
+}
+
+void OnFolderClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
+{
+    int indx = folderCompsYes->GetIndexOf(btn);
+    if (indx == -1)
         return;
+    const char* pathThing = folderPathsYes->ElementAt(indx);
 
-    const char* cmd = args[0];
+    const char* temp2 = StrCombine(thisPath, pathThing);
+    _Free(thisPath);
+    thisPath = StrCombine(temp2, "/");
+    _Free(temp2);
 
-    if (StrEquals(cmd, "cls"))
-    {
-        Cls();
-    }
-    else if (StrEquals(cmd, "echo"))
-    {
-        if (argC == 1)
-            outTxt->Println();
-        else
-            outTxt->Println(args[1]);
-    }
-    else if (StrEquals(cmd, "help"))
-    {
-        outTxt->Println("Commands:");
-        outTxt->Println(" - cls");
-        outTxt->Println(" - echo <text>");
-        outTxt->Println(" - help");
-        outTxt->Println(" - exit");
-        outTxt->Println(" - ls");
-        outTxt->Println(" - cd <path>");
-        outTxt->Println(" - run <file>");
-    }
-    else if (StrEquals(cmd, "exit"))
-    {
-        outTxt->Println("Exiting...");
-        programExit(0);
-    }
-    else if (StrEquals(cmd, "ls") || StrEquals(cmd, "dir"))
-    {
-        const char* pathToUse;
-        if (argC == 1 || StrEquals(args[1], ""))
-            pathToUse = StrCopy(currentPath);
-        else if (StrIndexOf(args[1], ':') != -1)
-            pathToUse = StrCopy(args[1]);
-        else
-            pathToUse = StrCombine(currentPath, args[1]);
+    _Free(pathComp->textComp->text);
+    pathComp->textComp->text = StrCopy(thisPath);
+    Reload();
+}
 
-        if (StrIndexOf(pathToUse, ':') != StrLen(pathToUse) - 1 && StrLen(pathToUse) != 0 && !StrEndsWith(pathToUse, "/"))
-            pathToUse = StrCombineAndFree(pathToUse, "/");
-        if (StrIndexOf(pathToUse, ':') == -1 && StrLen(pathToUse) != 0 && !StrEndsWith(pathToUse, ":"))
-            pathToUse = StrCombineAndFree(pathToUse, ":");
+void OnFileClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
+{
+    int indx = fileCompsYes->GetIndexOf(btn);
+    if (indx == -1)
+        return;
+    const char* pathThing = filePathsYes->ElementAt(indx);
 
-        if (StrEquals(pathToUse, ""))
+    serialPrint("Trying to open \"");
+    serialPrint(pathThing);
+    serialPrintLn("\"");
+}
+
+void OnDriveClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
+{
+    int indx = driveCompsYes->GetIndexOf(btn);
+    if (indx == -1)
+        return;
+    const char* pathThing = drivePathsYes->ElementAt(indx);
+    _Free(thisPath);
+    thisPath = StrCopy(pathThing);
+
+    _Free(pathComp->textComp->text);
+    pathComp->textComp->text = StrCopy(thisPath);
+    Reload();
+}
+
+void OnGoUpClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
+{
+    const char* drive = FS_EXTRA::GetDriveNameFromFullPath(thisPath);
+    const char* dir = FS_EXTRA::GetFolderPathFromFullPath(thisPath);
+
+    if (drive != NULL && dir != NULL)
+    {
+        const char* cool1 = StrCombine(drive, ":", dir, "/");
+        //GlobalRenderer->Println("COOL1:  \"{}\"", cool1, Colors.yellow);
+        const char* cool2 = StrCombine(drive, ":");
+        //GlobalRenderer->Println("COOL2:  \"{}\"", cool2, Colors.yellow);
+        if (StrEquals(cool2, thisPath))
         {
-            uint64_t driveCount = 0;
-            const char** driveNames = fsGetDrivesInRoot(&driveCount);
-
-            if (driveCount != 0 && driveNames != NULL)
-            {
-                outTxt->Println("Drives in root:");
-                for (int i = 0; i < driveCount; i++)
-                {
-                    outTxt->Print(" - ");
-                    outTxt->Println(driveNames[i]);
-                    _Free(driveNames[i]);
-                }
-                _Free(driveNames);
-            }
+            _Free(thisPath);
+            thisPath = StrCopy("");
         }
-        else
+        else if (StrEquals(cool1, thisPath))
         {
-            outTxt->Print("Path: ");
-            outTxt->Println(pathToUse);
+            // GO UP
+            int lstIndex = StrLastIndexOf(thisPath, '/', 1);
+            // test:abc/def/ 
+            //          ^
 
+            if (lstIndex != -1)
             {
-                uint64_t folderCount = 0;
-                const char** folders = fsGetFoldersInPath(pathToUse, &folderCount);
-
-                if (folderCount != 0 && folders != NULL)
-                {
-                    outTxt->Println("Folders:");
-                    for (int i = 0; i < folderCount; i++)
-                    {
-                        const char* lName = folders[i];
-                        const char* sName = RemoveCurrentPathFromPath(lName, pathToUse);
-                        outTxt->Print(" - ");
-                        outTxt->Println(sName);
-                        _Free(folders[i]);
-                    }
-                    _Free(folders);
-                }
-            }
-            {
-                uint64_t fileCount = 0;
-                const char** files = fsGetFilesInPath(pathToUse, &fileCount);
-
-                if (fileCount != 0 && files != NULL)
-                {
-                    outTxt->Println("Files:");
-                    for (int i = 0; i < fileCount; i++)
-                    {
-                        const char* lName = files[i];
-                        const char* sName = RemoveCurrentPathFromPath(lName, pathToUse);
-                        outTxt->Print(" - ");
-                        outTxt->Println(sName);
-                        _Free(files[i]);
-                    }
-                    _Free(files);
-                }
-            }
-        }
-
-
-        _Free(pathToUse);
-    }
-    else if (StrEquals(cmd, "cd"))
-    {
-        if (argC == 1)
-        {
-            _Free(currentPath);
-            currentPath = StrCopy("");
-        }
-        else if (StrEquals(args[1], "..") || StrEquals(args[1], "../"))
-        {
-            if (StrEndsWith(currentPath, ":"))
-            {
-                _Free(currentPath);
-                currentPath = StrCopy("");
-            }
-            else if (StrEndsWith(currentPath, "/"))
-            {
-                const char* temp = currentPath;
-                int idx = StrLastIndexOf(currentPath, '/', 1);
-                if (idx != -1)
-                {
-                    currentPath = StrSubstr(currentPath, 0, idx + 1);
-                    _Free(temp);
-                }
-                else
-                {
-                    idx = StrIndexOf(currentPath, ':');
-                    if (idx != -1)
-                    {
-                        currentPath = StrSubstr(currentPath, 0, idx + 1);
-                        _Free(temp);
-                    }
-                }
-            }
-        }
-        else
-        {
-            const char* pathToUse = StrCopy(args[1]);
-
-            if (StrEndsWith(pathToUse, ":") || StrEndsWith(pathToUse, "/"))
-            {
-                const char* temp = pathToUse;
-                pathToUse = StrSubstr(pathToUse, 0, StrLen(pathToUse) - 1);
-                _Free(temp);
-            }
-
-            const char* combined = StrCombine(currentPath, pathToUse);
-            if (fsFolderExists(combined))
-            {
-                _Free(currentPath);
-                currentPath = StrCopy(combined);
-                if (!StrEndsWith(currentPath, "/"))
-                    currentPath = StrCombineAndFree(currentPath, "/");
-            }
-            else if (fsFolderExists(pathToUse))
-            {
-                _Free(currentPath);
-                currentPath = StrCopy(pathToUse);
-                if (!StrEndsWith(currentPath, "/"))
-                    currentPath = StrCombineAndFree(currentPath, "/");
+                const char* nPath = StrSubstr(thisPath, 0, lstIndex + 1);
+                _Free(thisPath);
+                thisPath = nPath;
             }
             else
             {
-                bool isDrive = false;
-                uint64_t driveCount = 0;
-                const char** driveNames = fsGetDrivesInRoot(&driveCount);
-
-                if (driveCount != 0 && driveNames != NULL)
+                lstIndex = StrLastIndexOf(thisPath, ':');
+                if (lstIndex != -1)
                 {
-                    for (int i = 0; i < driveCount; i++)
-                    {
-                        if (StrEquals(driveNames[i], pathToUse))
-                        {
-                            isDrive = true;
-                            _Free(driveNames[i]);
-                            break;
-                        }
-                        _Free(driveNames[i]);
-                    }
-                    _Free(driveNames);
-                }
-
-                if (isDrive)
-                {
-                    _Free(currentPath);
-                    currentPath = StrCopy(pathToUse);
-                    if (!StrEndsWith(currentPath, ":"))
-                        currentPath = StrCombineAndFree(currentPath, ":");
+                    const char* nPath = StrSubstr(thisPath, 0, lstIndex + 1);
+                    _Free(thisPath);
+                    thisPath = nPath;
                 }
                 else
                 {
-                    outTxt->Print("Not a directory: \"", Colors.bred);
-                    outTxt->Print(pathToUse, 0xffFFAA00);
-                    outTxt->Println("\"", Colors.bred);
+                    const char* nPath = StrCopy("");
+                    _Free(thisPath);
+                    thisPath = nPath;
                 }
             }
+            // GlobalRenderer->Println("NPATH:  \"{}\"", path, Colors.yellow);
 
-            _Free(combined);
-            _Free(pathToUse);
-        }
-    }
-    else if (StrEquals(cmd, "run"))
-    {
-        if (argC > 1)
-        {
-            const char* pathToUse = StrCopy(args[1]);
-            const char* combined = StrCombine(currentPath, pathToUse);
-
-            if (fsFileExists(combined))
-            {
-                uint64_t newPid = startProcess(combined, argC - 2, args + 2);
-                if (newPid == 0)
-                {
-                    outTxt->Print("Failed to start process: \"", Colors.bred);
-                    outTxt->Print(pathToUse, 0xffFFAA00);
-                    outTxt->Println("\"", Colors.bred);
-                }
-                else
-                {
-                    outTxt->Print("Started process with PID: ", Colors.bgreen);
-                    outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
-                }
-            }
-            else if (fsFileExists(pathToUse))
-            {
-                uint64_t newPid = startProcess(pathToUse, argC - 2, args + 2);
-                if (newPid == 0)
-                {
-                    outTxt->Print("Failed to start process: \"", Colors.bred);
-                    outTxt->Print(pathToUse, 0xffFFAA00);
-                    outTxt->Println("\"", Colors.bred);
-                }
-                else
-                {
-                    outTxt->Print("Started process with PID: ", Colors.bgreen);
-                    outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
-                }
-            }
-            else
-            {
-                outTxt->Print("File not found: \"", Colors.bred);
-                outTxt->Print(pathToUse, 0xffFFAA00);
-                outTxt->Println("\"", Colors.bred);
-            }
-
-            _Free(combined);
-            _Free(pathToUse);
+            // while (true);
+        
         }
         else
-            outTxt->Println("Usage: run <file>");
+        {
+            _Free(thisPath);
+            thisPath = StrCopy(cool1);
+        }
+        _Free(cool1);
+        _Free(cool2);
+    }
+    
+    if (drive != NULL)
+        _Free(drive);
+    if (dir != NULL)
+        _Free(dir); 
+
+    _Free(pathComp->textComp->text);
+    pathComp->textComp->text = StrCopy(thisPath);
+    Reload();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Reload()
+{
+    
+    UpdateSizes();
+    ClearLists();
+
+    while (fileListComp->children->GetCount() > 0)
+    {
+        GuiComponentStuff::BaseComponent* comp = fileListComp->children->ElementAt(0);
+        uint64_t coolId = RND::RandomInt();
+        comp->id = coolId;
+        guiInstance->DeleteComponentWithId(coolId, true);
+    }
+    
+
+    const char* fullDir = StrCopy(thisPath);
+    const char* dir = FS_EXTRA::GetFolderPathFromFullPath(fullDir);
+
+    int cutOff = 0;
+    if (dir != NULL && StrLen(dir) != 0)
+        cutOff = StrLen(dir) + 1;
+    
+    if (dir != NULL)
+    {
+        uint64_t tempCount = 0;
+        const char** dataList;
+        int _y = 0;
+
+        dataList = fsGetFoldersInPath(fullDir, &tempCount);
+        if (dataList != NULL)
+        {
+            for (int i = 0; i < (int64_t)tempCount; i++)
+            {
+                uint64_t coolId = RND::RandomInt();
+                guiInstance->CreateComponentWithIdAndParent(coolId, GuiComponentStuff::ComponentType::BUTTON, 1022);
+                GuiComponentStuff::ButtonComponent* btnComp = (GuiComponentStuff::ButtonComponent*)guiInstance->GetComponentFromId(coolId);
+
+                btnComp->OnMouseClickHelp = NULL;
+                btnComp->OnMouseClickedCallBack = (void(*)(void*, GuiComponentStuff::BaseComponent*, GuiComponentStuff::MouseClickEventInfo))(void*)&OnFolderClick;
+
+                GuiComponentStuff::TextComponent* textComp = btnComp->textComp;
+                _Free(textComp->text);
+                const char* tempo = StrSubstr(dataList[i], cutOff);
+                textComp->text = StrCombine("Folder: ", tempo);
+                btnComp->size.FixedY = 16;
+                btnComp->size.FixedX = StrLen(textComp->text) * 8;
+                
+                folderCompsYes->Add(btnComp);
+                folderPathsYes->Add(tempo);
+
+                //_Free(tempo);
+                btnComp->position.x = 0;
+                btnComp->position.y = _y;
+                _y += 16;
+                _Free(dataList[i]);
+            }   
+            _Free(dataList);
+        }
+
+        dataList = fsGetFilesInPath(fullDir, &tempCount);
+        if (dataList != NULL)
+        {
+            for (int i = 0; i < (int64_t)tempCount; i++)
+            {
+                uint64_t coolId = RND::RandomInt();
+                guiInstance->CreateComponentWithIdAndParent(coolId, GuiComponentStuff::ComponentType::BUTTON, 1022);
+                GuiComponentStuff::ButtonComponent* btnComp = (GuiComponentStuff::ButtonComponent*)guiInstance->GetComponentFromId(coolId);
+
+                btnComp->OnMouseClickHelp = NULL;
+                btnComp->OnMouseClickedCallBack = (void(*)(void*, GuiComponentStuff::BaseComponent*, GuiComponentStuff::MouseClickEventInfo))(void*)&OnFileClick;
+
+                GuiComponentStuff::TextComponent* textComp = btnComp->textComp;
+                _Free(textComp->text);
+                const char* tempo = StrSubstr(dataList[i], cutOff);
+                textComp->text = StrCombine("File: ", tempo);
+                btnComp->size.FixedY = 16;
+                btnComp->size.FixedX = StrLen(textComp->text) * 8;
+                
+                fileCompsYes->Add(btnComp);
+                filePathsYes->Add(StrCombine(thisPath, tempo));
+
+                _Free(tempo);
+                btnComp->position.x = 0;
+                btnComp->position.y = _y;
+                _y += 16;
+                _Free(dataList[i]);
+            }
+            _Free(dataList);
+        }
     }
     else
     {
-        outTxt->Print("Unknown command: \"", Colors.bred);
-        outTxt->Print(cmd, 0xffFFAA00);
-        outTxt->Println("\"", Colors.bred);
-    }
+        uint64_t tempCount = 0;
+        const char** dataList;
 
-    // Free mem
-    for (int i = 0; i < argC; i++)
-        _Free(args[i]);
-    _Free(args);
-}
+        dataList = fsGetDrivesInRoot(&tempCount);
 
-
-// ABC 123 "Tomato lol" "Bruh\"lol" a
-// -> "ABC" "123" "Tomato lol" "Bruh\"lol" "a"
-void SplitCommand(const char* input, const char*** args, int* argCount, bool removeQuotes)
-{
-    int len = StrLen(input);
-    if (input == NULL || len == 0)
-        return;
-
-    int argC = 1;
-    for (int i = 0; i < len; i++)
-    {
-        if (input[i] == ' ')
-            argC++;
-        else if (input[i] == '\\')
-            i++;
-        else if (input[i] == '\"')
+        if (dataList != NULL)
         {
-            i++;
-            while (input[i] != '\"' && i < len)
-                i += (input[i] == '\\') ? 2 : 1;
-        }
-    }
-
-    const char** argV = (const char**)_Malloc(argC * sizeof(const char*));
-
-    int argI = 0;
-    int startI = 0;
-    for (int i = 0; i < len; i++)
-    {
-        if (input[i] == ' ')
-        {
-            int argLen = i - startI;
-            if (removeQuotes && argLen > 1 && input[startI] == '\"')
+            int _y = 0;
+            for (int i = 0; i < (int64_t)tempCount; i++)
             {
-                startI++;
-                argLen -= 2;
+               uint64_t coolId = RND::RandomInt();
+
+                guiInstance->CreateComponentWithIdAndParent(coolId, GuiComponentStuff::ComponentType::BUTTON, 1022);
+                GuiComponentStuff::ButtonComponent* btnComp = (GuiComponentStuff::ButtonComponent*)guiInstance->GetComponentFromId(coolId);
+
+                btnComp->OnMouseClickHelp = NULL;
+                btnComp->OnMouseClickedCallBack = (void(*)(void*, GuiComponentStuff::BaseComponent*, GuiComponentStuff::MouseClickEventInfo))(void*)&OnDriveClick;
+
+                GuiComponentStuff::TextComponent* textComp = btnComp->textComp;
+                driveCompsYes->Add(btnComp);
+                drivePathsYes->Add(StrCombine(dataList[i], ":"));
+
+                _Free(textComp->text);
+                textComp->text = StrCombine("Drive: ", dataList[i]);
+
+                btnComp->size.FixedY = 16;
+                btnComp->size.FixedX = StrLen(textComp->text) * 8;
+                
+                btnComp->position.x = 0;
+                btnComp->position.y = _y;
+
+
+
+                _y += 16;
             }
 
-            int actualArgLen = argLen;
-            for (int j = 0; j < argLen; j++)
-                if (input[startI + j] == '\\')
-                    actualArgLen--;
-
-            char* arg = (char*)_Malloc(actualArgLen + 1);
-            for (int j = 0, l = 0; j < argLen; j++)
-                if (input[startI + j] != '\\')
-                    arg[l++] = input[startI + j];
-            arg[actualArgLen] = '\0';
-
-            argV[argI] = arg;
-            startI = i + 1;
-            argI++;
-        }
-        else if (input[i] == '\\')
-            i++;
-        else if (input[i] == '\"')
-        {
-            i++;
-            while (input[i] != '\"' && i < len)
-                i += (input[i] == '\\') ? 2 : 1;
+            _Free(dataList);
         }
     }
-    {
-        int argLen = len - startI;
-        if (removeQuotes && argLen > 1 && input[startI] == '\"')
-        {
-            startI++;
-            argLen -= 2;
-        }
 
-        int actualArgLen = argLen;
-        for (int j = 0; j < argLen; j++)
-            if (input[startI + j] == '\\')
-                actualArgLen--;
+    guiInstance->Render(false);
+    fileListComp->Render(GuiComponentStuff::Field(GuiComponentStuff::Position(), GuiComponentStuff::Position(fileListComp->size.FixedX, fileListComp->size.FixedY)));
 
-        char* arg = (char*)_Malloc(actualArgLen + 1);
-        for (int j = 0, l = 0; j < argLen; j++)
-            if (input[startI + j] != '\\')
-                arg[l++] = input[startI + j];
-        arg[actualArgLen] = '\0';
 
-        argV[argI] = arg;
-    }
-
-    *args = argV;
-    *argCount = argC; 
+    if (fullDir != NULL)
+        _Free(fullDir);
+    if (dir != NULL)
+        _Free(dir);
+    
 }

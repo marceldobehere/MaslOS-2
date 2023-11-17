@@ -279,23 +279,38 @@ bool HandleClick(bool L, bool R, bool M)
                     windowDragMouseStart = MousePosition;
                     windowDragWindowStart = activeWindow->Dimensions;
                     for (int i = 0; i < 4; i++)
+                    {
                         windowDragMouseArr[i] = dragArr[i];
-                    
-                    if (MousePosition.y < activeWindow->Dimensions.y + 22)
-                    {
+                        doingWindowDrag |= windowDragMouseArr[i];
+                    }
+
+                    if (!doingWindowDrag &&
+                        MousePosition.y < activeWindow->Dimensions.y &&
+                        MousePosition.y > activeWindow->Dimensions.y - 22)
                         doingWindowDrag = true;
-                        res = true;
-                    }
-                    else
-                    {
-                        doingWindowDrag = false;
-                        for (int i = 0; i < 4; i++)
-                        {
-                            windowDragMouseArr[i] = dragArr[i];
-                            doingWindowDrag |= windowDragMouseArr[i];
-                        }
-                        res |= doingWindowDrag;
-                    }
+                        
+                    
+
+                    res |= doingWindowDrag;
+
+                    // if (MousePosition.y < activeWindow->Dimensions.y + 22)
+                    // {
+                    //     if (MousePosition.y > activeWindow->Dimensions.y)
+                    //     {
+                    //         doingWindowDrag = true;
+                    //         res = true;
+                    //     }
+                    // }
+                    // else
+                    // {
+                    //     doingWindowDrag = false;
+                    //     for (int i = 0; i < 4; i++)
+                    //     {
+                    //         windowDragMouseArr[i] = dragArr[i];
+                    //         doingWindowDrag |= windowDragMouseArr[i];
+                    //     }
+                    //     res |= doingWindowDrag;
+                    // }
                 }
             }
         }

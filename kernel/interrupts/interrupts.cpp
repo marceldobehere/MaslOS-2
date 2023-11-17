@@ -1015,6 +1015,7 @@ bool IsAddressValidForTask(const void* addr, osTask* task)
 #include <libm/cstrTools.h>
 #include <libm/mouseState.h>
 #include <libm/rtc/rtcInfo.h>
+#include <libm/fsStuff/extra/fsExtra.h>
 
 #include "../fsStuff/fsStuff.h"
 
@@ -1039,7 +1040,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->CreateFile(path2, size) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1057,7 +1058,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->CreateFolder(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1075,7 +1076,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->DeleteFile(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1093,7 +1094,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->DeleteFolder(path2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1113,8 +1114,8 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
-                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_EXTRA::GetFilePathFromFullPath(newPath);
                 if (path2 != NULL && newPath2 != NULL)
                 {
                     frame->rax = (bool)(fs->RenameFile(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1136,8 +1137,8 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
-                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_EXTRA::GetFilePathFromFullPath(newPath);
                 if (path2 != NULL && newPath2 != NULL)
                 {
                     frame->rax = (bool)(fs->RenameFolder(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1159,8 +1160,8 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
-                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_EXTRA::GetFilePathFromFullPath(newPath);
                 if (path2 != NULL && newPath2 != NULL)
                 {
                     frame->rax = (bool)(fs->CopyFile(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1182,8 +1183,8 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
-                const char* newPath2 = FS_STUFF::GetFilePathFromFullPath(newPath);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
+                const char* newPath2 = FS_EXTRA::GetFilePathFromFullPath(newPath);
                 if (path2 != NULL && newPath2 != NULL)
                 {
                     frame->rax = (bool)(fs->CopyFolder(path2, newPath2) == FilesystemInterface::FSCommandResult.SUCCESS);
@@ -1204,7 +1205,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->FileExists(path2));
@@ -1222,7 +1223,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->FolderExists(path2));
@@ -1241,7 +1242,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFolderPathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFolderPathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     if (StrEquals(path2, ""))
@@ -1296,7 +1297,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             //Serial::Writelnf("FS: %X", fs);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFolderPathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFolderPathFromFullPath(path);
                 //Serial::Writelnf("PATH: \"%s\"", path2);
                 if (path2 != NULL)
                 {
@@ -1484,7 +1485,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     const char* res = fs->ReadFileBuffer(path2, start, byteCount, buffer);
@@ -1507,7 +1508,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
             FilesystemInterface::GenericFilesystemInterface* fs = FS_STUFF::GetFsInterfaceFromFullPath(path);
             if (fs != NULL)
             {
-                const char* path2 = FS_STUFF::GetFilePathFromFullPath(path);
+                const char* path2 = FS_EXTRA::GetFilePathFromFullPath(path);
                 if (path2 != NULL)
                 {
                     frame->rax = (bool)(fs->WriteFile(path2, byteCount, buffer) == FilesystemInterface::FSCommandResult.SUCCESS);

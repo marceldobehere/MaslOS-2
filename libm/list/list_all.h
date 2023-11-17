@@ -23,6 +23,7 @@
 
 #include "list_guiField.h"
 #include "list_guiBaseComp.h"
+#include "list_guiBtn.h"
 
 #include "./list_window.h"
 

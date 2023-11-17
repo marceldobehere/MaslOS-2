@@ -1,8 +1,8 @@
-// #pragma once
-// #include "./list.h"
+#pragma once
+#include "./list.h"
 
-// #include "../../WindowStuff/SubInstances/guiInstance/guiStuff/components/button/buttonComponent.h"
+#include <libm/gui/guiStuff/components/button/buttonComponent.h>
 
-// template class Array<GuiComponentStuff::ButtonComponent*>;
-// template class List<GuiComponentStuff::ButtonComponent*>;
+template class Array<GuiComponentStuff::ButtonComponent*>;
+template class List<GuiComponentStuff::ButtonComponent*>;
 

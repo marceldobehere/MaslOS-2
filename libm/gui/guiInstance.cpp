@@ -467,6 +467,11 @@ bool GuiInstance::DeleteComponentWithId(int64_t id, bool destroyChildren)
     if (screen == base)
         return false;
     currentInst = this;
+
+    if (screen->tempSelectedComponent == base)
+        screen->tempSelectedComponent = NULL;
+    if (screen->selectedComponent == base)
+        screen->selectedComponent = NULL;
   
     bool res = base->Destroy(destroyChildren, RemoveThingFromList);
     RemoveThingFromList(base);

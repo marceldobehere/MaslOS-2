@@ -15,10 +15,6 @@ namespace FS_STUFF
         uint64_t bufferLen;
     };
 
-    char* GetDriveNameFromFullPath(const char* path);
-    char* GetFilePathFromFullPath(const char* path);
-    char* GetFolderPathFromFullPath(const char* path);
-
     bool CreateFileIfNotExist(const char* path);
     bool FileExists(const char* path);
 

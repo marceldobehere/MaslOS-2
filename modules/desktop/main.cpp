@@ -429,6 +429,10 @@ uint64_t DrawFrame()
                     RenderWindows();
                     RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
                 }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x44) // F10
+                {
+                    uint64_t newPid = startProcess("bruh:programs/explorer.elf", 0, NULL);
+                }
                 else if (activeWindow != NULL)
                 {
                     GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));
