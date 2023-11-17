@@ -64,7 +64,7 @@ Then download/clone the repo and run the `run.cmd` file
 
 
 ## Screenshots
-![More apps ported](/images/some%20stuff%20.jpg)
+![More apps ported](/images/some%20stuff.jpg)
 ![Working more on the terminal](/images/wm%206.png)
 ![Working on the terminal](/images/terminal%201.gif)
 ![Taskbar yes](/images/wm%205.png)
