@@ -119,6 +119,8 @@ int main(int argc, char** argv)
         
         programWaitMsg();
     }
+
+    return 0;
 }
 
 void Cls()

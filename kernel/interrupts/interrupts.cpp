@@ -2034,6 +2034,8 @@ void Syscall_handler(interrupt_frame* frame)
                 actualPath = "bruh:programs/maab.elf";
             if (StrEndsWith(path, ".elf"))
                 actualPath = "bruh:modules/elfLauncher.elf";
+            if (StrEndsWith(path, ".mbif"))
+                actualPath = "bruh:programs/imgView.elf";
 
             if (actualPath != NULL)
             {

@@ -94,6 +94,8 @@ int main(int argc, char** argv)
         
         programWaitMsg();
     }
+
+    return 0;
 }
 
 
