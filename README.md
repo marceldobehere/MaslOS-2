@@ -1,7 +1,7 @@
 # MaslOS-2
 MaslOS but 2
 
-This is very very WIP! (Literally started like 3 days ago)
+This is very very WIP!
 
 I plan on this being like MaslOS from the outside, but it being completely different internally.
 
