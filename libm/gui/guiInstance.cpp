@@ -231,6 +231,7 @@ void GuiInstance::Render(bool update)
     //serialPrintLn(to_string(screen->finalUpdatedFields->GetCount()));
 
     int x1, y1, x2, y2;
+    int ox1, oy1, ox2, oy2;
     bool set = false;
     int counter = 0;
     while (screen->finalUpdatedFields->GetCount() > 0)
@@ -249,15 +250,48 @@ void GuiInstance::Render(bool update)
 
         if (true)
         {
-            if (!set || x1 > bruh.TL.x)
+            if (!set)
+            {
                 x1 = bruh.TL.x;
-            if (!set || y1 > bruh.TL.y)
                 y1 = bruh.TL.y;
-            if (!set || x2 < bruh.BR.x)
                 x2 = bruh.BR.x;
-            if (!set || y2 < bruh.BR.y)
                 y2 = bruh.BR.y;
-            set = true;
+
+                ox1 = x1;
+                oy1 = y1;
+                ox2 = x2;
+                oy2 = y2;
+
+                set = true;
+            }
+
+            if (x1 > bruh.TL.x)
+                x1 = bruh.TL.x;
+            if (y1 > bruh.TL.y)
+                y1 = bruh.TL.y;
+            if (x2 < bruh.BR.x)
+                x2 = bruh.BR.x;
+            if (y2 < bruh.BR.y)
+                y2 = bruh.BR.y;
+
+            int oSize = (ox2 - ox1) * (oy2 - oy1);
+            int nSize = (x2 - x1) * (y2 - y1);
+
+            if (nSize < oSize * 4)
+            {
+                ox1 = x1;
+                oy1 = y1;
+                ox2 = x2;
+                oy2 = y2;
+            }
+            else
+            {
+                SendWindowFrameBufferUpdate(window, ox1, oy1, ox2, oy2);
+                SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
+
+                set = false;
+                counter = 0;
+            }
         }
         else
         {
@@ -265,7 +299,7 @@ void GuiInstance::Render(bool update)
             SendWindowFrameBufferUpdate(window, bruh.TL.x, bruh.TL.y, bruh.BR.x, bruh.BR.y);
         }
         
-        if (++counter > 10)
+        if (++counter > 20)
         {
             counter = 0;
             if (set)
