@@ -150,6 +150,26 @@ int main(int argc, const char** argv)
             gui->Render(false);
         }
 
+		for (int i = 0; i < windowsCreated->GetCount(); i++)
+		{
+			Window* win = windowsCreated->ElementAt(i);
+			if (CheckForWindowClosed(win))
+			{
+				GuiInstance* gui = guisCreated->ElementAt(i);
+				windowsCreated->RemoveAt(i);
+				guisCreated->RemoveAt(i);
+
+				gui->Free();
+				_Free(gui);
+
+				win->Free();
+				_Free(win);
+
+
+				i--;
+			}
+		}
+
         programYield();
     }
 }

@@ -38,8 +38,8 @@ void Pipe::Init(int index)
 {
     this->index = index;
     GuiComponentStuff::ComponentSize s = GuiComponentStuff::ComponentSize(60, 20);
-    top = new GuiComponentStuff::RectangleComponent(Colors.bgreen, s, guiInstance->screen);
-    bottom = new GuiComponentStuff::RectangleComponent(Colors.bgreen, s, guiInstance->screen);
+    top = new GuiComponentStuff::RectangleComponent(0xff009000, s, guiInstance->screen);
+    bottom = new GuiComponentStuff::RectangleComponent(0xff009000, s, guiInstance->screen);
     guiInstance->screen->children->Add(top);
     guiInstance->screen->children->Add(bottom);
     
@@ -74,14 +74,15 @@ int main(int argc, const char** argv)
 
     guiInstance = new GuiInstance(window);
     guiInstance->Init();
-    guiInstance->screen->backgroundColor = Colors.white;
-    window->DefaultBackgroundColor = Colors.white;
+    uint32_t bgCol = 0xffA0E0FF;
+    guiInstance->screen->backgroundColor = bgCol;
+    window->DefaultBackgroundColor = bgCol;
     setWindow(window);
 
     // Player
     {
         GuiComponentStuff::ComponentSize s = GuiComponentStuff::ComponentSize(15, 15);
-        player = new GuiComponentStuff::RectangleComponent(Colors.yellow, s, guiInstance->screen);
+        player = new GuiComponentStuff::RectangleComponent(Colors.orange, s, guiInstance->screen);
         guiInstance->screen->children->Add(player);
     }
 
@@ -104,18 +105,25 @@ int main(int argc, const char** argv)
         while (!gameOver)
         {
             guiInstance->Update();
+            if (!window->IsActive)
+            {
+                programWait(100);
+                continue;
+            }
+                
             UpdateSizes();
             Frame();
             guiInstance->Render(false);
+
             spacePressed &= envGetKeyState(0x39);
-            programWait(10);
+            programWait(20);
             spacePressed &= envGetKeyState(0x39);
-            programWait(10);
+            programWait(20);
         }
 
         programWait(500);
-        while (!envGetKeyState(0x39))
-            ;
+        while (!envGetKeyState(0x39) || !window->IsActive)
+            guiInstance->Update();
     }
 
     return 0;
@@ -147,10 +155,10 @@ void Restart()
     guiInstance->Render(false);
 
     spacePressed = false;
-    while (!envGetKeyState(0x39))
-        ;
-    while (envGetKeyState(0x39))
-        ;
+    while (!envGetKeyState(0x39) || !window->IsActive)
+        guiInstance->Update();
+    while (envGetKeyState(0x39) || !window->IsActive)
+        guiInstance->Update();
     gameOver = false;
 }
 
