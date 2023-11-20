@@ -12,7 +12,7 @@ And it mostly works on real hardware.
 ## Goals
  + Basics
    - Scheduler (working)
-   - Elf loading (working)
+   - Elf loading (working) (has some issues sometimes though, still need to fix that)
    - User Space (working)
    - Inter Process Communication (working)
    - Stdio using IPC (soon)
@@ -23,7 +23,7 @@ And it mostly works on real hardware.
    - Taskbar (mostly working)
  + Apps
    - Tic Tac Toe (working)
-   - Flappy Rocc (soon)
+   - Flappy Rocc (working)
    - Snake (soon)
    - Terminal (basics be working)
    - Explorer (working)
