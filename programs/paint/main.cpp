@@ -282,7 +282,7 @@ void HandleFrame()
         return;
 
 
-    serialPrintLn("> F2");
+    //serialPrintLn("> F2");
 
     currMouseLeftState = currMouseLeftState && stat.Left;
     

@@ -187,14 +187,14 @@ void PageFrameAllocator::LockPage(void* address)
 
 void PageFrameAllocator::FreePages(void* address, uint64_t pageCount)
 {
-    for (int i = 0; i < pageCount; i++)
+    for (int i = 0; i < (int)pageCount; i++)
         FreePage((void*)((uint64_t)address + (i * 4096)));
     
 }
 
 void PageFrameAllocator::LockPages(void* address, uint64_t pageCount)
 {
-    for (int i = 0; i < pageCount; i++)
+    for (int i = 0; i < (int)pageCount; i++)
         LockPage((void*)((uint64_t)address + (i * 4096)));
 }
 
