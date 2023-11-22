@@ -36,7 +36,8 @@ OBJ      = $(patsubst %.cpp, $(OBJDIR)/%.o, $(CPPFILES))
 all: $(OUTPUT)
 
 $(OUTPUT): $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.kernel_src
-	$(LD) $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.kernel_src $(LDFLAGS) -o $(OBJDIR)/$@
+	$(LD) $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.kernel_src -m elf_x86_64 -r -unresolved-symbols=ignore-all -o $(OBJDIR)/bruh.o
+	$(LD) $(OBJDIR)/bruh.o $(LDFLAGS) -o $(OBJDIR)/$@
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
