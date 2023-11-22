@@ -37,7 +37,6 @@ all: $(OUTPUT)
 
 $(OUTPUT): $(OBJ)
 	$(LD) $(OBJ) $(LDFLAGS) -o $(OBJDIR)/$@
-	dd if=/dev/zero of="../objects/kernel/FINAL_kernel.o" bs=1 seek=16 conv=notrunc count=2
 
 $(OBJDIR)/./interrupts/interrupts.o: interrupts/interrupts.cpp
 	@mkdir -p $(@D)

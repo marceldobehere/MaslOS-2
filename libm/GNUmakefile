@@ -38,9 +38,6 @@ $(OUTPUT): $(OBJ)
 	$(LD)  $(OBJ1) $(LDFLAGS) -o $(OBJDIR)/$@.user_module
 	@$(LD) $(OBJ2) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_src
 	@$(LD) $(OBJ3) $(LDFLAGS) -o $(OBJDIR)/$@.kernel_module
-	dd if=/dev/zero of="$(OBJDIR)/$@.user_module" bs=1 seek=16 conv=notrunc count=2
-	@dd if=/dev/zero of="$(OBJDIR)/$@.kernel_module" bs=1 seek=16 conv=notrunc count=2
-	@dd if=/dev/zero of="$(OBJDIR)/$@.kernel_src" bs=1 seek=16 conv=notrunc count=2
 	@echo foo > $@
 
 $(OBJDIR)/%.o: %.cpp
