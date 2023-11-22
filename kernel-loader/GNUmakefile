@@ -36,8 +36,6 @@ OBJ      = $(patsubst %.cpp, $(OBJDIR)/%.o, $(CPPFILES))
 all: $(OUTPUT)
 
 $(OUTPUT): $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.kernel_src
-	dd if=/dev/zero of="../objects/kernel/FINAL_kernel.o" bs=1 seek=16 conv=notrunc count=2
-	dd if=/dev/zero of="../objects/libm/FINAL_libm.o.kernel_src" bs=1 seek=16 conv=notrunc count=2
 	$(LD) $(OBJ) ../objects/kernel/FINAL_kernel.o ../objects/libm/FINAL_libm.o.kernel_src $(LDFLAGS) -o $(OBJDIR)/$@
 
 $(OBJDIR)/%.o: %.cpp
