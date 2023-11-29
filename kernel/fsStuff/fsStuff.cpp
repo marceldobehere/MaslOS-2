@@ -163,6 +163,26 @@ namespace FS_STUFF
         return res;
     }
 
+    bool CreateFolderIfNotExist(const char* path)
+    {
+        FilesystemInterface::GenericFilesystemInterface* fsInterface = FS_STUFF::GetFsInterfaceFromFullPath(path);
+        if (fsInterface == NULL || path == NULL)
+            return false;
+        
+        char* relPath = FS_EXTRA::GetFilePathFromFullPath(path);
+        if (relPath == NULL)
+            return false;
+
+        if (!fsInterface->FolderExists(relPath))
+        {
+            fsInterface->CreateFolder(relPath);
+            _Free(relPath);
+            return true;
+        }
+        _Free(relPath);
+        return false;
+    }
+
     bool CreateFileIfNotExist(const char* path)
     {
         FilesystemInterface::GenericFilesystemInterface* fsInterface = FS_STUFF::GetFsInterfaceFromFullPath(path);

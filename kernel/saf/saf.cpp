@@ -61,6 +61,7 @@ namespace SAF
         f->mount = mount;
         f->size = file_node->size;
         f->driver_specific_data = (void*) ((uint64_t) mount->driver_specific_data + (uint64_t) file_node->addr);
+        f->isFolder = file->flags == FLAG_ISFOLDER;
 
         return f;
     }
@@ -72,11 +73,19 @@ namespace SAF
         file_t* f = (file_t*)GlobalAllocator->RequestPages(1);
         f->mount = mount;
         f->size = file_node->size;
+        f->isFolder = ((saf_node_hdr_t*)file_node)->flags == FLAG_ISFOLDER;
         //f->name = file_node->hdr.name;
         _memcpy(file_node->hdr.name, f->name, StrLen(file_node->hdr.name) + 1);
         f->driver_specific_data = (void*) ((uint64_t) mount->driver_specific_data + (uint64_t) file_node->addr);
 
         return f;
+    }
+
+    saf_node_hdr_t* GetFolderFromFileNode(initrdMount* mount, saf_node_file_t* file)
+    {
+        saf_node_hdr_t* folder = (saf_node_hdr_t*)file;
+
+        return folder;
     }
 
     void initrd_close(initrdMount* mount, file_t* f) 

@@ -42,6 +42,7 @@ namespace SAF
         void* driver_specific_data;
         char name[256];
         char buffer[512];
+        bool isFolder;
         size_t size;
     };
 
@@ -125,4 +126,5 @@ namespace SAF
     dir_t initrd_dir_at(initrdMount* mount, int idx, const char* path);
     initrdMount* initrd_mount(void* saf_image);
     file_t* LoadFileFromNode(initrdMount* mount, saf_node_file_t* file);
+    saf_node_hdr_t* GetFolderFromFileNode(initrdMount* mount, saf_node_file_t* file);
 }

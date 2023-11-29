@@ -18,6 +18,35 @@
 #include "paging/PageTableManager.h"
 #include "fsStuff/fsStuff.h"
 
+void CopyRecursive(SAF::initrdMount* mount, const char* tempCombined, SAF::saf_node_folder_t* folderNode, const char* folderName)
+{
+    SAF::saf_node_folder_t* topNode = (SAF::saf_node_folder_t*) mount->driver_specific_data;
+    Serial::Writelnf("SUB> folder: \"%s\" %d (\"%s\")", folderNode->hdr.name, folderNode->num_children, tempCombined);
+    for (int i = 0; i < folderNode->num_children; i++)
+    {
+        SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)folderNode->children[i]));
+        Serial::Writelnf("SUB> file: \"%s\" %d (Folder: %B)", file->name, file->size, file->isFolder);
+
+        if (file->isFolder)
+        {
+            const char* combined = StrCombine(tempCombined, file->name);
+            FS_STUFF::CreateFolderIfNotExist(combined);
+            const char* combined2 = StrCombine(combined, "/");
+            CopyRecursive(mount, combined2, (SAF::saf_node_folder_t*)(SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)folderNode->children[i]), file->name);
+            _Free(combined2);
+            _Free(combined);
+        }
+        else
+        {
+            const char* combined = StrCombine(tempCombined, file->name);
+            if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
+                Panic("ADDING FILE FAILED!", true);
+            _Free(combined);
+        }
+    }
+}
+
+
 void boot(void* _bootInfo)
 {
     BootInfo* bootInfo = (BootInfo*)_bootInfo;
@@ -80,59 +109,107 @@ void boot(void* _bootInfo)
         Serial::Writelnf("> module nodes: %d", moduleNode->num_children);
         for (int i = 0; i < moduleNode->num_children; i++)
         {
-            SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]));
-            Serial::Writelnf("MODULE> file: \"%s\" %d", file->name, file->size);
+            SAF::saf_node_folder_t* moduleNode2 = (SAF::saf_node_folder_t*)((uint64_t)topNode + (uint64_t)moduleNode->children[i]);
+            Serial::Writelnf("MODULE> folder: \"%s\" %d", moduleNode2->hdr.name, moduleNode2->num_children);
 
-            const char* combined = StrCombine("bruh:modules/", file->name);
-            if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
-                Panic("ADDING FILE FAILED!", true);
-            _Free(combined);
-
-            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
-            if (!elf.works)
-                Panic("FILE NO WORK :(", true);
-
-            Serial::Writelnf("> Adding ELF");
-
-            if (StrEquals(file->name, "test.elf"))
+            const char* tempCombine = NULL;
             {
-                Scheduler::TestElfFile = file->driver_specific_data;
-                Serial::Writelnf("> SET TEST ELF");
+                const char* combined = StrCombine("bruh:modules/", moduleNode2->hdr.name);
+                FS_STUFF::CreateFolderIfNotExist(combined);
+                tempCombine = StrCombine(combined, "/");
+                _Free(combined);
             }
-            else if (StrEquals(file->name, "desktop.elf"))
+
+            for (int j = 0; j < moduleNode2->num_children; j++)
             {
-                Scheduler::DesktopElfFile = file->driver_specific_data;
-                Serial::Writelnf("> SET DESKTOP ELF");
+                SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode2->children[j]));
+                Serial::Writelnf("MODULE> file: \"%s\" %d (Folder: %B)", file->name, file->size, file->isFolder);
+
+                if (file->isFolder)
+                {
+                    const char* combined = StrCombine(tempCombine, file->name);
+                    FS_STUFF::CreateFolderIfNotExist(combined);
+                    const char* combined2 = StrCombine(combined, "/");
+                    CopyRecursive(mount, combined2, (SAF::saf_node_folder_t*)(SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)moduleNode2->children[j]), file->name);
+                    _Free(combined2);
+                    _Free(combined);
+                }
+                else
+                {
+                    const char* combined = StrCombine(tempCombine, file->name);
+                    if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
+                        Panic("ADDING FILE FAILED!", true);
+                    _Free(combined);
+
+                    Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
+                    if (!elf.works)
+                        Panic("FILE NO WORK :(", true);
+
+                    Serial::Writelnf("> Adding ELF");
+
+                    if (StrEquals(file->name, "test.elf"))
+                    {
+                        Scheduler::TestElfFile = file->driver_specific_data;
+                        Serial::Writelnf("> SET TEST ELF");
+                    }
+                    else if (StrEquals(file->name, "desktop.elf"))
+                    {
+                        Scheduler::DesktopElfFile = file->driver_specific_data;
+                        Serial::Writelnf("> SET DESKTOP ELF");
+                    }
+                    else
+                    {
+                        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+                        
+                        Scheduler::AddTask(task);
+                        Serial::Writelnf("> ADDED MODULE");
+                    }
+                }
             }
-            else
-            {
-                osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
-                
-                Scheduler::AddTask(task);
-                Serial::Writelnf("> ADDED MODULE");
-            }
+
+            _Free(tempCombine);
         }
 
         SAF::saf_node_folder_t* programNode = (SAF::saf_node_folder_t*)SAF::initrd_find("programs/", topNode, (SAF::saf_node_hdr_t*)topNode);
         Serial::Writelnf("> program nodes: %d", programNode->num_children);
         for (int i = 0; i < programNode->num_children; i++)
         {
-            SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode->children[i]));
-            Serial::Writelnf("PROGRAM> file: %d", file->size);
+            SAF::saf_node_folder_t* programNode2 = (SAF::saf_node_folder_t*)((uint64_t)topNode + (uint64_t)programNode->children[i]);
+            Serial::Writelnf("PROGRAM> folder: \"%s\" %d", programNode2->hdr.name, programNode2->num_children);
 
-            const char* combined = StrCombine("bruh:programs/", file->name);
-            if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
-                Panic("ADDING FILE FAILED!", true);
-            _Free(combined);
+            const char* tempCombine = NULL;
+            {
+                const char* combined = StrCombine("bruh:programs/", programNode2->hdr.name);
+                FS_STUFF::CreateFolderIfNotExist(combined);
+                tempCombine = StrCombine(combined, "/");
+                _Free(combined);
+            }
 
-            // Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)file->driver_specific_data);
-            // if (!elf.works)
-            //     Panic("FILE NO WORK :(", true);
+            for (int j = 0; j < programNode2->num_children; j++)
+            {
+                SAF::file_t* file = LoadFileFromNode(mount, (SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode2->children[j]));
+                Serial::Writelnf("PROGRAM> file: \"%s\" %d (Folder: %B)", file->name, file->size, file->isFolder);
 
-            // Serial::Writelnf("> Adding ELF");
+                if (file->isFolder)
+                {
+                    const char* combined = StrCombine(tempCombine, file->name);
+                    Serial::Writelnf("PROGRAM> folder: \"%s\"", combined);
+                    FS_STUFF::CreateFolderIfNotExist(combined);
+                    const char* combined2 = StrCombine(combined, "/");
+                    CopyRecursive(mount, combined2, (SAF::saf_node_folder_t*)(SAF::saf_node_file_t*)((uint64_t)topNode + (uint64_t)programNode2->children[j]), file->name);
+                    _Free(combined2);
+                    _Free(combined);
+                }
+                else
+                {
+                    const char* combined = StrCombine(tempCombine, file->name);
+                    if (!FS_STUFF::WriteFileToFullPath(combined, (char*)file->driver_specific_data, file->size, true))
+                        Panic("ADDING FILE FAILED!", true);
+                    _Free(combined);
+                }
+            }
 
-            // Scheduler::AddTask(Scheduler::CreateTaskFromElf(elf, 0, NULL, true));
-            // Serial::Writelnf("> ADDED PROGRAM");
+            _Free(tempCombine);
         }
     }
 

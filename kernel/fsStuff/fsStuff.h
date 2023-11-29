@@ -15,6 +15,7 @@ namespace FS_STUFF
         uint64_t bufferLen;
     };
 
+    bool CreateFolderIfNotExist(const char* path);
     bool CreateFileIfNotExist(const char* path);
     bool FileExists(const char* path);
 

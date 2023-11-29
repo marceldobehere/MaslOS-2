@@ -2029,13 +2029,13 @@ void Syscall_handler(interrupt_frame* frame)
         {
             const char* actualPath = NULL;
             if (StrEndsWith(path, ".txt"))
-                actualPath = "bruh:programs/notepad.elf";
+                actualPath = "bruh:programs/notepad/notepad.elf";
             if (StrEndsWith(path, ".maab"))
-                actualPath = "bruh:programs/maab.elf";
+                actualPath = "bruh:programs/maab/maab.elf";
             if (StrEndsWith(path, ".elf"))
-                actualPath = "bruh:modules/elfLauncher.elf";
+                actualPath = "bruh:modules/elfLauncher/elfLauncher.elf";
             if (StrEndsWith(path, ".mbif"))
-                actualPath = "bruh:programs/imgView.elf";
+                actualPath = "bruh:programs/imgView/imgView.elf";
 
             if (actualPath != NULL)
             {

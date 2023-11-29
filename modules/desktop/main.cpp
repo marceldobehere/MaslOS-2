@@ -420,7 +420,7 @@ uint64_t DrawFrame()
                 KeyMessagePacket* keyMsg = (KeyMessagePacket*)msg->Data;
                 if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x58) // F12
                 {
-                    uint64_t newPid = startProcess("bruh:programs/shell.elf", 0, NULL);
+                    uint64_t newPid = startProcess("bruh:programs/shell/shell.elf", 0, NULL);
                 }
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x57) // F11
                 {
@@ -431,7 +431,7 @@ uint64_t DrawFrame()
                 }
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x44) // F10
                 {
-                    uint64_t newPid = startProcess("bruh:programs/explorer.elf", 0, NULL);
+                    uint64_t newPid = startProcess("bruh:programs/explorer/explorer.elf", 0, NULL);
                 }
                 else if (activeWindow != NULL)
                 {
