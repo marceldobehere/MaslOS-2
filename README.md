@@ -12,7 +12,7 @@ And it mostly works on real hardware.
 ## Goals
  + Basics
    - Scheduler (working)
-   - Elf loading (working)
+   - Elf loading (working, rarely crashes for no apparent reason?)
    - User Space (working)
    - Inter Process Communication (working)
    - Stdio using IPC (soon)

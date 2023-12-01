@@ -322,7 +322,7 @@ void PrepareMemory(BootInfo* bootInfo)
 {
     GlobalAllocator = &tempAllocator;
     PrintMsgStartLayer("EFI Memory Map");
-    GlobalAllocator->ReadEFIMemoryMap(bootInfo->mMapStart, bootInfo->mMapSize); 
+    GlobalAllocator->ReadEFIMemoryMap(bootInfo->m2MapStart, bootInfo->mMapSize); 
     PrintMsgEndLayer("EFI Memory Map");
 
     

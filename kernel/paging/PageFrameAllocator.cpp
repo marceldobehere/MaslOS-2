@@ -227,7 +227,7 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
     InitBitmap(bitmapSize, largestFreeMemSeg);
 
     
-    int resPageCount = (memStart + 0xFFF) / 0x1000;
+    int resPageCount = (memStart + 0xFFF) / 0x1000 + 10;
     PrintMsg("> Reserving first {} Pages", to_string(resPageCount));
     ReservePages(0, resPageCount);
     
