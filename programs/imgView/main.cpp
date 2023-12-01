@@ -96,7 +96,7 @@ void UpdateSizes()
 
 void OnOpenClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
 {
-    const char* path = "bruh:images/rocc.mbif";
+    const char* path = "bruh:programs/imgView/assets/rocc.mbif";
 
     _Free(testImg1->imagePath);
     testImg1->imagePath = StrCopy(path);

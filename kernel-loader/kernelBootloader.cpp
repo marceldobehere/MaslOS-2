@@ -443,42 +443,11 @@ extern "C" void _start(void) {
 
     MaslOsAssetStruct assets;
 
-    kernelFiles::DefaultFile img_1 = getKernelFile("background.mbif");
-    assets.bgImage = &img_1;
-
-    kernelFiles::DefaultFile img_2 = getKernelFile("test.mbif");
-    assets.testImage = &img_2;
-
     kernelFiles::DefaultFile img_3 = getKernelFile("boot.mbif");
     assets.bootImage = &img_3;
 
-    kernelFiles::DefaultFile img_4 = getKernelFile("MButton.mbif");
-    assets.MButton = &img_4;
-
-    kernelFiles::DefaultFile img_5 = getKernelFile("MButton_S.mbif");
-    assets.MButtonS = &img_5;
-
-    kernelFiles::DefaultFile zip_1 = getKernelFile("mouse.mbzf");
-    assets.mouseZIP = &zip_1;
-
-    kernelFiles::DefaultFile zip_2 = getKernelFile("window_buttons.mbzf");
-    assets.windowButtonZIP = &zip_2;
-
-    kernelFiles::DefaultFile zip_3 = getKernelFile("window_icons.mbzf");
-    assets.windowIconsZIP = &zip_3;
-
-    kernelFiles::ZIPFile zip_4 = getZIP("maab.mbzf");
-    assets.maabZIP = &zip_4;
-
-    kernelFiles::ZIPFile zip_5 = getZIP("other.mbzf");
-    assets.otherZIP = &zip_5;
-
     kernelFiles::DefaultFile file_1 = getKernelFile("programs.saf");
     assets.programs = &file_1;
-
-    // kernelFiles::DefaultFile file_2 = getKernelFile("nothing-doer.elf");
-    // assets.nothingDoer = &file_2;
-
 
     e9_printf("> Assets loaded!");
 

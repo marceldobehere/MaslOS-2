@@ -236,7 +236,7 @@ int main(int argc, char** argv)
 
         {
             GuiComponentStuff::ImageRectangleComponent* imgRect = new GuiComponentStuff::ImageRectangleComponent(
-                "bruh:images/rocc.mbif",
+                "bruh:programs/imgView/assets/rocc.mbif",
                 GuiComponentStuff::ComponentSize(150, 80),
                 testGui->screen
             );

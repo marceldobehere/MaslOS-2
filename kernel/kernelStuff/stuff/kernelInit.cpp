@@ -141,18 +141,8 @@ void InitKernel(BootInfo* bootInfo)
     {
 
         uint64_t totSize = 500000;
-        for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
-            totSize += bootInfo->maabZIP->files[i].size;
-        for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
-            totSize += bootInfo->otherZIP->files[i].size;
-        totSize += bootInfo->bgImage->size;
-        totSize += bootInfo->testImage->size;
+
         totSize += bootInfo->bootImage->size;
-        totSize += bootInfo->MButton->size;
-        totSize += bootInfo->MButtonS->size;
-        totSize += bootInfo->mouseZIP->size;
-        totSize += bootInfo->windowButtonZIP->size;
-        totSize += bootInfo->windowIconsZIP->size;
         totSize += bootInfo->programs->size;
 
         totSize += 6000000;
@@ -196,109 +186,7 @@ void InitKernel(BootInfo* bootInfo)
         fsInterface->InitAndSaveFSTable();
         RemoveFromStack();
 
-        PrintMsgStartLayer("MAAB");
-        for (int i = 0; i < bootInfo->maabZIP->fileCount; i++)
-        {
-            PrintMsgColSL("FILE: \"{}\"", bootInfo->maabZIP->files[i].filename, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->maabZIP->files[i].size), Colors.bgreen);
-            fsInterface->CreateFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size);
-            fsInterface->WriteFile(bootInfo->maabZIP->files[i].filename, bootInfo->maabZIP->files[i].size, bootInfo->maabZIP->files[i].fileData);
-        }
-        PrintMsgEndLayer("MAAB");
-
-
-        PrintMsgStartLayer("OTHER");
-        for (int i = 0; i < bootInfo->otherZIP->fileCount; i++)
-        {
-            PrintMsgColSL("ZIP FILE: \"{}\"", bootInfo->otherZIP->files[i].filename, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->otherZIP->files[i].size), Colors.bgreen);
-            //bootInfo->otherZIP->files[i];
-
-            if (StrLen(bootInfo->otherZIP->files[i].filename) < 5)
-                continue;
-            
-            const char* tempName1 = StrSubstr(bootInfo->otherZIP->files[i].filename, 0, StrLen(bootInfo->otherZIP->files[i].filename) - 5);
-            const char* tempName2 = StrCombine(tempName1, "/");
-
-            //kernelFiles::ZIP::GetFileFromFileName()
-            kernelFiles::ZIPFile* zip = kernelFiles::ZIP::GetZIPFromDefaultFile(&bootInfo->otherZIP->files[i]);
-            fsInterface->CreateFolder(tempName1);
-            PrintMsgStartLayer(tempName1);
-            for (int x = 0; x < zip->fileCount; x++)
-            {
-                const char* tempPath = StrCombine(tempName2, zip->files[x].filename);
-                PrintMsgColSL("FILE: \"{}\"", tempPath, Colors.yellow);
-                PrintMsgCol(" ({} bytes)", to_string(zip->files[x].size), Colors.bgreen);
-                fsInterface->CreateFile(tempPath, zip->files[x].size);
-                fsInterface->WriteFile(tempPath, zip->files[x].size, zip->files[x].fileData);
-                _Free((void*)tempPath);
-            }
-            PrintMsgEndLayer(tempName1);
-
-            _Free(tempName1);
-            _Free(tempName2);
-                        //const char* tempPath = StrCombine("other", bootInfo->otherZIP->files[i].filename);
-            //fsInterface->CreateFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size);
-            //fsInterface->WriteFile(bootInfo->otherZIP->files[i].filename, bootInfo->otherZIP->files[i].size, bootInfo->otherZIP->files[i].fileData);
-        }
-        PrintMsgEndLayer("OTHER");
-
-        PrintMsgStartLayer("WM STUFF");
-        {
-            fsInterface->CreateFolder("wmStuff");
-
-            const char* tPath;
-
-            tPath = "wmStuff/background.mbif";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->bgImage->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->bgImage->size);
-            fsInterface->WriteFile(tPath, bootInfo->bgImage->size, bootInfo->bgImage->fileData);
-
-            tPath = "wmStuff/test.mbif";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->testImage->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->testImage->size);
-            fsInterface->WriteFile(tPath, bootInfo->testImage->size, bootInfo->testImage->fileData);
-
-            tPath = "wmStuff/boot.mbif";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->bootImage->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->bootImage->size);
-            fsInterface->WriteFile(tPath, bootInfo->bootImage->size, bootInfo->bootImage->fileData);
-
-            tPath = "wmStuff/MButton.mbif";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->MButton->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->MButton->size);
-            fsInterface->WriteFile(tPath, bootInfo->MButton->size, bootInfo->MButton->fileData);
-
-            tPath = "wmStuff/MButtonS.mbif";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->MButtonS->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->MButtonS->size);
-            fsInterface->WriteFile(tPath, bootInfo->MButtonS->size, bootInfo->MButtonS->fileData);
-
-            tPath = "wmStuff/mouse.mbzf";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->mouseZIP->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->mouseZIP->size);
-            fsInterface->WriteFile(tPath, bootInfo->mouseZIP->size, bootInfo->mouseZIP->fileData);
-
-            tPath = "wmStuff/windowButtons.mbzf";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->windowButtonZIP->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->windowButtonZIP->size);
-            fsInterface->WriteFile(tPath, bootInfo->windowButtonZIP->size, bootInfo->windowButtonZIP->fileData);
-
-            tPath = "wmStuff/windowIcons.mbzf";
-            PrintMsgColSL("FILE: \"{}\"", tPath, Colors.yellow);
-            PrintMsgCol(" ({} bytes)", to_string(bootInfo->windowIconsZIP->size), Colors.bgreen);
-            fsInterface->CreateFile(tPath, bootInfo->windowIconsZIP->size);
-            fsInterface->WriteFile(tPath, bootInfo->windowIconsZIP->size, bootInfo->windowIconsZIP->fileData);
-        }
-        PrintMsgEndLayer("WM STUFF");
-
+        
         PrintMsgStartLayer("PROGRAMS");
         {
             fsInterface->CreateFolder("programs");

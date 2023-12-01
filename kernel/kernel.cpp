@@ -239,20 +239,8 @@ volatile void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, 
 
     tempBootInfo.psf1_font = psf1_font;
 
-    tempBootInfo.testImage = assets->testImage;
     tempBootInfo.bootImage = assets->bootImage;
-    tempBootInfo.MButton = assets->MButton;
-    tempBootInfo.MButtonS = assets->MButtonS;
-    tempBootInfo.bgImage = assets->bgImage;
-    tempBootInfo.maabZIP = assets->maabZIP;
-    tempBootInfo.otherZIP = assets->otherZIP;
-
-    tempBootInfo.mouseZIP = assets->mouseZIP;
-    tempBootInfo.windowButtonZIP = assets->windowButtonZIP;
-    tempBootInfo.windowIconsZIP = assets->windowIconsZIP;
-
     tempBootInfo.programs = assets->programs;
-    //tempBootInfo.nothingDoer = assets->nothingDoer;
 
     tempBootInfo.mMapStart = freeMemStart;
     tempBootInfo.m2MapStart = extraMemStart;

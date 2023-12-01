@@ -12,26 +12,10 @@
 struct MaslOsAssetStruct
 {
     // Images
-    kernelFiles::DefaultFile* bgImage;
-    kernelFiles::DefaultFile* testImage;
 	kernelFiles::DefaultFile* bootImage;
-	kernelFiles::DefaultFile* MButton;
-	kernelFiles::DefaultFile* MButtonS;
-
-    // Zips
-    kernelFiles::DefaultFile* mouseZIP;
-	kernelFiles::DefaultFile* windowButtonZIP;
-	kernelFiles::DefaultFile* windowIconsZIP;
-
-    kernelFiles::ZIPFile* maabZIP;
-    kernelFiles::ZIPFile* otherZIP;
 
     // Modules
     kernelFiles::DefaultFile* programs;
-    //kernelFiles::DefaultFile* nothingDoer;
-
-    // EFI Mem?
-
 };
 
 struct limineSmpInfo {

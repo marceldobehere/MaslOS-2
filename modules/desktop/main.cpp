@@ -111,7 +111,7 @@ void InitStuff()
 
 
 
-    const char* bgPath = "bruh:wmStuff/background.mbif";
+    const char* bgPath = "bruh:modules/desktop/assets/background.mbif";
 
     {
         char* buf;
@@ -136,7 +136,7 @@ void InitStuff()
         }
     }
 
-    const char* windowButtonPath = "bruh:wmStuff/windowButtons.mbzf";
+    const char* windowButtonPath = "bruh:modules/desktop/assets/windowButtons.mbzf";
     {
         char* buf;
         uint64_t size = 0;
@@ -154,7 +154,7 @@ void InitStuff()
         }
     }
 
-    const char* windowIconsPath = "bruh:wmStuff/windowIcons.mbzf";
+    const char* windowIconsPath = "bruh:modules/desktop/assets/windowIcons.mbzf";
     {
         char* buf;
         uint64_t size = 0;
@@ -176,7 +176,7 @@ void InitStuff()
     {
         char* buf;
         uint64_t size = 0;
-        if (fsReadFile("bruh:wmStuff/mouse.mbzf", (void**)&buf, &size))
+        if (fsReadFile("bruh:modules/desktop/assets/mouse.mbzf", (void**)&buf, &size))
         {
             mouseZIP = ZipStuff::ZIP::GetZIPFromBuffer(buf, size);
             //_Free(buf);
@@ -184,7 +184,7 @@ void InitStuff()
     }
 
     ImageStuff::BitmapImage* mButton = NULL;
-    const char* mButtonPath = "bruh:wmStuff/MButton.mbif";
+    const char* mButtonPath = "bruh:modules/desktop/assets/MButton.mbif";
     {
         char* buf;
         uint64_t size = 0;
@@ -195,7 +195,7 @@ void InitStuff()
     }
 
     ImageStuff::BitmapImage* mButtonS = NULL;
-    const char* mButtonSPath = "bruh:wmStuff/MButtonS.mbif";
+    const char* mButtonSPath = "bruh:modules/desktop/assets/MButtonS.mbif";
     {
         char* buf;
         uint64_t size = 0;
