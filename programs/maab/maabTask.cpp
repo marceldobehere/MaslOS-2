@@ -172,6 +172,8 @@ int main(int argc, const char** argv)
 
         programYield();
     }
+
+	return 0;
 }
 
 
@@ -203,6 +205,7 @@ GuiInstance* GetGuiFromWindow(Window* win)
         if (window == win)
             return guisCreated->ElementAt(i);
     }
+	return NULL;
 }
 
 

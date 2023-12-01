@@ -10,6 +10,7 @@ class PageFrameAllocator{
     uint64_t freeMemory;
     uint64_t reservedMemory;
     uint64_t usedMemory;
+    uint64_t memStartAddr;
     bool Initialized = false;
     
     void InitBitmap(size_t bitmapSize, void* bufferAddress);

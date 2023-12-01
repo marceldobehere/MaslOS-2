@@ -16,11 +16,12 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress)
     for (int64_t i = 0; i < bitmapSize; i++)
         PageBitMap.Buffer[i] = 0;
     pageBitmapIndex = 0;
+    memStartAddr = (((uint64_t)bufferAddress + bitmapSize + 0xFFF) / 0x1000) * 0x1000;
 }
 
 void PageFrameAllocator::ReservePage(void* address)
 {
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = ((uint64_t)address - memStartAddr) / 4096;
     if (PageBitMap[index])
         return;
     PageBitMap.Set(index, true);
@@ -30,7 +31,7 @@ void PageFrameAllocator::ReservePage(void* address)
 
 void PageFrameAllocator::UnreservePage(void* address)
 {
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = ((uint64_t)address - memStartAddr) / 4096;
     if (!PageBitMap[index])
         return;
     if(!PageBitMap.Set(index, false))
@@ -76,16 +77,16 @@ void* PageFrameAllocator::RequestPage()
     {
         if (PageBitMap[pageBitmapIndex])
             continue;
-        LockPage((void*)(pageBitmapIndex * 4096));
-        return(void*)(pageBitmapIndex * 4096);
+        LockPage((void*)(pageBitmapIndex * 4096 + memStartAddr));
+        return(void*)(pageBitmapIndex * 4096 + memStartAddr);
     }
     
     for (pageBitmapIndex = 0; pageBitmapIndex < PageBitMap.Size * 8; pageBitmapIndex++)
     {
         if (PageBitMap[pageBitmapIndex])
             continue;
-        LockPage((void*)(pageBitmapIndex * 4096));
-        return(void*)(pageBitmapIndex * 4096);
+        LockPage((void*)(pageBitmapIndex * 4096 + memStartAddr));
+        return(void*)(pageBitmapIndex * 4096 + memStartAddr);
     }
 
     
@@ -104,7 +105,7 @@ void* PageFrameAllocator::RequestPage()
 
 void PageFrameAllocator::FreePage(void* address)
 {
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = ((uint64_t)address - memStartAddr) / 4096;
     if (!PageBitMap[index])
         Panic("Cant free already free page!", true);//return;
     if(!PageBitMap.Set(index, false))
@@ -133,8 +134,8 @@ void* PageFrameAllocator::RequestPages(int count)
             tCount--;
             if (tCount <= 0)
             {
-                LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096), count);
-                return(void*)((pageBitmapIndex - (count - 1)) * 4096);
+                LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096 + memStartAddr), count);
+                return(void*)((pageBitmapIndex - (count - 1)) * 4096 + memStartAddr);
             }
         }
     }
@@ -151,8 +152,8 @@ void* PageFrameAllocator::RequestPages(int count)
             tCount--;
             if (tCount <= 0)
             {
-                LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096), count);
-                return(void*)((pageBitmapIndex - (count - 1)) * 4096);
+                LockPages((void*)((pageBitmapIndex - (count - 1)) * 4096 + memStartAddr), count);
+                return(void*)((pageBitmapIndex - (count - 1)) * 4096 + memStartAddr);
             }
         }
     }
@@ -176,7 +177,7 @@ void PageFrameAllocator::FreePages(void* address, int count)
 
 void PageFrameAllocator::LockPage(void* address)
 {
-    uint64_t index = (uint64_t)address / 4096;
+    uint64_t index = ((uint64_t)address - memStartAddr) / 4096;
     if (PageBitMap[index])
         Panic("Cant lock already locked page!", true);//return;
     if(!PageBitMap.Set(index, true))
@@ -228,8 +229,10 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
 
     
     int resPageCount = (memStart + 0xFFF) / 0x1000 + 10;
+    if (resPageCount > 0x1000)
+        resPageCount = 0x1000;
     PrintMsg("> Reserving first {} Pages", to_string(resPageCount));
-    ReservePages(0, resPageCount);
+    ReservePages((void*)memStartAddr, resPageCount);
     
     PrintMsg("> Reserving Pages for the Bitmap buffer starting at 0x{}", ConvertHexToString((uint64_t)PageBitMap.Buffer));
     ReservePages(PageBitMap.Buffer, bitmapSize / 0x1000 + 1);

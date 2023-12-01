@@ -109,6 +109,12 @@ namespace AHCI
         RemoveFromStack();
 
         AddToStack();
+        if (cmdtbl == NULL || cmdtbl->prdtEntry == NULL)
+        {
+            SATA_Ident test;
+            RemoveFromStack();
+            return test;
+        }
         cmdtbl->prdtEntry[0].dataBaseAddress = (uint32_t)(uint64_t)GlobalAllocator->RequestPage();
         //_memset((void*)(uint64_t)cmdtbl->prdtEntry[0].dataBaseAddress , 0, 0x1000);
         //GlobalPageTableManager.MapMemory((void*)(uint64_t)cmdtbl->prdtEntry[0].dataBaseAddress, (void*)(uint64_t)cmdtbl->prdtEntry[0].dataBaseAddress);
