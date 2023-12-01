@@ -1,9 +1,11 @@
 #include "main.h"
 
+#include <libm/gui/guiStuff/components/imageRect/imageRectangleComponent.h>
+
 Window* window;
 GuiInstance* guiInstance;
 
-RectangleComponent* player;
+ImageRectangleComponent* player;
 TextComponent* scoreText;
 
 Pipe pipes[PIPE_COUNT];
@@ -28,7 +30,7 @@ void Pipe::Reset(bool pos)
 {
     if (pos)
         x = pipes[(index - 1 + PIPE_COUNT) % PIPE_COUNT].x + pipes[(index - 1 + PIPE_COUNT) % PIPE_COUNT].width + 80 +  RND::RandomInt() % 100;
-    gap = 45 + RND::RandomInt() % 50;
+    gap = player->GetActualComponentSize().FixedY + 20 + RND::RandomInt() % 50;
     height = 50 + RND::RandomInt() % (((window->Dimensions.width - 50) * 2) / 3);
 
     Update();
@@ -74,15 +76,15 @@ int main(int argc, const char** argv)
 
     guiInstance = new GuiInstance(window);
     guiInstance->Init();
-    uint32_t bgCol = 0xffA0E0FF;
+    uint32_t bgCol = 0xff99D9EA;
     guiInstance->screen->backgroundColor = bgCol;
     window->DefaultBackgroundColor = bgCol;
     setWindow(window);
 
     // Player
     {
-        GuiComponentStuff::ComponentSize s = GuiComponentStuff::ComponentSize(15, 15);
-        player = new GuiComponentStuff::RectangleComponent(Colors.orange, s, guiInstance->screen);
+        GuiComponentStuff::ComponentSize s = GuiComponentStuff::ComponentSize(45, 45);
+        player = new GuiComponentStuff::ImageRectangleComponent("bruh:programs/flappyRocc/assets/rocc.mbif", s, guiInstance->screen);
         guiInstance->screen->children->Add(player);
     }
 
