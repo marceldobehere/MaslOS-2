@@ -6,5 +6,7 @@ disk.img
 *.o.kernel_module
 *.o.user_module
 
+objects/**
+
 kernel.elf
 objects/**/*.elf
