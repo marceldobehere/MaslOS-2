@@ -32,15 +32,15 @@ namespace GuiComponentStuff
 
     AdvancedTextComponent::AdvancedTextComponent(uint32_t foregroundColor, uint32_t backgroundColor, ComponentSize size, BaseComponent* parent)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&AdvancedTextComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&AdvancedTextComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&AdvancedTextComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&AdvancedTextComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&AdvancedTextComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&AdvancedTextComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&AdvancedTextComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&AdvancedTextComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&AdvancedTextComponent::GetAttributeSize;
 
         this->size = size;
         componentType = ADVANCED_TEXT;

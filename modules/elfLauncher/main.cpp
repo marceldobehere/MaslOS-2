@@ -9,6 +9,6 @@ int main(int argc, char** argv)
     if (!StrEndsWith(path, ".elf"))
         return -1;
 
-    startProcess(path, 0, NULL);
+    startProcess(path, 0, NULL, getWorkingPath());
     return 0;
 }

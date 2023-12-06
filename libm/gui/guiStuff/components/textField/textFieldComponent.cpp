@@ -16,15 +16,15 @@ namespace GuiComponentStuff
 {
     TextFieldComponent::TextFieldComponent(uint32_t textCol, uint32_t bgCol, ComponentSize size, Position position, BaseComponent* parent)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&TextFieldComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&TextFieldComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&TextFieldComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&TextFieldComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&TextFieldComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&TextFieldComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&TextFieldComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&TextFieldComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&TextFieldComponent::GetAttributeSize;
 
         AdvancedKeyHitCallBack = NULL;
         keyHitCallBack = NULL;

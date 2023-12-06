@@ -93,7 +93,7 @@ void boot(void* _bootInfo)
         Serial::Writelnf("> Setting up Nothing Doer Task");
         Elf::LoadedElfFile elf;
         elf.entryPoint = (void*)nothing_task_entry;
-        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false, "", "");
         Scheduler::NothingDoerTask = task;
     }
 
@@ -157,13 +157,13 @@ void boot(void* _bootInfo)
                         Scheduler::DesktopElfFile = file->driver_specific_data;
                         Serial::Writelnf("> SET DESKTOP ELF");
                     }
-                    else
-                    {
-                        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+                    // else
+                    // {
+                    //     osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
                         
-                        Scheduler::AddTask(task);
-                        Serial::Writelnf("> ADDED MODULE");
-                    }
+                    //     Scheduler::AddTask(task);
+                    //     Serial::Writelnf("> ADDED MODULE");
+                    // }
                 }
             }
 

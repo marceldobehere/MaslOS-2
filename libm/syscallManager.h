@@ -9,6 +9,10 @@ char** getArgV();
 ENV_DATA* getEnvData();
 uint64_t getPid();
 bool pidExists(uint64_t pid);
+uint64_t getParentPid();
+const char* getElfPath();
+const char* getWorkingPath();
+
 void* requestNextPage();
 void* requestNextPages(int count);
 
@@ -99,5 +103,5 @@ bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount);
 
 
 bool closeProcess(uint64_t pid);
-uint64_t startProcess(const char* path, int argc, const char** argv);
-uint64_t startFile(const char* path);
+uint64_t startProcess(const char* path, int argc, const char** argv, const char* workingDirectory);
+uint64_t startFile(const char* path, const char* workingDirectory);

@@ -2,8 +2,8 @@
 
 struct Point
 {
-    unsigned int x;
-    unsigned int y;
+    int x;
+    int y;
 };
 
 

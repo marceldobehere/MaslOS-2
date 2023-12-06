@@ -6,15 +6,15 @@ namespace GuiComponentStuff
 {
     ScreenComponent::ScreenComponent(Window* window, GuiInstance* guiInstance)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&ScreenComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&ScreenComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&ScreenComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&ScreenComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&ScreenComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&ScreenComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&ScreenComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&ScreenComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&ScreenComponent::GetAttributeSize;
         
         this->guiInstance = guiInstance;
         this->window = window;

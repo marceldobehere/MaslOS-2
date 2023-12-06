@@ -7,15 +7,15 @@ namespace GuiComponentStuff
 {
     TextComponent::TextComponent(BaseComponent* parent, uint32_t bgColor, uint32_t fgColor, const char* text, Position position)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&TextComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&TextComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&TextComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&TextComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&TextComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&TextComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&TextComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&TextComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&TextComponent::GetAttributeSize;
 
         this->bgColor = bgColor;
         this->fgColor = fgColor;

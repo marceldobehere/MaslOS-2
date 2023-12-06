@@ -1811,6 +1811,38 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = Scheduler::CurrentRunningTask->pid;
     }
+    else if (syscall == SYSCALL_GET_PARENT_PID)
+    {
+        frame->rax = Scheduler::CurrentRunningTask->parentPid;
+    }
+    else if (syscall == SYSCALL_GET_ELF_PATH)
+    {
+        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+        frame->rax = 0;
+
+        const char* path = Scheduler::CurrentRunningTask->elfPath;
+        char* path2 = (char*)taskHeap->_Xmalloc(StrLen(path) + 1, "Malloc for elf path");
+        if (IsAddressValidForTask(path2))
+        {
+            _memcpy((void*)path, (void*)path2, StrLen(path));
+            path2[StrLen(path)] = 0;
+            frame->rax = (uint64_t)path2;
+        }
+    }
+    else if (syscall == SYSCALL_GET_WORKING_PATH)
+    {        
+        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+        frame->rax = 0;
+
+        const char* path = Scheduler::CurrentRunningTask->startedAtPath;
+        char* path2 = (char*)taskHeap->_Xmalloc(StrLen(path) + 1, "Malloc for working path");
+        if (IsAddressValidForTask(path2))
+        {
+            _memcpy((void*)path, (void*)path2, StrLen(path));
+            path2[StrLen(path)] = 0;
+            frame->rax = (uint64_t)path2;
+        }
+    }
     else if (syscall == SYSCALL_RNG_UINT64)
     {
         frame->rax = RND::RandomInt();
@@ -1822,7 +1854,8 @@ void Syscall_handler(interrupt_frame* frame)
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
 
-        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, true);
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, true, "bruh:programs/test/test.elf", "");
+        task->parentPid = Scheduler::CurrentRunningTask->pid;
 
         //osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
         //task->active = false;
@@ -1835,7 +1868,8 @@ void Syscall_handler(interrupt_frame* frame)
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
 
-        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);
+        osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false, "bruh:modules/test/test.elf", "");
+        task->parentPid = Scheduler::CurrentRunningTask->pid;
 
         //osTask* task = Scheduler::CreateTaskFromElf(Scheduler::testElfFile, 0, NULL, true);
         //task->active = false;
@@ -1987,8 +2021,9 @@ void Syscall_handler(interrupt_frame* frame)
         const char* path = (const char*)frame->rbx;
         int argc = frame->rcx;
         const char** argv = (const char**)frame->rdx;
+        const char* wPath = (const char*)frame->rsi;
 
-        if (IsAddressValidForTask(path) && (IsAddressValidForTask(argv) || argc == 0))
+        if (IsAddressValidForTask(path) && (IsAddressValidForTask(argv) || argc == 0) && IsAddressValidForTask(wPath))
         {
             bool ok = true;
             for (int i = 0; i < argc; i++)
@@ -2004,7 +2039,8 @@ void Syscall_handler(interrupt_frame* frame)
                     Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)resBuffer);
                     if (elf.works)
                     {
-                        osTask* task = Scheduler::CreateTaskFromElf(elf, argc, argv, true);
+                        osTask* task = Scheduler::CreateTaskFromElf(elf, argc, argv, true, path, wPath);
+                        task->parentPid = Scheduler::CurrentRunningTask->pid;
                         Scheduler::AddTask(task);
                         frame->rax = task->pid;
                     }
@@ -2024,8 +2060,9 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = 0;
         const char* path = (const char*)frame->rbx;
+        const char* wPath = (const char*)frame->rcx;
 
-        if (IsAddressValidForTask(path))
+        if (IsAddressValidForTask(path) && IsAddressValidForTask(wPath))
         {
             const char* actualPath = NULL;
             if (StrEndsWith(path, ".txt"))
@@ -2049,7 +2086,8 @@ void Syscall_handler(interrupt_frame* frame)
                     Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)resBuffer);
                     if (elf.works)
                     {
-                        osTask* task = Scheduler::CreateTaskFromElf(elf, 1, tempArgV, true);
+                        osTask* task = Scheduler::CreateTaskFromElf(elf, 1, tempArgV, true, actualPath, wPath);
+                        task->parentPid = Scheduler::CurrentRunningTask->pid;
                         Scheduler::AddTask(task);
                         frame->rax = task->pid;
                     }

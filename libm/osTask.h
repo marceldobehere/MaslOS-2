@@ -34,6 +34,10 @@ struct osTask
 	bool justYielded;
 
 	uint64_t pid;
+	uint64_t parentPid;
+
+	const char* elfPath;
+	const char* startedAtPath;
 
     uint8_t* kernelStack;
     uint8_t* userStack;
