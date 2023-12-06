@@ -26,7 +26,7 @@ int main(int argc, const char** argv)
             serialPrint("> Got char: ");
             char buf[2];
             buf[0] = c;
-            buf[1] = '\0';
+            buf[1] = 0;
             serialPrintLn(buf);
         }
     }

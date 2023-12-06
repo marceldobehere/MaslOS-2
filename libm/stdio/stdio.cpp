@@ -87,7 +87,7 @@ namespace STDIO
     // Print to any
     void print(const char* str, StdioInst other)
     {
-        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str + 1));
+        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str) + 1);
         msgSendConv(packet, other.pid, other.convoId);
         packet->Free();
         _Free(packet);

@@ -268,6 +268,13 @@ namespace GuiComponentStuff
                 currList = AddNewLine();
                 currList = textData.ElementAt(textData.GetCount() - 1);
             }
+            else if (chrs[index] == '\b')
+            {
+                if (currList->GetCount() > 0)
+                    currList->RemoveLast();
+                if (redirectToSerial)
+                    SerialWrite('\b');
+            }
             else if (chrs[index] == '\r')
                 ;// Maybe implement moving char
             else if (chrs[index] == '{' && allowEscape && var != NULL)
