@@ -150,6 +150,7 @@ char* StrSubstr(const char* og, int index, int len)
 
 int32_t StrLen(const char* og)
 {
+    // NÖ DU KEK
     int32_t len;
     for (len = 0; og[len] != 0; len++);
     return len;

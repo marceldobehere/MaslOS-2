@@ -4,6 +4,7 @@
 #include <libm/cstrTools.h>
 #include <libm/rendering/Cols.h>
 #include <libm/syscallManager.h>
+#include <libm/memStuff.h>
 
 
 namespace Heap
@@ -506,4 +507,23 @@ namespace Heap
         return true;
     }
 
+    void* HeapManager::_Xrealloc(void* address, int64_t size, const char* func, const char* file, int line) {
+        _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
+
+        if (size == 0) {
+            _Xfree(address, func, file, line);
+            return NULL;
+        } else if (!address) {
+            return _Xmalloc(size, func, file, line);
+        } else if (size <= segment->length) {
+            return address;
+        } else {
+            void* new_ptr = _Xmalloc(size, func, file, line);
+            if (new_ptr) {
+                _memcpy(address, new_ptr, segment->length);
+                _Xfree(address, func, file, line);
+            }
+            return new_ptr;
+        }
+    }
 }

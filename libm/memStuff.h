@@ -13,3 +13,5 @@ void _memset(void* dest, uint8_t value, uint64_t size);
 #include "../kernel/kernelStuff/memory/memory.h"
 
 #endif
+
+void _memmove(void* src, void* dest, uint64_t size);
