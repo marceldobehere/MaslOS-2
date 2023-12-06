@@ -12,13 +12,13 @@ And it mostly works on real hardware.
 ## Goals
  + Basics
    - Scheduler (working)
-   - Elf loading (working, rarely crashes for no apparent reason?)
+   - Elf loading (working, rarely crashes at the start for no apparent reason?)
    - User Space (working)
    - Inter Process Communication (working)
-   - Stdio using IPC (soon)
+   - Stdio using IPC (mostly working)
  + GUI
    - MaslOS GUI Framework port (working)
-   - Mouse/Keyboard interaction (mostly working)
+   - Mouse/Keyboard interaction (working)
    - MaslOS Desktop / WM (mostly working)
    - Taskbar (mostly working)
  + Apps
@@ -32,6 +32,7 @@ And it mostly works on real hardware.
    + MAAB interpreter (mostly working / output is currently routed to serial until i add stdio)
      - Pong
    - Doom (soon)
+   - MicroEdit (somewhat working)
    - Other Apps ported from MaslOS and some extra ones (not yet)
  + Other
    - SMP (not added yet)
