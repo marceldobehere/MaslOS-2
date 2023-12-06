@@ -110,4 +110,5 @@ serialPrintLn(state.input_buffer);
         // 8 * 16
         // canvas->DrawChar(0, 0, 0xffffffff, 1, 'H');
     }
+    return 0; /// DU KEK DA HAST DU KEINE WARNINGS
 }
