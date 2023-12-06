@@ -9,15 +9,15 @@ namespace GuiComponentStuff
 {
     ImageRectangleComponent::ImageRectangleComponent(const char* path, ComponentSize size, BaseComponent* parent)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&ImageRectangleComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&ImageRectangleComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&ImageRectangleComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&ImageRectangleComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&ImageRectangleComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&ImageRectangleComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&ImageRectangleComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&ImageRectangleComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&ImageRectangleComponent::GetAttributeSize;
 
         this->imagePath = StrCopy(path);
         this->oldPath = StrCopy(path);

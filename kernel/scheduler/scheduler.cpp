@@ -73,7 +73,7 @@ namespace Scheduler
         {
             Serial::Writelnf("SCHEDULER> CREATING DESKTOP TASK");
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)DesktopElfFile);
-            DesktopTask = CreateTaskFromElf(elf, 0, NULL, false);
+            DesktopTask = CreateTaskFromElf(elf, 0, NULL, false, "bruh:modules/desktop/desktop.elf", "");
             
             osTasks.Unlock();
             AddTask(DesktopTask);
@@ -317,7 +317,7 @@ namespace Scheduler
         UsedPageRegions.Unlock();
     }
 
-    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argC, const char** argV, bool isUserMode)
+    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argC, const char** argV, bool isUserMode, const char* elfPath, const char* startedAtPath)
     {
         bool tempEnabled = SchedulerEnabled;
         SchedulerEnabled = false;
@@ -359,7 +359,10 @@ namespace Scheduler
         task->removeMe = false;
         task->elfFile = module;
         task->pid = RND::RandomInt();
+        task->parentPid = 0;
         task->addrOfVirtPages = RequestNextFreePageRegion();
+        task->elfPath = StrCopy(elfPath);
+        task->startedAtPath = StrCopy(startedAtPath);
         Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
 
         {
@@ -557,6 +560,22 @@ namespace Scheduler
             task->messages->Free();
             _Free(task->messages);
             task->messages = NULL;
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->elfPath != NULL)
+        {
+            _Free((void*)task->elfPath);
+            task->elfPath = NULL;
+        }
+        RemoveFromStack();
+
+        AddToStack();
+        if (task->startedAtPath != NULL)
+        {
+            _Free((void*)task->startedAtPath);
+            task->startedAtPath = NULL;
         }
         RemoveFromStack();
 

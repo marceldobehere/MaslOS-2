@@ -37,6 +37,33 @@ uint64_t getPid()
     return pid;
 }
 
+uint64_t getParentPid()
+{
+    int syscall = SYSCALL_GET_PARENT_PID;
+    uint64_t pid;
+
+    asm("int $0x31" : "=a"(pid): "a"(syscall));
+    return pid;
+}
+
+const char* getElfPath()
+{
+    int syscall = SYSCALL_GET_ELF_PATH;
+    const char* path;
+
+    asm("int $0x31" : "=a"(path): "a"(syscall));
+    return path;
+}
+
+const char* getWorkingPath()
+{
+    int syscall = SYSCALL_GET_WORKING_PATH;
+    const char* path;
+
+    asm("int $0x31" : "=a"(path): "a"(syscall));
+    return path;
+}
+
 bool pidExists(uint64_t pid)
 {
     int syscall = SYSCALL_PID_EXISTS;
@@ -513,18 +540,18 @@ bool closeProcess(uint64_t pid)
     return success;
 }
 
-uint64_t startProcess(const char* path, int argc, const char** argv)
+uint64_t startProcess(const char* path, int argc, const char** argv, const char* workingDirectory)
 {
     int syscall = SYSCALL_START_PROCESS;
     uint64_t pid;
-    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(argc), "d"(argv));
+    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(argc), "d"(argv), "S"(workingDirectory));
     return pid;
 }
 
-uint64_t startFile(const char* path)
+uint64_t startFile(const char* path, const char* workingDirectory)
 {
     int syscall = SYSCALL_START_FILE;
     uint64_t pid;
-    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path));
+    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(workingDirectory));
     return pid;
 }

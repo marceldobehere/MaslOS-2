@@ -429,7 +429,7 @@ void HandleCommand(const char* inputStr)
 
             if (fsFileExists(combined))
             {
-                uint64_t newPid = startProcess(combined, argC - 2, args + 2);
+                uint64_t newPid = startProcess(combined, argC - 2, args + 2, currentPath);
                 if (newPid == 0)
                 {
                     outTxt->Print("Failed to start process: \"", Colors.bred);
@@ -444,7 +444,7 @@ void HandleCommand(const char* inputStr)
             }
             else if (fsFileExists(pathToUse))
             {
-                uint64_t newPid = startProcess(pathToUse, argC - 2, args + 2);
+                uint64_t newPid = startProcess(pathToUse, argC - 2, args + 2, currentPath);
                 if (newPid == 0)
                 {
                     outTxt->Print("Failed to start process: \"", Colors.bred);

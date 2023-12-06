@@ -141,7 +141,7 @@ void deleteWindow(uint64_t id)
 }
 Window* requestWindow()
 {
-    requestWindow(0);
+    return requestWindow(0);
 }
 
 Window* requestWindow(uint64_t id)

@@ -24,7 +24,7 @@ GuiInstance::GuiInstance(Window* window)
     this->window = window;
     oldResizeable = false;
     instanceType = InstanceType::GUI;
-    FreeFunc = (void(*)(void*))&Free;
+    FreeFunc = (void(*)(void*))&GuiInstance::Free;
 }
 
 #include <libm/memStuff.h>

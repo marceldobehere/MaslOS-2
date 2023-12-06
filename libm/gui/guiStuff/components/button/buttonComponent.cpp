@@ -12,15 +12,15 @@ namespace GuiComponentStuff
 {
     ButtonComponent::ButtonComponent(const char* text, uint32_t textColDef, uint32_t textColHover, uint32_t textColClick, uint32_t bgColDef, uint32_t bgColHover, uint32_t bgColClick, ComponentSize size, Position position, BaseComponent* parent)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&ButtonComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&ButtonComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&ButtonComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&ButtonComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&ButtonComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&ButtonComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&ButtonComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&ButtonComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&ButtonComponent::GetAttributeSize;
 
         OnMouseClickedCallBack = NULL;
         OnMouseClickHelp = NULL;

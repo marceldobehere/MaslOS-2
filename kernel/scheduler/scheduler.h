@@ -25,7 +25,7 @@ namespace Scheduler
     // maybe save more registers yes
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
-    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, const char** argv, bool isUserMode);
+    osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, const char** argv, bool isUserMode, const char* elfPath, const char* startedAtPath);
 
     void* RequestNextFreePageRegion();
     void FreePageRegion(void* addr);

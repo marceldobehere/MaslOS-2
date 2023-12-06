@@ -90,6 +90,7 @@ int main(int argc, char** argv)
         
         programWaitMsg();
     }
+    return 0;
 }
 
 void UpdateSizes()
@@ -202,7 +203,7 @@ void OnFileClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiCompone
     serialPrint(pathThing);
     serialPrintLn("\"");
 
-    startFile(pathThing);
+    startFile(pathThing, thisPath);
 }
 
 void OnDriveClick(void* bruh, GuiComponentStuff::ButtonComponent* btn, GuiComponentStuff::MouseClickEventInfo info)

@@ -5,15 +5,15 @@ namespace GuiComponentStuff
 {
     RectangleComponent::RectangleComponent(uint32_t fillColor, ComponentSize size, BaseComponent* parent)
     {
-        RenderFunc = (void (*)(void*, Field))&Render;
-        CheckUpdatesFunc = (void (*)(void*))&CheckUpdates;
-        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&MouseClicked;
-        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&KeyHit;
-        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&Destroy;
-        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&GetActualComponentSize;
-        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&SetAttribute;
-        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&GetAttribute;
-        GetAttributeSizeFunc = (int (*)(void*, int32_t))&GetAttributeSize;
+        RenderFunc = (void (*)(void*, Field))&RectangleComponent::Render;
+        CheckUpdatesFunc = (void (*)(void*))&RectangleComponent::CheckUpdates;
+        MouseClickedFunc = (void (*)(void*, MouseClickEventInfo))&RectangleComponent::MouseClicked;
+        KeyHitFunc = (void (*)(void*, KeyHitEventInfo))&RectangleComponent::KeyHit;
+        DestroyFunc = (void (*)(void*, bool, void (*)(BaseComponent* comp)))&RectangleComponent::Destroy;
+        GetActualComponentSizeFunc = (ComponentSize (*)(void*))&RectangleComponent::GetActualComponentSize;
+        SetAttributeFunc = (bool (*)(void*, int32_t, uint64_t))&RectangleComponent::SetAttribute;
+        GetAttributeFunc = (uint64_t (*)(void*, int32_t))&RectangleComponent::GetAttribute;
+        GetAttributeSizeFunc = (int (*)(void*, int32_t))&RectangleComponent::GetAttributeSize;
 
         this->fillColor = fillColor;
         this->size = size;
