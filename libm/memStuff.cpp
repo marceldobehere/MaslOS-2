@@ -21,3 +21,19 @@ void _memset(void* dest, uint8_t value, uint64_t size)
         *(d++) = value;
 }
 #endif
+
+void _memmove(void* src, void* dest, uint64_t size) {
+	char* d = (char*) dest;
+	char* s = (char*) src;
+	if(d < s) {
+		while(size--) {
+			*d++ = *s++;
+		}
+	} else {
+		d += size;
+		s += size;
+		while(size--) {
+			*--d = *--s;
+		}
+	}
+}
