@@ -8,7 +8,7 @@ namespace STDIO
     void initStdio(bool needLoggerWindow)
     {
         // try to connect with parent
-        
+
 
 
 
@@ -19,7 +19,7 @@ namespace STDIO
     {
         StdioInst other;
         other.pid = pid;
-        other.convoId = NULL;
+        other.convoId = 0;
 
 
 

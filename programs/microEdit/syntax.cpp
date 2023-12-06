@@ -1,7 +1,7 @@
 #include "syntax.hpp"
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 #include <libm/cstrTools.h>
 #include <libm/memStuff.h>
 #include <libm/heap/heap.h>

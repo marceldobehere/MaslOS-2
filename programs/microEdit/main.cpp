@@ -16,7 +16,6 @@
 char* get_file_to_open(int argc, char** argv) {
     if (argc != 1) {
         return (char*) "bruh:programs/microEdit/assets/cheatsheet.txt";
-        // return (char*) "bruh:programs/microEdit/assets/hello.cidk";
     } else {
         return argv[0];
     }
@@ -36,7 +35,6 @@ void KeyHit(void* _, GuiComponentStuff::KeyHitEventInfo info) {
 
 int main(int argc, char** argv) {
     initWindowManagerStuff();
-
 
     Window* window = requestWindow();
     if (window == nullptr) {
@@ -80,7 +78,6 @@ int main(int argc, char** argv) {
 
     fsReadFile(state.file_name, (void**) &state.input_buffer, &state.current_size);
     state.buffer_idx = state.current_size;
-serialPrintLn(state.input_buffer);
 
     for (int i = 0; i < state.current_size; i++) {
 		state.char_cnt++;
@@ -103,12 +100,11 @@ serialPrintLn(state.input_buffer);
              break;        
         }
 
-        // ICH GEB AUF
-        
-        // canvas->DrawLine(int x1, int y1, int x2, int y2, uint32_t col, int size)
-        // void DrawChar(int sX, int sY, uint32_t fg,  int size, char c);
-        // 8 * 16
-        // canvas->DrawChar(0, 0, 0xffffffff, 1, 'H');
+        // TODO:
+        // Fix random crashes when resize
+        // Fix sometimes not starting correctly
+        // Improve Rendering using Advanced Text box
+        // Improve Update Loop and reduce polling / not needed redraws
     }
-    return 0; /// DU KEK DA HAST DU KEINE WARNINGS
+    return 0;
 }
