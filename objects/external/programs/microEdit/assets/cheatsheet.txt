@@ -1,0 +1,11 @@
+Cheat sheet
+w        -> move up a line
+a        -> move left a character
+s        -> move down a line
+d        -> move right a char
++        -> write changes to file
+q        -> quit
+
+Those commands work in the EDIT mode witch can be activated by pressing 'esc'.
+To exit EDIT mode press 'esc' again.
+
