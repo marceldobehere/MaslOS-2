@@ -1,27 +1,57 @@
 #include "stdio.h"
 #include <libm/syscallManager.h>
 #include <libm/msgPackets/msgPacket.h>
+#include <libm/rnd/rnd.h>
+#include <libm/cstrTools.h>
+#include <libm/stubs.h>
 
 namespace STDIO
 {
     StdioInst parent;
+
     void initStdio(bool needLoggerWindow)
     {
+        parent.pid = getParentPid();
+
         // try to connect with parent
+        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 3000);
 
+        if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent.pid)
+        {
+            parent.convoId = *(uint64_t*)packet->Data;
 
+            packet->Free();
+            _Free(packet);
+        }
+        else
+        {
+            if (packet != NULL)
+            {
+                packet->Free();
+                _Free(packet);
+            }
 
-
-
+            // failed to connect with parent
+            if (needLoggerWindow)
+            {
+                // TODO: create logger window and connect to that instead
+                Panic("NO LOGGER WINDOW IMLPEMENTED", true);
+            }
+        }
     }
 
     StdioInst initStdio(uint64_t pid)
     {
         StdioInst other;
         other.pid = pid;
-        other.convoId = 0;
+        other.convoId = RND::RandomInt();
 
-
+        {
+            GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)&other.convoId, 8);
+            msgSendConv(packet, other.pid, STDIO_INIT_CONVO_ID);
+            packet->Free();
+            _Free(packet);  
+        }
 
         return other;
     }
@@ -57,7 +87,10 @@ namespace STDIO
     // Print to any
     void print(const char* str, StdioInst other)
     {
-        // TODO: actually create and send packet
+        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str + 1));
+        msgSendConv(packet, other.pid, other.convoId);
+        packet->Free();
+        _Free(packet);
     }
     
     void print(char chr, StdioInst other)
@@ -89,10 +122,44 @@ namespace STDIO
         return read(parent);
     }
 
+    const char* tStr = NULL;
+    int tStrCount = 0;
+
     // Read from any
     int read(StdioInst other)
     {
-        // TODO: actually check for received packets
-        return -1;
+        while (tStr == NULL)
+        {
+            GenericMessagePacket* packet = msgGetConv(other.convoId);
+            if (packet == NULL)
+                return -1;
+            
+            if (packet->Type != MessagePacketType::GENERIC_DATA)
+            {
+                packet->Free();
+                _Free(packet);
+                return -1;
+            }
+
+            tStr = (const char*)StrCopy((const char*)packet->Data);
+            tStrCount = 0;
+            packet->Free();
+            _Free(packet);
+
+            if (StrLen(tStr) == 0)
+            {
+                _Free(tStr);
+                tStr = NULL;
+            }
+        }
+        
+        if (tStrCount == StrLen(tStr))
+        {
+            tStr = NULL;
+            tStrCount = 0;
+            return -1;
+        }
+        else
+            return tStr[tStrCount++];
     }
 };
