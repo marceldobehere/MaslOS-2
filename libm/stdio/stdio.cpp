@@ -14,7 +14,7 @@ namespace STDIO
         parent.pid = getParentPid();
 
         // try to connect with parent
-        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 3000);
+        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 2000);
 
         if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent.pid)
         {
@@ -34,8 +34,20 @@ namespace STDIO
             // failed to connect with parent
             if (needLoggerWindow)
             {
-                // TODO: create logger window and connect to that instead
-                Panic("NO LOGGER WINDOW IMLPEMENTED", true);
+                const char* wPath = getWorkingPath();
+                uint64_t newPid = startProcess("bruh:programs/logger/logger.elf", 0, NULL, wPath);
+                _Free(wPath);
+
+                if (newPid == 0)
+                {
+                    parent.pid = 0;
+                    parent.convoId = 0;
+                    Panic("Failed to start logger!", true);
+                }
+                else
+                {
+                    parent = initStdio(newPid);
+                }
             }
         }
     }
