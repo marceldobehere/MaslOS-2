@@ -3,14 +3,18 @@
 #include <libm/msgPackets/msgPacket.h>
 #include <libm/rnd/rnd.h>
 #include <libm/cstrTools.h>
+#include <libm/memStuff.h>
 #include <libm/stubs.h>
+#include <libm/queue/queue_basics.h>
 
 namespace STDIO
 {
     StdioInst parent;
+    Queue<uint8_t>* readQueue = NULL;;
 
     void initStdio(bool needLoggerWindow)
     {
+        readQueue = new Queue<uint8_t>();
         parent.pid = getParentPid();
 
         // try to connect with parent
@@ -54,6 +58,7 @@ namespace STDIO
 
     StdioInst initStdio(uint64_t pid)
     {
+        readQueue = new Queue<uint8_t>();
         StdioInst other;
         other.pid = pid;
         other.convoId = RND::RandomInt();
@@ -99,7 +104,7 @@ namespace STDIO
     // Print to any
     void print(const char* str, StdioInst other)
     {
-        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str) + 1);
+        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str));
         msgSendConv(packet, other.pid, other.convoId);
         packet->Free();
         _Free(packet);
@@ -134,44 +139,114 @@ namespace STDIO
         return read(parent);
     }
 
-    const char* tStr = NULL;
-    int tStrCount = 0;
-
-    // Read from any
-    int read(StdioInst other)
+    void CheckReadQueue(StdioInst other)
     {
-        while (tStr == NULL)
+        while (true)
         {
             GenericMessagePacket* packet = msgGetConv(other.convoId);
             if (packet == NULL)
-                return -1;
+                return;
             
             if (packet->Type != MessagePacketType::GENERIC_DATA)
             {
                 packet->Free();
                 _Free(packet);
-                return -1;
+                return;
             }
 
-            tStr = (const char*)StrCopy((const char*)packet->Data);
-            tStrCount = 0;
+            for (int i = 0; i < packet->Size; i++)
+                readQueue->Enqueue(packet->Data[i]);
+                
             packet->Free();
             _Free(packet);
+        }
+    }
 
-            if (StrLen(tStr) == 0)
-            {
-                _Free(tStr);
-                tStr = NULL;
-            }
-        }
-        
-        if (tStrCount == StrLen(tStr))
+    // Read from any
+    int read(StdioInst other)
+    {
+        CheckReadQueue(other);
+        if (readQueue->GetCount() > 0)
+            return readQueue->Dequeue();
+        return -1;
+    }
+
+    void sendBytes(uint8_t* bytes, uint64_t size)
+    {
+        sendBytes(bytes, size, parent);
+    }
+
+    uint64_t readBytes(uint8_t* bytes, uint64_t size)
+    {
+        readBytes(bytes, size, parent);
+    }
+    
+    const char* readLine()
+    {
+        return readLine(parent);
+    }
+    
+    
+    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst other)
+    {
+        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, bytes, size);
+        msgSendConv(packet, other.pid, other.convoId);
+        packet->Free();
+        _Free(packet);
+    }
+
+
+
+    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst other)
+    {
+        for (int i = 0; i < size; i++)
         {
-            tStr = NULL;
-            tStrCount = 0;
-            return -1;
+            while (true)
+            {
+                CheckReadQueue(other);
+                if (readQueue->GetCount() < 1)
+                    programWaitMsg();
+                else
+                    break;
+            }
+
+            bytes[i] = readQueue->Dequeue();
         }
-        else
-            return tStr[tStrCount++];
+
+        return size;
+    }
+
+
+    const char* readLine(StdioInst other)
+    {
+        Queue<char>* line = new Queue<char>();
+        while (true)
+        {
+            while (true)
+            {
+                CheckReadQueue(other);
+                if (readQueue->GetCount() < 1)
+                    programWaitMsg();
+                else
+                    break;
+            }
+
+            char c = readQueue->Dequeue();
+            if (c == '\n')
+                break;
+            line->Enqueue(c);
+        }
+
+        int len = line->GetCount();
+        char* str = (char*)_Malloc(len + 1);
+
+        for (int i = 0; i < len; i++)
+            str[i] = line->Dequeue();
+        str[len] = '\0';
+
+        line->Free();
+        _Free(line);
+
+        return str;
     }
 };

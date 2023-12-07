@@ -30,7 +30,15 @@ GuiComponentStuff::AdvancedTextComponent* outTxt;
 using namespace STDIO;
 
 bool echoInput = true;
+bool echoExit = true;
 StdioInst currStdio = {0, 0};
+
+void progClosed()
+{
+    if (echoExit)   
+        outTxt->Println("\n> Process exited.", Colors.yellow);
+    currStdio.pid = 0;
+}
 
 int main(int argc, char** argv)
 {
@@ -123,7 +131,7 @@ int main(int argc, char** argv)
         }
 
         if (currStdio.pid != 0 && !pidExists(currStdio.pid))
-            currStdio.pid = 0;
+            progClosed();
         if (currStdio.pid != 0)
         {
             int c = read(currStdio);
@@ -150,7 +158,7 @@ void Cls()
 bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo info)
 {
     if (currStdio.pid != 0 && !pidExists(currStdio.pid))
-        currStdio.pid = 0;
+        progClosed();
         
     if (currStdio.pid != 0)
     {
@@ -493,13 +501,13 @@ void HandleCommand(const char* inputStr)
                 uint64_t newPid = startProcess(combined, argC - 2, args + 2, currentPath);
                 if (newPid == 0)
                 {
-                    outTxt->Print("Failed to start process: \"", Colors.bred);
+                    outTxt->Print("> Failed to start process: \"", Colors.bred);
                     outTxt->Print(pathToUse, 0xffFFAA00);
                     outTxt->Println("\"", Colors.bred);
                 }
                 else
                 {
-                    outTxt->Print("Started process with PID: ", Colors.bgreen);
+                    outTxt->Print("> Started process with PID: ", Colors.bgreen);
                     outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
                     currStdio = initStdio(newPid);
                 }
@@ -509,13 +517,13 @@ void HandleCommand(const char* inputStr)
                 uint64_t newPid = startProcess(pathToUse, argC - 2, args + 2, currentPath);
                 if (newPid == 0)
                 {
-                    outTxt->Print("Failed to start process: \"", Colors.bred);
+                    outTxt->Print("> Failed to start process: \"", Colors.bred);
                     outTxt->Print(pathToUse, 0xffFFAA00);
                     outTxt->Println("\"", Colors.bred);
                 }
                 else
                 {
-                    outTxt->Print("Started process with PID: ", Colors.bgreen);
+                    outTxt->Print("> tarted process with PID: ", Colors.bgreen);
                     outTxt->Println(ConvertHexToString(newPid), Colors.bgreen);
                     currStdio = initStdio(newPid);
                 }

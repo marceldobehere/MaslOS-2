@@ -37,4 +37,24 @@ namespace STDIO
 
     // Read from any
     int read(StdioInst other);
+
+
+    // Send bytes to parent
+    void sendBytes(uint8_t* bytes, uint64_t size);
+
+    // Send bytes to any
+    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst other);
+
+
+    // Read bytes from parent
+    uint64_t readBytes(uint8_t* bytes, uint64_t size);
+
+    // Read bytes from any
+    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst other);
+
+    // Read line from parent
+    const char* readLine();
+
+    // Read line from any
+    const char* readLine(StdioInst other);
 };
