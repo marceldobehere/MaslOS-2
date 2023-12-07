@@ -15,7 +15,7 @@ And it mostly works on real hardware.
    - Elf loading (working, rarely crashes at the start for no apparent reason?)
    - User Space (working)
    - Inter Process Communication (working)
-   - Stdio using IPC (mostly working)
+   - Stdio using IPC (working)
  + GUI
    - MaslOS GUI Framework port (working)
    - Mouse/Keyboard interaction (working)

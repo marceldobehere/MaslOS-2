@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         guiInst->screen->backgroundColor = Colors.black;
         window->DefaultBackgroundColor = Colors.black;
         setWindow(window);
-
+        
         // Output
         {
             outTxt = new GuiComponentStuff::AdvancedTextComponent(

@@ -166,7 +166,36 @@ bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiCo
         temp[1] = 0;
         const char* send = NULL;
 
-        if (info.Scancode == Key_ArrowLeft)
+        if (envGetKeyState(Key_LeftShift) && info.Scancode != Key_LeftShift)
+        {
+            if (info.Scancode == Key_ArrowUp)
+            {
+                outTxt->scrollY -= 16;
+                return false;
+            }
+            else if (info.Scancode == Key_ArrowDown)
+            {
+                outTxt->scrollY += 16;
+                return false;
+            }
+            else if (info.Scancode == Key_ArrowLeft)
+            {
+                if (outTxt->scrollX >= 8)
+                    outTxt->scrollX -= 8;
+                return false;
+            }
+            else if (info.Scancode == Key_ArrowRight)
+            {
+                outTxt->scrollX += 8;
+                return false;
+            }
+            else
+            {
+                temp[0] = info.Chr;
+                send = (const char*)temp;
+            }
+        }
+        else if (info.Scancode == Key_ArrowLeft)
             send = "\x1b[D";
         else if (info.Scancode == Key_ArrowRight)
             send = "\x1b[C";
