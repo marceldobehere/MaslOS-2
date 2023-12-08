@@ -6,6 +6,8 @@
 #include <libm/memStuff.h>
 #include <libm/stubs.h>
 #include <libm/queue/queue_basics.h>
+#include "./stdargs.h"
+#include <libm/cstr.h>
 
 namespace STDIO
 {
@@ -131,6 +133,138 @@ namespace STDIO
         print(str, other);
         println(other);
     }
+
+    void _printf(const char* str, va_list arg, StdioInst other);
+
+    void printlnf(const char* str, ...)
+    {
+        va_list arg;
+        va_start(arg, str);
+        _printf(str, arg, parent);
+        va_end(arg);
+        println(parent);
+    }
+
+    void printf(const char* str, ...)
+    {
+        va_list arg;
+        va_start(arg, str);
+        _printf(str, arg, parent);
+        va_end(arg);
+    }
+
+    void printlnf(StdioInst other, const char* str, ...)
+    {
+        va_list arg;
+        va_start(arg, str);
+        _printf(str, arg, other);
+        va_end(arg);
+        println(other);
+    }
+
+    void printf(StdioInst other, const char* str, ...)
+    {
+        va_list arg;
+        va_start(arg, str);
+        _printf(str, arg, other);
+        va_end(arg);
+    }
+
+
+    // %s -> string
+    // %c -> char
+    // %d/i -> int (32 bit)
+    // %D/I -> int (64 bit)
+    // %x -> hex (32 bit)
+    // %X -> hex (64 bit)
+    // %b -> byte
+    // %B -> bool
+    // %f -> float
+    // %F -> double
+    // %% -> %
+    void _printf(const char* str, va_list arg, StdioInst other)
+    {
+        int len = StrLen(str);
+
+        for (int i = 0; i < len; i++)
+        {
+            if (str[i] == '%' && i + 1 < len)
+            {
+                i++;
+                if (str[i] == 's')
+                {
+                    char* argStr = va_arg(arg, char*);
+                    if (argStr != NULL)
+                        print(argStr, other);
+                    else
+                        print("(null)", other);
+                }
+                else if (str[i] == 'c')
+                {
+                    char argChar = va_arg(arg, int);
+                    print(argChar, other);
+                }
+                else if (str[i] == 'd' || str[i + 1] == 'i')
+                {
+                    int argInt = va_arg(arg, int);
+                    print(to_string(argInt), other);
+                }
+                else if (str[i] == 'D' || str[i + 1] == 'I')
+                {
+                    uint64_t argInt = va_arg(arg, uint64_t);
+                    print(to_string(argInt), other);
+                }
+                else if (str[i] == 'x')
+                {
+                    uint32_t argInt = va_arg(arg, uint32_t);
+                    print(ConvertHexToString(argInt), other);
+                }
+                else if (str[i] == 'X')
+                {
+                    uint64_t argInt = va_arg(arg, uint64_t);
+                    print(ConvertHexToString(argInt), other);
+                }
+                else if (str[i] == 'b')
+                {
+                    uint8_t argInt = (uint8_t)va_arg(arg, int);
+                    print(to_string(argInt), other);
+                }
+                else if (str[i] == 'B')
+                {
+                    bool argInt = (bool)va_arg(arg, int);
+                    print(to_string(argInt), other);
+                }
+                else if (str[i] == 'f')
+                {
+                    // compiler be trolling me
+                    // float argFloat = va_arg(arg, float);
+                    // Write(to_string(argFloat));
+                    
+
+                    double argDouble = va_arg(arg, double);
+                    print(to_string(argDouble), other);
+                }
+                else if (str[i] == 'F')
+                {
+                    double argDouble = va_arg(arg, double);
+                    print(to_string(argDouble), other);
+                }
+                else if (str[i] == '%')
+                {
+                    print('%', other);
+                }
+                else
+                {
+                    print(str[i], other);
+                }
+            }
+            else
+            {
+                print(str[i], other);
+            }
+        }
+    }
+
 
 
     // Read from parent

@@ -23,14 +23,17 @@ namespace STDIO
     void println();
     void println(char chr);
     void println(const char* str);
-
+    void printlnf(const char* str, ...);
+    void printf(const char* str, ...);
+    
     // Print to any
     void print(char chr, StdioInst other);
     void print(const char* str, StdioInst other);
     void println(StdioInst other);
     void println(char chr, StdioInst other);
     void println(const char* str, StdioInst other);
-
+    void printlnf(StdioInst other, const char* str, ...);
+    void printf(StdioInst other, const char* str, ...);
 
     // Read from parent
     int read(); // returns a char or -1 if there is no data

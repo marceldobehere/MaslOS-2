@@ -17,13 +17,10 @@ int main(int argc, const char** argv)
 
     println("Enter your name:");
     const char* input = readLine();
-    println();
-    print("Hello, ");
-    print(input);
-    println("!");
+    printlnf("\nHello, %s!", input);
     _Free(input);
 
-    programWait(1000);
+    programWait(1500);
 
     return 0;
 }
