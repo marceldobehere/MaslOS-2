@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <libm/queue/queue_basics.h>
 
 namespace STDIO
 {
@@ -10,11 +11,16 @@ namespace STDIO
     {
         uint64_t pid;
         uint64_t convoId;
+        Queue<uint8_t>* readQueue = NULL;
+
+        StdioInst(uint64_t pid);
+        void Free();
     };
 
-    extern StdioInst parent;
+    extern StdioInst* parent;
     void initStdio(bool needLoggerWindow);
-    StdioInst initStdio(uint64_t pid);
+    StdioInst* initStdio(uint64_t pid);
+    StdioInst* initStdioClient(uint64_t pid);
 
 
     // Print to parent
@@ -27,37 +33,37 @@ namespace STDIO
     void printf(const char* str, ...);
     
     // Print to any
-    void print(char chr, StdioInst other);
-    void print(const char* str, StdioInst other);
-    void println(StdioInst other);
-    void println(char chr, StdioInst other);
-    void println(const char* str, StdioInst other);
-    void printlnf(StdioInst other, const char* str, ...);
-    void printf(StdioInst other, const char* str, ...);
+    void print(char chr, StdioInst* other);
+    void print(const char* str, StdioInst* other);
+    void println(StdioInst* other);
+    void println(char chr, StdioInst* other);
+    void println(const char* str, StdioInst* other);
+    void printlnf(StdioInst* other, const char* str, ...);
+    void printf(StdioInst* other, const char* str, ...);
 
     // Read from parent
     int read(); // returns a char or -1 if there is no data
 
     // Read from any
-    int read(StdioInst other);
+    int read(StdioInst* other);
 
 
     // Send bytes to parent
     void sendBytes(uint8_t* bytes, uint64_t size);
 
     // Send bytes to any
-    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst other);
+    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst* other);
 
 
     // Read bytes from parent
     uint64_t readBytes(uint8_t* bytes, uint64_t size);
 
     // Read bytes from any
-    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst other);
+    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst* other);
 
     // Read line from parent
     const char* readLine();
 
     // Read line from any
-    const char* readLine(StdioInst other);
+    const char* readLine(StdioInst* other);
 };

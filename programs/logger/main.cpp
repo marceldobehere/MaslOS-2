@@ -15,7 +15,7 @@
 
 #include <libm/stdio/stdio.h>
 
-
+void progClosed();
 void Cls();
 void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info);
 
@@ -23,8 +23,8 @@ GuiInstance* guiInst;
 GuiComponentStuff::AdvancedTextComponent* outTxt;
 
 using namespace STDIO;
-
 bool echoInput = true;
+bool echoExit = true;
 
 int main(int argc, char** argv)
 {
@@ -67,9 +67,9 @@ int main(int argc, char** argv)
     while (!CheckForWindowClosed(window))
     {
         guiInst->screen->selectedComponent = outTxt;
-        if (parent.pid != 0 && !pidExists(parent.pid))
-            parent.pid = 0;
-        if (parent.pid != 0)
+        if (parent != NULL && !pidExists(parent->pid))
+            progClosed();
+        if (parent != NULL)
         {
             int c = read();
             if (c != -1)
@@ -95,9 +95,9 @@ void Cls()
 
 void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
 {
-    if (parent.pid != 0 && !pidExists(parent.pid))
-        parent.pid = 0;
-    if (parent.pid == 0)
+    if (parent != NULL && !pidExists(parent->pid))
+        progClosed();
+    if (parent == NULL)
         return;
 
     char temp[2];
@@ -116,9 +116,8 @@ void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
         send = "\b";
     else if (info.Chr == 'c' && envGetKeyState(Key_LeftControl))
     {
-        closeProcess(parent.pid);
-        parent.pid = 0;
-        outTxt->Println("\n> Process closed", Colors.bred);
+        closeProcess(parent->pid);
+        progClosed();
     }
     else
     {
@@ -134,4 +133,16 @@ void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
     }
 
     return;
+}
+
+void progClosed()
+{
+    if (parent == NULL)
+        return;
+
+    if (echoExit)   
+        outTxt->Println("\n> Process exited.", Colors.yellow);
+    parent->Free();
+    _Free(parent);
+    parent = NULL;
 }

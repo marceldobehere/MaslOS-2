@@ -5,26 +5,37 @@
 #include <libm/cstrTools.h>
 #include <libm/memStuff.h>
 #include <libm/stubs.h>
-#include <libm/queue/queue_basics.h>
 #include "./stdargs.h"
 #include <libm/cstr.h>
+#include <libm/heap/heap.h>
+#include <libm/list/list_basics.h>
 
 namespace STDIO
 {
-    StdioInst parent;
-    Queue<uint8_t>* readQueue = NULL;;
+    StdioInst::StdioInst(uint64_t pid)
+    {
+        this->pid = pid;
+        readQueue = new Queue<uint8_t>(16);
+    }
+
+    void StdioInst::Free()
+    {
+        readQueue->Free();
+        _Free(readQueue);
+    }
+
+    StdioInst* parent = NULL;
 
     void initStdio(bool needLoggerWindow)
     {
-        readQueue = new Queue<uint8_t>();
-        parent.pid = getParentPid();
+        parent = new StdioInst(getParentPid());
 
         // try to connect with parent
         GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 2000);
 
-        if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent.pid)
+        if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent->pid)
         {
-            parent.convoId = *(uint64_t*)packet->Data;
+            parent->convoId = *(uint64_t*)packet->Data;
 
             packet->Free();
             _Free(packet);
@@ -46,28 +57,58 @@ namespace STDIO
 
                 if (newPid == 0)
                 {
-                    parent.pid = 0;
-                    parent.convoId = 0;
+                    parent->pid = 0;
+                    parent->convoId = 0;
                     Panic("Failed to start logger!", true);
                 }
                 else
                 {
+                    parent->Free();
+                    _Free(parent);
                     parent = initStdio(newPid);
                 }
             }
         }
     }
 
-    StdioInst initStdio(uint64_t pid)
+    StdioInst* initStdioClient(uint64_t pid)
     {
-        readQueue = new Queue<uint8_t>();
-        StdioInst other;
-        other.pid = pid;
-        other.convoId = RND::RandomInt();
+        StdioInst* temp = new StdioInst(pid);
+
+        // try to connect with parent
+        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 2000);
+
+        if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == temp->pid)
+        {
+            temp->convoId = *(uint64_t*)packet->Data;
+
+            packet->Free();
+            _Free(packet);
+        }
+        else
+        {
+            if (packet != NULL)
+            {
+                packet->Free();
+                _Free(packet);
+            }
+
+            temp->Free();
+            _Free(temp);
+            return NULL;
+        }
+
+        return temp;
+    }
+
+    StdioInst* initStdio(uint64_t pid)
+    {
+        StdioInst* other = new StdioInst(pid);
+        other->convoId = RND::RandomInt();
 
         {
-            GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)&other.convoId, 8);
-            msgSendConv(packet, other.pid, STDIO_INIT_CONVO_ID);
+            GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)&other->convoId, 8);
+            msgSendConv(packet, other->pid, STDIO_INIT_CONVO_ID);
             packet->Free();
             _Free(packet);  
         }
@@ -104,37 +145,37 @@ namespace STDIO
     }
 
     // Print to any
-    void print(const char* str, StdioInst other)
+    void print(const char* str, StdioInst* other)
     {
         GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str));
-        msgSendConv(packet, other.pid, other.convoId);
+        msgSendConv(packet, other->pid, other->convoId);
         packet->Free();
         _Free(packet);
     }
     
-    void print(char chr, StdioInst other)
+    void print(char chr, StdioInst* other)
     {
         char str[2];
         str[0] = chr;
         str[1] = '\0';
         print(str, other);
     }
-    void println(StdioInst other)
+    void println(StdioInst* other)
     {
         print("\n\r", other);
     }
-    void println(char chr, StdioInst other)
+    void println(char chr, StdioInst* other)
     {
         print(chr, other);
         println(other);
     }
-    void println(const char* str, StdioInst other)
+    void println(const char* str, StdioInst* other)
     {
         print(str, other);
         println(other);
     }
 
-    void _printf(const char* str, va_list arg, StdioInst other);
+    void _printf(const char* str, va_list arg, StdioInst* other);
 
     void printlnf(const char* str, ...)
     {
@@ -153,7 +194,7 @@ namespace STDIO
         va_end(arg);
     }
 
-    void printlnf(StdioInst other, const char* str, ...)
+    void printlnf(StdioInst* other, const char* str, ...)
     {
         va_list arg;
         va_start(arg, str);
@@ -162,7 +203,7 @@ namespace STDIO
         println(other);
     }
 
-    void printf(StdioInst other, const char* str, ...)
+    void printf(StdioInst* other, const char* str, ...)
     {
         va_list arg;
         va_start(arg, str);
@@ -182,7 +223,7 @@ namespace STDIO
     // %f -> float
     // %F -> double
     // %% -> %
-    void _printf(const char* str, va_list arg, StdioInst other)
+    void _printf(const char* str, va_list arg, StdioInst* other)
     {
         int len = StrLen(str);
 
@@ -273,11 +314,11 @@ namespace STDIO
         return read(parent);
     }
 
-    void CheckReadQueue(StdioInst other)
+    void CheckReadQueue(StdioInst* other)
     {
         while (true)
         {
-            GenericMessagePacket* packet = msgGetConv(other.convoId);
+            GenericMessagePacket* packet = msgGetConv(other->convoId);
             if (packet == NULL)
                 return;
             
@@ -289,7 +330,7 @@ namespace STDIO
             }
 
             for (int i = 0; i < packet->Size; i++)
-                readQueue->Enqueue(packet->Data[i]);
+                other->readQueue->Enqueue(packet->Data[i]);
                 
             packet->Free();
             _Free(packet);
@@ -297,11 +338,11 @@ namespace STDIO
     }
 
     // Read from any
-    int read(StdioInst other)
+    int read(StdioInst* other)
     {
         CheckReadQueue(other);
-        if (readQueue->GetCount() > 0)
-            return readQueue->Dequeue();
+        if (other->readQueue->GetCount() > 0)
+            return other->readQueue->Dequeue();
         return -1;
     }
 
@@ -321,61 +362,77 @@ namespace STDIO
     }
     
     
-    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst other)
+    void sendBytes(uint8_t* bytes, uint64_t size, StdioInst* other)
     {
         GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, bytes, size);
-        msgSendConv(packet, other.pid, other.convoId);
+        msgSendConv(packet, other->pid, other->convoId);
         packet->Free();
         _Free(packet);
     }
 
 
 
-    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst other)
+    uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst* other)
     {
         for (int i = 0; i < size; i++)
         {
             while (true)
             {
                 CheckReadQueue(other);
-                if (readQueue->GetCount() < 1)
+                if (other->readQueue->GetCount() < 1)
                     programWaitMsg();
                 else
                     break;
             }
 
-            bytes[i] = readQueue->Dequeue();
+            bytes[i] = other->readQueue->Dequeue();
         }
 
         return size;
     }
 
 
-    const char* readLine(StdioInst other)
+    const char* readLine(StdioInst* other)
     {
-        Queue<char>* line = new Queue<char>();
+        List<char>* line = new List<char>();
         while (true)
         {
             while (true)
             {
                 CheckReadQueue(other);
-                if (readQueue->GetCount() < 1)
+                if (other->readQueue->GetCount() < 1)
                     programWaitMsg();
                 else
                     break;
             }
 
-            char c = readQueue->Dequeue();
+            char c = other->readQueue->Dequeue();
             if (c == '\n')
                 break;
-            line->Enqueue(c);
+            line->Add(c);
+        }
+
+        // Handle \b by deleting it and the previous element
+        for (int i = 0; i < line->GetCount(); i++)
+        {
+            if (line->ElementAt(i) == '\b')
+            {
+                line->RemoveAt(i);
+                if (i > 0)
+                {
+                    i--;
+                    line->RemoveAt(i);
+                }
+                i--;
+                continue;
+            }
         }
 
         int len = line->GetCount();
         char* str = (char*)_Malloc(len + 1);
 
         for (int i = 0; i < len; i++)
-            str[i] = line->Dequeue();
+            str[i] = line->ElementAt(i);
         str[len] = '\0';
 
         line->Free();
