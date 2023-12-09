@@ -27,10 +27,11 @@ And it mostly works on real hardware.
    - Snake (soon)
    - Terminal (basics be working)
    - Explorer (working)
+   + MAAB interpreter (working)
+     - Pong
+     - Maalbrot
    - Notepad (basics be working)
    - Paint (mostly working)
-   + MAAB interpreter (mostly working / output is currently routed to serial until i add stdio)
-     - Pong
    - Doom (soon)
    - MicroEdit (somewhat working)
    - Other Apps ported from MaslOS and some extra ones (not yet)
