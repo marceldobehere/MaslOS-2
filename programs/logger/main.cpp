@@ -52,7 +52,7 @@ int main(int argc, char** argv)
             outTxt = new GuiComponentStuff::AdvancedTextComponent(
                 Colors.white,
                 Colors.black,
-                GuiComponentStuff::ComponentSize(1.0,1.0),
+                GuiComponentStuff::ComponentSize(1.0, 1.0),
                 guiInst->screen
             );
 
@@ -66,21 +66,30 @@ int main(int argc, char** argv)
     outTxt->Println();
     while (!CheckForWindowClosed(window))
     {
+        guiInst->Update();
+
         guiInst->screen->selectedComponent = outTxt;
-        if (parent != NULL && !pidExists(parent->pid))
+        if (parent != NULL && !available() && !pidExists(parent->pid))
             progClosed();
         if (parent != NULL)
         {
             int c = read();
             if (c != -1)
-                outTxt->Print((char*)&c, Colors.white);
+            {
+                char bruh[2];
+                bruh[0] = c;
+                bruh[1] = 0;
+                outTxt->Print(bruh, Colors.white);
+            }
         }
         else
             break;
 
-        guiInst->Render(true);
+        guiInst->Render(false);
         programWaitMsg();
     }
+
+    programWait(1500);
 
     return 0;
 }
@@ -95,7 +104,7 @@ void Cls()
 
 void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
 {
-    if (parent != NULL && !pidExists(parent->pid))
+    if (parent != NULL && !available() && !pidExists(parent->pid))
         progClosed();
     if (parent == NULL)
         return;
@@ -104,7 +113,36 @@ void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
     temp[1] = 0;
     const char* send = NULL;
 
-    if (info.Scancode == Key_ArrowLeft)
+    if (envGetKeyState(Key_LeftShift) && info.Scancode != Key_LeftShift)
+    {
+        if (info.Scancode == Key_ArrowUp)
+        {
+            outTxt->scrollY -= 16;
+            return;
+        }
+        else if (info.Scancode == Key_ArrowDown)
+        {
+            outTxt->scrollY += 16;
+            return;
+        }
+        else if (info.Scancode == Key_ArrowLeft)
+        {
+            if (outTxt->scrollX >= 8)
+                outTxt->scrollX -= 8;
+            return;
+        }
+        else if (info.Scancode == Key_ArrowRight)
+        {
+            outTxt->scrollX += 8;
+            return;
+        }
+        else
+        {
+            temp[0] = info.Chr;
+            send = (const char*)temp;
+        }
+    }
+    else if (info.Scancode == Key_ArrowLeft)
         send = "\x1b[D";
     else if (info.Scancode == Key_ArrowRight)
         send = "\x1b[C";
@@ -118,6 +156,7 @@ void SpecialKeyHandler(void* bruh, GuiComponentStuff::KeyHitEventInfo info)
     {
         closeProcess(parent->pid);
         progClosed();
+        return;
     }
     else
     {

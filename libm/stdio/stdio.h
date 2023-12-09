@@ -43,9 +43,11 @@ namespace STDIO
 
     // Read from parent
     int read(); // returns a char or -1 if there is no data
+    bool available();
 
     // Read from any
     int read(StdioInst* other);
+    bool available(StdioInst* other);
 
 
     // Send bytes to parent

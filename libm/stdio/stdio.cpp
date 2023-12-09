@@ -31,7 +31,7 @@ namespace STDIO
         parent = new StdioInst(getParentPid());
 
         // try to connect with parent
-        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 2000);
+        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 1500);
 
         if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent->pid)
         {
@@ -313,6 +313,11 @@ namespace STDIO
     {
         return read(parent);
     }
+    
+    bool available()
+    {
+        return available(parent);
+    }
 
     void CheckReadQueue(StdioInst* other)
     {
@@ -346,6 +351,12 @@ namespace STDIO
         return -1;
     }
 
+    bool available(StdioInst* other)
+    {
+        CheckReadQueue(other);
+        return other->readQueue->GetCount() > 0;
+    }
+
     void sendBytes(uint8_t* bytes, uint64_t size)
     {
         sendBytes(bytes, size, parent);
@@ -353,7 +364,7 @@ namespace STDIO
 
     uint64_t readBytes(uint8_t* bytes, uint64_t size)
     {
-        readBytes(bytes, size, parent);
+        return readBytes(bytes, size, parent);
     }
     
     const char* readLine()

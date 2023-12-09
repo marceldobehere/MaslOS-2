@@ -37,6 +37,7 @@ void progClosed()
 {
     if (echoExit)   
         outTxt->Println("\n> Process exited.", Colors.yellow);
+
     currStdio->Free();
     _Free(currStdio);
     currStdio = NULL;
@@ -132,13 +133,18 @@ int main(int argc, char** argv)
             }
         }
 
-        if (currStdio != NULL && !pidExists(currStdio->pid))
+        if (currStdio != NULL && !available(currStdio) && !pidExists(currStdio->pid))
             progClosed();
         if (currStdio != NULL)
         {
             int c = read(currStdio);
             if (c != -1)
-                outTxt->Print((char*)&c, Colors.white);
+            {
+                char bruh[2];
+                bruh[0] = c;
+                bruh[1] = 0;
+                outTxt->Print(bruh, Colors.white);
+            }
         }
 
         guiInst->Render(false);
@@ -159,7 +165,7 @@ void Cls()
 
 bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo info)
 {
-    if (currStdio != NULL && !pidExists(currStdio->pid))
+    if (currStdio != NULL && !available(currStdio) && !pidExists(currStdio->pid))
         progClosed();
         
     if (currStdio != NULL)
