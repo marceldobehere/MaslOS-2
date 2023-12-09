@@ -417,6 +417,7 @@ namespace GuiComponentStuff
     void AdvancedTextComponent::RenderCharChanges()
     {
         AddToStack();
+        ComponentSize size = GetActualComponentSize();
         int sizeX = oldWidth / 8;
         int sizeY = oldHeight / 16;
         ClearCharArr(tempPixels2, sizeX, sizeY, foregroundColor, backgroundColor);
