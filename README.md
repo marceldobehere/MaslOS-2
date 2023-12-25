@@ -39,10 +39,6 @@ And it mostly works on real hardware.
    - SMP (not added yet)
    - idk more stuff
 
-## How to use
- - Press F10 to open the explorer
- - Press F12 to open a shell (there is a help command)
- - Press F11 to redraw the desktop (eg. If you get an error)
 
 ## How to build (Linux)
  - Install QEMU if you haven't.
@@ -64,25 +60,13 @@ Run the `cDisk.sh` file to generate an empty disk so QEMU can boot correctly.
 
 Run the `JUST RUN OS.sh` file to run it!
 
-### How to run (Windows)
+## How to run (Windows)
 
 Install QEMU if you haven't.
 
 Add QEMU To your PATH variable. [If you need help, click here!](https://linuxhint.com/qemu-windows/)
 
 Then download/clone the repo and run the `run.cmd` file
-
-## Contributing
-I am still working on quite a few things that need to be done for MaslOS2 to be in a good state.
-
-Meaning that not everything is 100% implemented yet and some needed things could be missing.
-
-
-If you want to contribute by adding your own little apps/tools/games/ports I would be very happy!
-
-If you need any help / have any questions or are curious about MaslOS2, feel free to contact me per discord. (@marceldarcel)
-
-
 
 
 ## Screenshots

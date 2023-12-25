@@ -45,6 +45,7 @@ namespace GuiComponentStuff
         void DrawChar(int sX, int sY, uint32_t fg, uint32_t bg, int size, char c);
         void DrawText(int sX, int sY, uint32_t fg, uint32_t bg, int size, const char* text);
         void DrawText(int sX, int sY, uint32_t col, int size, const char* text);
+        void DrawTri(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t col, int size);
 
         bool SetAttribute(int32_t type, uint64_t val);
         uint64_t GetAttribute(int32_t type);
