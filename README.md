@@ -34,6 +34,7 @@ And it mostly works on real hardware.
    - Paint (mostly working)
    - Doom (soon)
    - MicroEdit (somewhat working)
+   - 3D Cube Renderer
    - Other Apps ported from MaslOS and some extra ones (not yet)
  + Other
    - SMP (not added yet)
