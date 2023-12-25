@@ -54,4 +54,4 @@ double Asin(double x);
 double Acos(double x);
 double Atan(double x);
 double approx_derivative(double (*f)(double), double point, double precision);
-double approx_integral(double (*f)(double), double a, double b, double precision)
+double approx_integral(double (*f)(double), double a, double b, double precision);
