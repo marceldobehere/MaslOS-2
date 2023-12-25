@@ -284,6 +284,13 @@ namespace GuiComponentStuff
         DrawRect(x, y, size, size, col, fillInside, update);
     }
 
+    void CanvasComponent::DrawTri(int x1, int y1, int x2, int y2, int x3, int y3, uint32_t col, int size)
+    {
+        DrawLine(x1, y1, x2, y2, col, size);
+        DrawLine(x2, y2, x3, y3, col, size);
+        DrawLine(x3, y3, x1, y1, col, size);
+    }
+
 
     void CanvasComponent::DrawRect(int x, int y, int w, int h, uint32_t col, bool fillInside, bool update)
     {

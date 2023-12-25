@@ -42,3 +42,8 @@ inline int abs(int val)
         return -val;
     return val;
 }
+
+double pow(double x, int n);
+double sin(double x);
+double cos(double x);
+double tan(double x);
