@@ -85,10 +85,13 @@ I am still working on quite a few things that need to be done for MaslOS2 to be 
 
 Meaning that not everything is 100% implemented yet and some needed things could be missing.
 
+The Docs can be found [here](https://github.com/marceldobehere/MaslOS-2/wiki/Application-Development-for-MaslOS2).
 
 If you want to contribute by adding your own little apps/tools/games/ports I would be very happy!
 
 If you need any help / have any questions or are curious about MaslOS2, feel free to contact me per discord. (@marceldarcel)
+
+
 
 
 
