@@ -96,10 +96,12 @@ void UpdateSizes()
 
 void OnOpenClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
 {
-    const char* path = "bruh:programs/imgView/assets/rocc.mbif";
+    const char* resPath = Dialog::OpenFileDialog();
+    if (resPath == NULL)
+        return;
 
     _Free(testImg1->imagePath);
-    testImg1->imagePath = StrCopy(path);
+    testImg1->imagePath = StrCopy(resPath);
 
     testImg1->GetImageFromPath(testImg1->imagePath);
 
@@ -118,5 +120,7 @@ void OnOpenClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponent
         window->Dimensions.height = testImg1->image->height + 20;
     }
     setWindow(window);
+
+    _Free(resPath);
 }
 

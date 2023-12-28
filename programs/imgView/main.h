@@ -12,6 +12,7 @@
 #include <libm/gui/guiInstance.h>
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>
 #include <libm/gui/guiStuff/components/imageRect/imageRectangleComponent.h>
+#include <libm/dialogStuff/dialogStuff.h>
 
 void UpdateSizes();
 

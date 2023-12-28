@@ -489,7 +489,7 @@ uint64_t DrawFrame()
 
             updateFramePackets->Enqueue(windowBufferUpdatePacket);
         }
-        else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && msg->Size == 0 || msg->Size == 8)
+        else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && (msg->Size == 0 || msg->Size == 8))
         {
             uint64_t pidFrom = msg->FromPID;
             uint64_t newWindowId = 0;
@@ -550,11 +550,15 @@ uint64_t DrawFrame()
             {
                 if (window->PID == pidFrom)
                 {
+                    {
+                        GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::WINDOW_DELETE_EVENT, NULL, 0);
+                        msgSendConv(packet, window->PID, window->CONVO_ID_WM_WINDOW_CLOSED);
+                        packet->Free();
+                        _Free(packet);
+                    }
                     AddWindowToBeRemoved(window);
                 }
             }
-
-            // TODO: maybe make it send like an ok back
         }
         else if (msg->Type == MessagePacketType::WINDOW_GET_EVENT)
         {

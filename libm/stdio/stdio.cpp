@@ -411,15 +411,21 @@ namespace STDIO
             while (true)
             {
                 CheckReadQueue(other);
-                if (other->readQueue->GetCount() < 1)
-                    programWaitMsg();
+                if (other->readQueue->GetCount() < 1 && pidExists(other->pid))
+                    //programWaitMsg();
+                    programWait(50);
                 else
                     break;
             }
 
+            if (!pidExists(other->pid))
+                break;
+
             char c = other->readQueue->Dequeue();
             if (c == '\n')
                 break;
+            if (c == '\r')
+                continue;
             line->Add(c);
         }
 
