@@ -27,6 +27,7 @@ And it mostly works on real hardware.
    - Snake (soon)
    - Terminal (basics be working)
    - Explorer (working)
+   - Image Viewer (working)
    + MAAB interpreter (working)
      - Pong
      - Maalbrot
@@ -35,6 +36,12 @@ And it mostly works on real hardware.
    - Doom (soon)
    - MicroEdit (somewhat working)
    - 3D Cube Renderer
+   + Dialogs
+     - Open File Dialog (working)
+     - Save File Dialog (soon)
+     - Generic Information Dialog (soon)
+     - Generic Text Input Dialog (soon)
+     - Generic Information YES/NO Dialog (soon)
    - Other Apps ported from MaslOS and some extra ones (not yet)
  + Other
    - SMP (not added yet)
