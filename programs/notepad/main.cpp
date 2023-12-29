@@ -1,6 +1,6 @@
 #include "main.h"
 #include <libm/memStuff.h>
-
+#include <libm/dialogStuff/dialogStuff.h>
 
 const char* lastSavePath;
 int ScrollY;
@@ -114,24 +114,41 @@ void UpdateSizes()
 
 void OnSaveClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
 {
-    // if (lastSavePath == NULL)
-    // {
-    //     SaveFileExplorer* exp = new SaveFileExplorer();
-        
-    //     guiInstance->OnWaitTaskDoneHelp = (void*)this;
-    //     guiInstance->OnWaitTaskDoneCallback = (void(*)(void*, Task*))(void*)&OnTaskDone;
-    //     guiInstance->waitTask = exp->dataTask;
+    if (lastSavePath == NULL)
+    {
+        const char* res = Dialog::SaveFileDialog();
+        if (res == NULL)
+            return;
 
-    //     btnTaskState = NotePadButtonTaskState::Save;
-    // }
-    // else
-    // {
-    //     SaveInto(StrCopy(lastSavePath));
-    // }
+        SaveInto(res);
+        _Free(res);
+        
+        // SaveFileExplorer* exp = new SaveFileExplorer();
+        
+        // guiInstance->OnWaitTaskDoneHelp = (void*)this;
+        // guiInstance->OnWaitTaskDoneCallback = (void(*)(void*, Task*))(void*)&OnTaskDone;
+        // guiInstance->waitTask = exp->dataTask;
+
+        // btnTaskState = NotePadButtonTaskState::Save;
+    }
+    else
+    {
+        const char* temp = StrCopy(lastSavePath);
+        SaveInto(temp);
+        _Free(temp);
+    }
 }
 
 void OnSaveAsClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
 {
+    const char* res = Dialog::SaveFileDialog();
+    if (res == NULL)
+        return;
+
+    SaveInto(res);
+
+    _Free(res);
+
     // SaveFileExplorer* exp = new SaveFileExplorer();
     
     // guiInstance->OnWaitTaskDoneHelp = (void*)this;
@@ -143,6 +160,14 @@ void OnSaveAsClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiCompone
 
 void OnLoadClick(void* bruh, GuiComponentStuff::BaseComponent* btn, GuiComponentStuff::MouseClickEventInfo info)
 {
+    const char* res = Dialog::OpenFileDialog();
+    if (res == NULL)
+        return;
+
+    LoadFrom(res);
+
+    _Free(res);
+
     // OpenFileExplorer* exp = new OpenFileExplorer();
         
     // guiInstance->OnWaitTaskDoneHelp = (void*)this;
@@ -177,27 +202,36 @@ void LoadFrom(const char* path)
     }
     lastSavePath = StrCopy(path);
 
+    serialPrint("OPENING: ");
+    serialPrintLn(path);
 
+
+    serialPrintLn("<STEP 1>");
     // LOAD
     char* fData = NULL;
     uint64_t fDataLen = 0;
 
     if (fsReadFile(path, (void**)(&fData), &fDataLen))
     {
+         serialPrintLn("<STEP 2>");
         char* nData = (char*)_Malloc(fDataLen + 1);
         nData[fDataLen] = 0;
         _memcpy(fData, nData, fDataLen);
         _Free(fData);
+         serialPrintLn("<STEP 4>");
 
         _Free(textComp->textComp->text);
         textComp->textComp->text = (const char*)nData;
     }
     else
     {
+         serialPrintLn("<STEP 3>");
         if (lastSavePath != NULL)
         {
             _Free(lastSavePath);
             lastSavePath = NULL;
         }
     }
+
+     serialPrintLn("<STEP 5>");
 }

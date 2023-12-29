@@ -38,4 +38,36 @@ namespace Dialog
 
         return res;
     }
+
+    const char* SaveFileDialog()
+    {
+        return SaveFileDialog(NULL);
+    }
+
+    const char* SaveFileDialog(const char* path)
+    {
+        uint64_t newPid;
+        if (path != NULL)
+            newPid = startProcess("bruh:programs/saveFileExplorer/saveFileExplorer.elf", 1, &path, "");
+        else
+            newPid = startProcess("bruh:programs/saveFileExplorer/saveFileExplorer.elf", 0, NULL, "");
+
+        if (newPid == 0)
+            return NULL;
+
+        StdioInst* tempStdio = initStdio(newPid);
+        const char* res = readLine(tempStdio);
+
+        if (res != NULL && StrEquals(res, ""))
+        {
+            _Free(res);
+            res = NULL;
+        }
+
+        tempStdio->Free();
+        _Free(tempStdio);
+
+        return res;
+    }
+
 };

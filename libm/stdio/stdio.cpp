@@ -418,7 +418,7 @@ namespace STDIO
                     break;
             }
 
-            if (!pidExists(other->pid))
+            if (other->readQueue->GetCount() < 1 && !pidExists(other->pid))
                 break;
 
             char c = other->readQueue->Dequeue();
