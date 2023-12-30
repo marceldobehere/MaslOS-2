@@ -202,30 +202,22 @@ void LoadFrom(const char* path)
     }
     lastSavePath = StrCopy(path);
 
-    serialPrint("OPENING: ");
-    serialPrintLn(path);
-
-
-    serialPrintLn("<STEP 1>");
     // LOAD
     char* fData = NULL;
     uint64_t fDataLen = 0;
 
     if (fsReadFile(path, (void**)(&fData), &fDataLen))
     {
-         serialPrintLn("<STEP 2>");
         char* nData = (char*)_Malloc(fDataLen + 1);
         nData[fDataLen] = 0;
         _memcpy(fData, nData, fDataLen);
         _Free(fData);
-         serialPrintLn("<STEP 4>");
 
         _Free(textComp->textComp->text);
         textComp->textComp->text = (const char*)nData;
     }
     else
     {
-         serialPrintLn("<STEP 3>");
         if (lastSavePath != NULL)
         {
             _Free(lastSavePath);
@@ -233,5 +225,4 @@ void LoadFrom(const char* path)
         }
     }
 
-     serialPrintLn("<STEP 5>");
 }
