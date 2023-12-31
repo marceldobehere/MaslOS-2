@@ -162,6 +162,10 @@ void HandleFrame()
         b1 = (int)(y_projected[index_a[i]]*(float)height/2)+height/2+camera_y;
         a2 = (int)(x_projected[index_b[i]]*(float)width/2)+width/2+camera_x;
         b2 = (int)(y_projected[index_b[i]]*(float)height/2)+height/2+camera_y;
-        if(a1 >= 0 && b1 >= 0 && a1 < width && b1 < height && a2 >= 0 && b2 >= 0 && a2 < width && b2 < height) canvas->DrawLine(a1, b1, a2, b2, Colors.black, 3);
+        if (
+            a1 >= -width && b1 >= -height && a1 < 2*width && b1 < 2*height && 
+            a2 >= -width && b2 >= -height && a2 < 2*width && b2 < 2*height
+        ) 
+        canvas->DrawLine(a1, b1, a2, b2, Colors.black, 3);
     }
 }
