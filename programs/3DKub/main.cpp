@@ -117,6 +117,8 @@ void MainLoop()
         guiInstance->Update();
         HandleFrame();
         guiInstance->Render(false);
+
+        programWaitMsg();
     }
 }
 

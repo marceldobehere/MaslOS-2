@@ -255,6 +255,8 @@ void MainLoop()
         UpdateSizes();
         HandleFrame();
         guiInstance->Render(false);
+
+        programWaitMsg();
     }
 }
 

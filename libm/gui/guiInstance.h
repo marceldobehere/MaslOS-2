@@ -58,7 +58,6 @@ class GuiInstance// : public DefaultInstance
     InstanceType instanceType = InstanceType::Default;
     void* audioSource = NULL;
     void (*FreeFunc)(void* bruh) = NULL;
-    void DefaultFree();
 
 
     GuiComponentStuff::ScreenComponent* screen;

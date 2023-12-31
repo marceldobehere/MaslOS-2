@@ -66,6 +66,8 @@ int main(int argc, const char** argv)
         guiInstance->Update();
         UpdateSizes();
         guiInstance->Render(false);
+
+        programWaitMsg();
     }
 
     return 0;
