@@ -43,6 +43,7 @@ namespace GuiComponentStuff
         updateFields = new List<Field>(5);
 
         actualButtonStuff = new BoxComponent(parent, size, Colors.tblack);
+        actualButtonStuff->id = 123400;
 
         this->rectComp = new RectangleComponent(bgColDef, size, actualButtonStuff);
         actualButtonStuff->children->Add(rectComp);
