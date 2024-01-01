@@ -82,6 +82,15 @@ uint64_t envGetDesktopPid()
     return pid;
 }
 
+uint64_t envGetStartMenuPid()
+{
+    int syscall = SYSCALL_ENV_GET_START_MENU_PID;
+    uint64_t pid;
+
+    asm("int $0x31" : "=a"(pid): "a"(syscall));
+    return pid;
+}
+
 
 MouseState* envGetMouseState()
 {

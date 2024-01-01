@@ -71,7 +71,7 @@ char ReadChar()
 }
 void Clear()
 {
-    print("<CLS>");
+    clear();
 }
 void Print(char chr)
 {
@@ -227,8 +227,12 @@ void Do()
 {
 	if (waitInput)
 	{
-		if (!gotInput)
+		const char* str = readLine();
+		if (str == NULL)
 			return;
+		memUserInputLen = StrLen(str);
+		// if (!gotInput)
+		// 	return;
 		waitInput = false;
 		gotInput = false;
 
@@ -242,14 +246,12 @@ void Do()
 		}
 
 		for (int i = 0; i < memUserInputLen; i++)
-			*((char*)((uint64_t)mem + (uint64_t)toWrite + i)) = memUserInput[i];
+			*((char*)((uint64_t)mem + (uint64_t)toWrite + i)) = str[i];
 		*((char*)((uint64_t)mem + (uint64_t)toWrite + memUserInputLen)) = 0;
 
 		*((uint64_t*)((uint64_t)mem + writeInputInto)) = (uint64_t)toWrite;
 
-		memUserInputLen = 0;
-		for (int i = 0; i < 500; i++)
-			memUserInput[i] = (char)0;
+		_Free(str);
 	}
 
 	if (instrPointer >= memLen)

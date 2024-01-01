@@ -18,10 +18,12 @@ namespace Scheduler
     osTask* CurrentRunningTask;
     osTask* NothingDoerTask;
     osTask* DesktopTask;
+    osTask* StartMenuTask;
     bool SchedulerEnabled = false;
     int CurrentTaskIndex = 0;
     void* TestElfFile;
     void* DesktopElfFile;
+    void* StartMenuElfFile;
 
     void InitScheduler()
     {
@@ -31,6 +33,8 @@ namespace Scheduler
         DesktopTask = NULL;
         DesktopElfFile = NULL;
         TestElfFile = NULL;
+        StartMenuTask = NULL;
+        StartMenuElfFile = NULL;
 
         osTasks = Lockable<List<osTask*>*>(new List<osTask*>());
 
@@ -77,6 +81,17 @@ namespace Scheduler
             
             osTasks.Unlock();
             AddTask(DesktopTask);
+            osTasks.Lock();
+        }
+
+        if (StartMenuTask == NULL && StartMenuElfFile != NULL)
+        {
+            Serial::Writelnf("SCHEDULER> CREATING START MENU TASK");
+            Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)StartMenuElfFile);
+            StartMenuTask = CreateTaskFromElf(elf, 0, NULL, false, "bruh:modules/startMenu/startMenu.elf", "");
+            
+            osTasks.Unlock();
+            AddTask(StartMenuTask);
             osTasks.Lock();
         }
 
@@ -378,14 +393,14 @@ namespace Scheduler
         
 
 
-        if (!isUserMode)
-            ;
+        // if (!isUserMode)
+        //     ;
         CopyPageTable(GlobalPageTableManager.PML4, tempManager.PML4);
 
-        if (isUserMode)
-            tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
-        else
-            tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        // if (isUserMode)
+        //     tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        // else
+        //     tempManager.MapMemories(userStack, userStack - MEM_AREA_TASK_USER_STACK_OFFSET, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
 
 
         uint8_t* kernelStackEnd = kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
@@ -592,9 +607,10 @@ namespace Scheduler
         RemoveFromStack();
 
         if (task == DesktopTask)
-        {
             DesktopTask = NULL;
-        }
+
+        if (task == StartMenuTask)
+            StartMenuTask = NULL;
 
         AddToStack();
         //Serial::Writelnf("> Freeing task");

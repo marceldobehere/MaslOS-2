@@ -1807,6 +1807,13 @@ void Syscall_handler(interrupt_frame* frame)
         else
             frame->rax = 0;
     }
+    else if (syscall == SYSCALL_ENV_GET_START_MENU_PID)
+    {
+        if (Scheduler::StartMenuTask != NULL)
+            frame->rax = Scheduler::StartMenuTask->pid;
+        else
+            frame->rax = 0;
+    }
     else if (syscall == SYSCALL_GET_PID)
     {
         frame->rax = Scheduler::CurrentRunningTask->pid;

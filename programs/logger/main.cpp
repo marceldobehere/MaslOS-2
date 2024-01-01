@@ -73,13 +73,14 @@ int main(int argc, char** argv)
             progClosed();
         if (parent != NULL)
         {
-            int c = read();
-            if (c != -1)
+            int c = bytesAvailable();
+            if (c != 0)
             {
-                char bruh[2];
-                bruh[0] = c;
-                bruh[1] = 0;
+                char* bruh = (char*)_Malloc(c + 1);
+                int ac = readBytes((uint8_t*)bruh, c);
+                bruh[ac] = 0;
                 outTxt->Print(bruh, Colors.white);
+                _Free(bruh);
             }
         }
         else

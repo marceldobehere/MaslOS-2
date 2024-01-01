@@ -157,6 +157,11 @@ void boot(void* _bootInfo)
                         Scheduler::DesktopElfFile = file->driver_specific_data;
                         Serial::Writelnf("> SET DESKTOP ELF");
                     }
+                    else if (StrEquals(file->name, "startMenu.elf"))
+                    {
+                        Scheduler::StartMenuElfFile = file->driver_specific_data;
+                        Serial::Writelnf("> SET START MENU ELF");
+                    }
                     // else
                     // {
                     //     osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false);

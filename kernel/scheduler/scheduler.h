@@ -5,8 +5,8 @@
 #include <libm/interrupt_frame.h>
 #include <libm/lock/lock_list_task.h>
 
-#define KERNEL_STACK_PAGE_SIZE 4
-#define USER_STACK_PAGE_SIZE 4
+#define KERNEL_STACK_PAGE_SIZE 16
+#define USER_STACK_PAGE_SIZE 16
 
 namespace Scheduler
 {
@@ -14,10 +14,12 @@ namespace Scheduler
     extern osTask* CurrentRunningTask;
     extern osTask* NothingDoerTask;
     extern osTask* DesktopTask;
+    extern osTask* StartMenuTask;
     extern bool SchedulerEnabled;
     extern int CurrentTaskIndex; 
     extern void* TestElfFile;
     extern void* DesktopElfFile;
+    extern void* StartMenuElfFile;
     extern Lockable<List<void*>*> UsedPageRegions;
 
     void InitScheduler();

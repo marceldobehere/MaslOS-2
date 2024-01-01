@@ -306,6 +306,17 @@ namespace STDIO
         }
     }
 
+    // Clear parent
+    void clear()
+    {
+        clear(parent);
+    }
+
+    // Clear any
+    void clear(StdioInst* other)
+    {
+        print("\033[2J", other);
+    }
 
 
     // Read from parent
@@ -317,6 +328,11 @@ namespace STDIO
     bool available()
     {
         return available(parent);
+    }
+
+    int bytesAvailable()
+    {
+        return bytesAvailable(parent);
     }
 
     void CheckReadQueue(StdioInst* other)
@@ -355,6 +371,12 @@ namespace STDIO
     {
         CheckReadQueue(other);
         return other->readQueue->GetCount() > 0;
+    }
+
+    int bytesAvailable(StdioInst* other)
+    {
+        CheckReadQueue(other);
+        return other->readQueue->GetCount();
     }
 
     void sendBytes(uint8_t* bytes, uint64_t size)

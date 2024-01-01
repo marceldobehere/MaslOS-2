@@ -38,6 +38,7 @@ void programWaitMsg();
 
 uint64_t envGetTimeMs();
 uint64_t envGetDesktopPid();
+uint64_t envGetStartMenuPid();
 RTC_Info* envGetTimeRTC();
 
 uint64_t randomUint64();

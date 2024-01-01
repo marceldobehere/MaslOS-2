@@ -137,13 +137,14 @@ int main(int argc, char** argv)
             progClosed();
         if (currStdio != NULL)
         {
-            int c = read(currStdio);
-            if (c != -1)
+            int c = bytesAvailable(currStdio);
+            if (c != 0)
             {
-                char bruh[2];
-                bruh[0] = c;
-                bruh[1] = 0;
+                char* bruh = (char*)_Malloc(c + 1);
+                int ac = readBytes((uint8_t*)bruh, c, currStdio);
+                bruh[ac] = 0;
                 outTxt->Print(bruh, Colors.white);
+                _Free(bruh);
             }
         }
 

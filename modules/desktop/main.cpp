@@ -9,6 +9,7 @@
 #include <libm/queue/queue_windowBufferUpdate.h>
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 #include <libm/images/bitmapImage.h>
+#include "taskbarConst.h"
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -26,6 +27,8 @@ List<Window*>* windowsToDelete;
 List<Window*>* windowsUpdated;
 Window* activeWindow;
 Window* currentActionWindow;
+Window* startMenuWindow;
+uint64_t startMenuPid = 0;
 
 ImageStuff::BitmapImage* windowButtonIcons[countOfButtonIcons];
 
@@ -77,7 +80,7 @@ void InitStuff()
     {
         taskbar = new Framebuffer();
         taskbar->Width = actualScreenFramebuffer->Width;
-        taskbar->Height = 40;
+        taskbar->Height = TASKBAR_HEIGHT;
         taskbar->PixelsPerScanLine = taskbar->Width;
         taskbar->BufferSize = taskbar->Width * taskbar->Height * 4;
         taskbar->BaseAddress = _Malloc(taskbar->BufferSize, "Taskbar Buffer");
@@ -106,6 +109,7 @@ void InitStuff()
     updateFramePackets = new Queue<WindowBufferUpdatePacket*>(5);
 
     startMenuWindow = NULL;
+    startMenuPid = 0;
 
     lastFrameTime = envGetTimeMs();
 
@@ -275,7 +279,7 @@ int main(int argc, char** argv)
     activeWindow = NULL;
 
     // Clear and Redraw
-    Clear(true);
+    //Clear(true);
     UpdatePointerRect(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
     RenderWindows();
     RenderActualSquare(0, 0, actualScreenFramebuffer->Width - 1, actualScreenFramebuffer->Height - 1);
@@ -365,6 +369,8 @@ void AddWindowToBeRemoved(Window* window)
 
     if (activeWindow == window)
         activeWindow = NULL;
+    if (startMenuWindow == window)
+        startMenuWindow = NULL;
     if (Taskbar::activeTabWindow == window)
         Taskbar::activeTabWindow = NULL;
     if (currentActionWindow == window)
@@ -378,6 +384,33 @@ uint64_t DrawFrame()
 
     updateFramePackets->Clear();
     windowsUpdated->Clear();
+
+    if (startMenuPid == 0)
+        startMenuPid = envGetStartMenuPid();
+    if (startMenuPid != 0 && startMenuWindow == NULL)
+    {
+        for (int i = 0; i < windows->GetCount(); i++)
+        {
+            Window* window = windows->ElementAt(i);
+            if (window->PID == startMenuPid)
+            {
+                startMenuWindow = window;
+                break;
+            }
+        }
+
+        if (startMenuWindow != NULL)
+        {
+            startMenuWindow->Hidden = true;
+        }
+    }
+    if (startMenuWindow != NULL)
+    {
+        if (!startMenuWindow->Hidden && startMenuWindow != activeWindow)
+        {
+            startMenuWindow->Hidden = true;
+        }
+    }
 
     bool doUpdate = false;
     int msgCount = min(msgGetCount(), 50);

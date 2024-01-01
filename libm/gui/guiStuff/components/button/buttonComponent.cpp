@@ -8,6 +8,8 @@
 #include <libm/cstr.h>
 #include <libm/syscallManager.h>
 
+#include <libm/rnd/rnd.h>
+
 namespace GuiComponentStuff
 {
     ButtonComponent::ButtonComponent(const char* text, uint32_t textColDef, uint32_t textColHover, uint32_t textColClick, uint32_t bgColDef, uint32_t bgColHover, uint32_t bgColClick, ComponentSize size, Position position, BaseComponent* parent)
@@ -43,7 +45,7 @@ namespace GuiComponentStuff
         updateFields = new List<Field>(5);
 
         actualButtonStuff = new BoxComponent(parent, size, Colors.tblack);
-        actualButtonStuff->id = 123400;
+        actualButtonStuff->id = RND::RandomInt();
 
         this->rectComp = new RectangleComponent(bgColDef, size, actualButtonStuff);
         actualButtonStuff->children->Add(rectComp);
@@ -157,7 +159,7 @@ namespace GuiComponentStuff
         AddToStack();
         if (callBackFunc != NULL)
             callBackFunc(this);
-        actualButtonStuff->Destroy(destroyChildren, callBackFunc);
+        ((BaseComponent*)actualButtonStuff)->Destroy(destroyChildren, callBackFunc);
         _Free(actualButtonStuff);
         updateFields->Free();
         _Free(updateFields);

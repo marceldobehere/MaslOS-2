@@ -376,6 +376,23 @@ bool HandleClick(bool L, bool R, bool M)
             }
             res = true;
         }
+        else if (Taskbar::MButtonSelected)
+        {
+            if (startMenuWindow != NULL)
+            {
+                if (startMenuWindow->Hidden)
+                {
+                    startMenuWindow->Hidden = false;
+                    activeWindow = startMenuWindow;
+                }
+                else
+                {
+                    startMenuWindow->Hidden = true;
+                    activeWindow = NULL;
+                }
+            }
+            res = true;
+        }
     }
     else if (M)
     {

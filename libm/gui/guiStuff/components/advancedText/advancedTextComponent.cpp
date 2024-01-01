@@ -277,7 +277,7 @@ namespace GuiComponentStuff
             }
             else if (chrs[index] == '\r')
                 ;// Maybe implement moving char
-            else if (chrs[index] == '{' && allowEscape && var != NULL)
+            else if (chrs[index] == '{' && allowEscape && var != NULL && index + 1 < len)
             {
                 if (chrs[index + 1] == '}')
                 {
@@ -286,7 +286,7 @@ namespace GuiComponentStuff
                     index++;
                 }
             }
-            else if (chrs[index] == '\\' && allowEscape)
+            else if (chrs[index] == '\\' && allowEscape && index + 1 < len)
             {
                 if (chrs[index + 1] == '\\')
                 {
@@ -348,6 +348,34 @@ namespace GuiComponentStuff
                         bg = ConvertStringToHex(&chrs[index]);
                         // ignore switching col in serial 
                         index += 5;
+                    }
+                }
+                else
+                {
+                    currList->Add(ConsoleChar(chrs[index], fg, bg));
+                    if (redirectToSerial)
+                        SerialWrite(chrs[index]);
+                }
+            }
+            else if (chrs[index] == '\033' && allowEscape && index + 1 < len)
+            {
+                // This will handle ANSI escape stuff
+                // Currently only clear screen
+
+                if (chrs[index + 1] == '[' && index + 3 < len)
+                {
+                    index++;
+                    if (chrs[index + 1] == '2' && chrs[index + 2] == 'J')
+                    {
+                        index += 2;
+                        Clear();
+                        currList = textData.ElementAt(textData.GetCount() - 1);
+                    }
+                    else
+                    {
+                        currList->Add(ConsoleChar(chrs[index], fg, bg));
+                        if (redirectToSerial)
+                            SerialWrite(chrs[index]);
                     }
                 }
                 else

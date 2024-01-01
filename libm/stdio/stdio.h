@@ -41,13 +41,22 @@ namespace STDIO
     void printlnf(StdioInst* other, const char* str, ...);
     void printf(StdioInst* other, const char* str, ...);
 
+    // Clear parent
+    void clear();
+
+    // Clear any
+    void clear(StdioInst* other);
+
+
     // Read from parent
     int read(); // returns a char or -1 if there is no data
     bool available();
+    int bytesAvailable();
 
     // Read from any
     int read(StdioInst* other);
     bool available(StdioInst* other);
+    int bytesAvailable(StdioInst* other);
 
 
     // Send bytes to parent
