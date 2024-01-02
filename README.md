@@ -21,6 +21,7 @@ And it mostly works on real hardware.
    - Mouse/Keyboard interaction (working)
    - MaslOS Desktop / WM (mostly working)
    - Taskbar (mostly working)
+   - Start Menu (mostly working)
  + Apps
    - Tic Tac Toe (working)
    - Flappy Rocc (working)
@@ -98,6 +99,7 @@ If you need any help / have any questions or are curious about MaslOS2, feel fre
 
 ## Screenshots
 ![Showing off some apps](/images/demo.png)
+![The start menu](/images/wm%207.png)
 ![More apps ported](/images/some%20stuff.jpg)
 ![Working more on the terminal](/images/wm%206.png)
 ![Working on the terminal](/images/terminal%201.gif)
