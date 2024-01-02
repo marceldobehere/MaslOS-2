@@ -383,12 +383,12 @@ bool HandleClick(bool L, bool R, bool M)
                 if (startMenuWindow->Hidden)
                 {
                     startMenuWindow->Hidden = false;
-                    activeWindow = startMenuWindow;
+                    MakeWinActive(activeWindow, startMenuWindow);
                 }
                 else
                 {
                     startMenuWindow->Hidden = true;
-                    activeWindow = NULL;
+                    MakeWinActive(activeWindow, NULL);
                 }
             }
             res = true;

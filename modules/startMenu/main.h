@@ -2,7 +2,6 @@
 
 #include "../desktop/taskbarConst.h"
 #include <libm/gui/guiInstance.h>
-#include <libm/gui/guiStuff/components/rectangle/rectangleComponent.h>
 #include <libm/wmStuff/wmStuff.h>
 #include <libm/cstrTools.h>
 #include <libm/heap/heap.h>
