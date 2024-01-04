@@ -1,15 +1,17 @@
 # MaslOS-2
 MaslOS but 2
 
-This is very very WIP!
+This is essentially MaslOS on the outside, but completely different on the inside.
 
-I plan on this being like MaslOS from the outside, but it being completely different internally.
+The main difference being a working scheduler and support for ELF execution!
+
+(Ofc still WIP but a bunch of stuff works already!)
 
 
 Of course it is 64bit and boots using BIOS.
 And it mostly works on real hardware.
 
-## Goals
+## Features
  + Basics
    - Scheduler (working)
    - Elf loading (working, rarely crashes at the start for no apparent reason?)
@@ -54,13 +56,20 @@ And it mostly works on real hardware.
  - Press F11 to redraw the desktop (eg. If you get an error)
 
 ## How to build (Linux)
- - Install QEMU if you haven't.
- - Install GNU MAKE if you haven't.
- - Install GCC/LD if you haven't.
- - Install NASM if you haven't.
+ - Install `qemu-system` if you haven't.
+ - Install `make` if you haven't.
+ - Install `gcc` if you haven't.
+ - Install `g++` if you haven't.
+ - Install `binutils` if you haven't.
+ - Install `nasm` if you haven't.
+ - Install `xorriso` if you haven't.
 
 
 Go into the MaslOS2 Folder and run the `CRUN.sh` file
+
+If you are trying this and getting weird compiler/linker errors, please let me know!
+
+gcc and ld like to break things in newer versions for some reason.  *:D*
 
 ## How to run (No need to build)
 

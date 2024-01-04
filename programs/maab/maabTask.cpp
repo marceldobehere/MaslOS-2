@@ -1388,7 +1388,7 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 		return;
 	}
 
-#pragma region INT
+// #pragma region INT
 	if (typeFrom == DatatypeNumber::INT)
 	{
 		int32_t from = *((int32_t*)((uint64_t)mem + addrFrom));
@@ -1426,8 +1426,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region UINT
+// #pragma endregion
+// #pragma region UINT
 	else if (typeFrom == DatatypeNumber::UINT)
 	{
 		uint32_t from = *((uint32_t*)((uint64_t)mem + addrFrom));
@@ -1465,8 +1465,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region SHORT
+// #pragma endregion
+// #pragma region SHORT
 	else if (typeFrom == DatatypeNumber::SHORT)
 	{
 		int16_t from = *((int16_t*)((uint64_t)mem + addrFrom));
@@ -1504,8 +1504,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region USHORT
+// #pragma endregion
+// #pragma region USHORT
 	else if (typeFrom == DatatypeNumber::USHORT)
 	{
 		uint16_t from = *((uint16_t*)((uint64_t)mem + addrFrom));
@@ -1543,8 +1543,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region LONG
+// #pragma endregion
+// #pragma region LONG
 	else if (typeFrom == DatatypeNumber::LONG)
 	{
 		int64_t from = *((int64_t*)((uint64_t)mem + addrFrom));
@@ -1582,8 +1582,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region ULONG
+// #pragma endregion
+// #pragma region ULONG
 	else if (typeFrom == DatatypeNumber::ULONG)
 	{
 		uint64_t from = *((uint64_t*)((uint64_t)mem + addrFrom));
@@ -1621,8 +1621,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region FLOAT
+// #pragma endregion
+// #pragma region FLOAT
 	else if (typeFrom == DatatypeNumber::FLOAT)
 	{
 		float from = *((float*)((uint64_t)mem + addrFrom));
@@ -1660,8 +1660,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region DOUBLE
+// #pragma endregion
+// #pragma region DOUBLE
 	else if (typeFrom == DatatypeNumber::DOUBLE)
 	{
 		double from = *((double*)((uint64_t)mem + addrFrom));
@@ -1699,8 +1699,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region CHAR
+// #pragma endregion
+// #pragma region CHAR
 	else if (typeFrom == DatatypeNumber::CHAR)
 	{
 		char from = *((char*)((uint64_t)mem + addrFrom));
@@ -1738,8 +1738,8 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
-#pragma region BOOL
+// #pragma endregion
+// #pragma region BOOL
 	else if (typeFrom == DatatypeNumber::BOOL)
 	{
 		bool from = *((bool*)((uint64_t)mem + addrFrom));
@@ -1777,7 +1777,7 @@ void Cast(DatatypeNumber typeFrom, uint64_t addrFrom, DatatypeNumber typeTo, uin
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
 	else
 	{
@@ -1828,7 +1828,7 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 	addrRes += (uint64_t)mem;
 
 
-#pragma region INT
+// #pragma region INT
 	if (typeNum == DatatypeNumber::INT)
 	{
 		int32_t a = *((int32_t*)addr1);
@@ -1877,8 +1877,8 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
-#pragma region UINT
+// #pragma endregion
+// #pragma region UINT
 	else if (typeNum == DatatypeNumber::UINT)
 	{
 		uint32_t a = *((uint32_t*)addr1);
@@ -1927,9 +1927,9 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
-#pragma region SHORT
+// #pragma region SHORT
 	else if (typeNum == DatatypeNumber::SHORT)
 	{
 		int16_t a = *((int16_t*)addr1);
@@ -1978,8 +1978,8 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
-#pragma region USHORT
+// #pragma endregion
+// #pragma region USHORT
 	else if (typeNum == DatatypeNumber::USHORT)
 	{
 		uint16_t a = *((uint16_t*)addr1);
@@ -2028,9 +2028,9 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
-#pragma region LONG
+// #pragma region LONG
 	else if (typeNum == DatatypeNumber::LONG)
 	{
 		int64_t a = *((int64_t*)addr1);
@@ -2079,8 +2079,8 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
-#pragma region ULONG
+// #pragma endregion
+// #pragma region ULONG
 	else if (typeNum == DatatypeNumber::ULONG)
 	{
 		uint64_t a = *((uint64_t*)addr1);
@@ -2129,9 +2129,9 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
-#pragma region FLOAT
+// #pragma region FLOAT
 	else if (typeNum == DatatypeNumber::FLOAT)
 	{
 		float a = *((float*)addr1);
@@ -2171,8 +2171,8 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
-#pragma region DOUBLE
+// #pragma endregion
+// #pragma region DOUBLE
 	else if (typeNum == DatatypeNumber::DOUBLE)
 	{
 		double a = *((double*)addr1);
@@ -2212,10 +2212,10 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
 
-#pragma region CHAR
+// #pragma region CHAR
 	else if (typeNum == DatatypeNumber::CHAR)
 	{
 		int8_t a = *((int8_t*)addr1);
@@ -2265,9 +2265,9 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
-#pragma region BOOL
+// #pragma region BOOL
 	else if (typeNum == DatatypeNumber::BOOL)
 	{
 		bool a = *((bool*)addr1);
@@ -2294,7 +2294,7 @@ void Math(OpNumber opNum, DatatypeNumber typeNum, uint64_t addr1, uint64_t addr2
 			return;
 		}
 	}
-#pragma endregion
+// #pragma endregion
 
 	else
 	{
