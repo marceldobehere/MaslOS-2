@@ -65,7 +65,7 @@ int main(int argc, const char** argv)
     _Free(window->Title);
     window->Title = StrCopy("Paint");
 
-    window->Dimensions.width = 300;
+    window->Dimensions.width = 280;
     window->Dimensions.height = 320;
 
     setWindow(window);

@@ -270,7 +270,7 @@ bool HandleClick(bool L, bool R, bool M)
         }
 
         // Window Start Drag
-        if (currentActionWindow == NULL)
+        if (currentActionWindow == NULL || (activeWindow != NULL && activeWindow != currentActionWindow))
         {
             if (activeWindow != NULL)
             {

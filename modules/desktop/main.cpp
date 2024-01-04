@@ -474,32 +474,32 @@ uint64_t DrawFrame()
                     _Free(msgNew);
                 }
 
-                if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
-                {
-                    actualScreenRenderer->CursorPosition.x = 0;
-                    actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
+                // if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+                // {
+                //     actualScreenRenderer->CursorPosition.x = 0;
+                //     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
-                    actualScreenRenderer->Clear(
-                        0, actualScreenRenderer->CursorPosition.y, 
-                        160, actualScreenRenderer->CursorPosition.y + 16, 
-                        Colors.black
-                    );
+                //     actualScreenRenderer->Clear(
+                //         0, actualScreenRenderer->CursorPosition.y, 
+                //         160, actualScreenRenderer->CursorPosition.y + 16, 
+                //         Colors.black
+                //     );
 
-                    actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
-                }                
-                else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
-                {
-                    actualScreenRenderer->CursorPosition.x = 0;
-                    actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
+                //     actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
+                // }                
+                // else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
+                // {
+                //     actualScreenRenderer->CursorPosition.x = 0;
+                //     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
 
-                    actualScreenRenderer->Clear(
-                        0, actualScreenRenderer->CursorPosition.y, 
-                        160, actualScreenRenderer->CursorPosition.y + 16, 
-                        Colors.black
-                    );
+                //     actualScreenRenderer->Clear(
+                //         0, actualScreenRenderer->CursorPosition.y, 
+                //         160, actualScreenRenderer->CursorPosition.y + 16, 
+                //         Colors.black
+                //     );
 
-                    actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
-                }
+                //     actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
+                // }
             }
         }
         else

@@ -23,7 +23,7 @@ namespace SAF
         if (index == -1) 
             index = StrLen(path);
         const char* next = path + index;//copy_until('/', path, buffer);
-        _memcpy(path, buffer, index);
+        _memcpy((char*)path, buffer, index);
         
         //assert(current->flags == FLAG_ISFOLDER);
         saf_node_folder_t* folder_node = (saf_node_folder_t*) current;
@@ -104,7 +104,7 @@ namespace SAF
     {
         // debugf("dir_at: %s (%d)", path, idx);
         char path_cpy[StrLen(path) + 1];
-        _memcpy(path, path_cpy, StrLen(path) + 1);
+        _memcpy((char*)path, path_cpy, StrLen(path) + 1);
         path_cpy[StrLen(path)] = 0;;
 
         saf_node_hdr_t* folder = initrd_find(path, mount->driver_specific_data, (saf_node_hdr_t*) mount->driver_specific_data);
