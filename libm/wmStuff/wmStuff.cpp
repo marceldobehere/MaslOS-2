@@ -9,6 +9,11 @@ uint64_t desktopPID;
 void initWindowManagerStuff()
 {
     desktopPID = envGetDesktopPid();
+
+    if (desktopPID == 0)
+    {
+        programCrash();
+    }
 }
 
 // GenericMessagePacket* getWindowCreatePacket()

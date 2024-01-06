@@ -84,7 +84,7 @@ namespace Scheduler
             osTasks.Lock();
         }
 
-        if (StartMenuTask == NULL && StartMenuElfFile != NULL)
+        if (StartMenuTask == NULL && StartMenuElfFile != NULL && DesktopTask != NULL)
         {
             Serial::Writelnf("SCHEDULER> CREATING START MENU TASK");
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)StartMenuElfFile);
