@@ -386,7 +386,10 @@ void AddWindowToBeRemoved(Window* window)
     if (activeWindow == window)
         activeWindow = NULL;
     if (startMenuWindow == window)
+    {
         startMenuWindow = NULL;
+        startMenuPid = 0;
+    }
     if (Taskbar::activeTabWindow == window)
         Taskbar::activeTabWindow = NULL;
     if (currentActionWindow == window)
@@ -401,7 +404,7 @@ uint64_t DrawFrame()
     updateFramePackets->Clear();
     windowsUpdated->Clear();
 
-    if (startMenuPid == 0)
+    if (startMenuPid == 0 || (startMenuWindow == NULL && !pidExists(startMenuPid)))
         startMenuPid = envGetStartMenuPid();
     if (startMenuPid != 0 && startMenuWindow == NULL)
     {
