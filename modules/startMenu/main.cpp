@@ -217,6 +217,19 @@ int main(int argc, char** argv)
             
             gui->screen->children->Add(btn);
         }
+
+        {
+            GuiComponentStuff::ButtonComponent* btn = new GuiComponentStuff::ButtonComponent("Flappy Rocc", 
+            Colors.bgreen, Colors.yellow, Colors.black, 
+            Colors.black, Colors.black, Colors.white,
+            GuiComponentStuff::ComponentSize(96, 20),
+            GuiComponentStuff::Position(0, 160), gui->screen
+            );
+            btn->mouseClickedCallBack = StartMenuButtonClick;
+            btn->id = 1013;
+            
+            gui->screen->children->Add(btn);
+        }
     }
 
 
@@ -246,35 +259,24 @@ void StartMenuButtonClick(GuiComponentStuff::BaseComponent* comp, GuiComponentSt
 
         if (comp->id == 1001)
         {
-            // BLEHUS_TITLE = "Pong Terminal Window";
-            // BLEHUS_CMD   = "maab \"bruh:pong.maab\"";
             const char* str = "bruh:programs/maab/assets/pong.maab";
             startProcess("bruh:programs/maab/maab.elf", 1, &str, "");
         }
 
         if (comp->id == 1002)
         {
-            // BLEHUS_TITLE = "Mandelbrot Window";
-            // BLEHUS_CMD   = "maab \"bruh:maalbrot.maab\"";
-            // BLEHUS_CLOSE = false;
             const char* str = "bruh:programs/maab/assets/maalbrot.maab";
             startProcess("bruh:programs/maab/maab.elf", 1, &str, "");
         }
 
         if (comp->id == 1003)
         {
-            // BLEHUS_TITLE = "Alert Window";
-            // BLEHUS_CMD   = "maab \"bruh:alert.maab\"";
-            // BLEHUS_HIDE = true;
             const char* str = "bruh:programs/maab/assets/alert.maab";
             startProcess("bruh:programs/maab/maab.elf", 1, &str, "");
         }
 
         if (comp->id == 1004)
         {
-            // BLEHUS_TITLE = "Terminal Window";
-            // BLEHUS_CMD   = "";
-            // BLEHUS_CLOSE = false;
             startProcess("bruh:programs/shell/shell.elf", 0, NULL, "");
         }
 
@@ -286,25 +288,16 @@ void StartMenuButtonClick(GuiComponentStuff::BaseComponent* comp, GuiComponentSt
 
         if (comp->id == 1006)
         {
-            // BLEHUS_TITLE = "Explorer";
-            // BLEHUS_CMD   = "explorer";
-            // BLEHUS_HIDE = true;
             startProcess("bruh:programs/explorer/explorer.elf", 0, NULL, "");
         }
 
         if (comp->id == 1007)
         {
-            // BLEHUS_TITLE = "Notepad";
-            // BLEHUS_CMD   = "notepad";
-            // BLEHUS_HIDE = true;
             startProcess("bruh:programs/notepad/notepad.elf", 0, NULL, "");
         }
 
         if (comp->id == 1008)
         {
-            // BLEHUS_TITLE = "Image Viewer";
-            // BLEHUS_CMD   = "img";
-            // BLEHUS_HIDE = true;
             startProcess("bruh:programs/imgView/imgView.elf", 0, NULL, "");
         }
 
@@ -324,18 +317,17 @@ void StartMenuButtonClick(GuiComponentStuff::BaseComponent* comp, GuiComponentSt
 
         if (comp->id == 1011)
         {
-            // BLEHUS_TITLE = "Paint";
-            // BLEHUS_CMD   = "paint";
-            // BLEHUS_HIDE = true;
             startProcess("bruh:programs/paint/paint.elf", 0, NULL, "");
         }
 
         if (comp->id == 1012)
         {
-            // BLEHUS_TITLE = "Paint";
-            // BLEHUS_CMD   = "paint";
-            // BLEHUS_HIDE = true;
             startProcess("bruh:programs/ticTacToe/ticTacToe.elf", 0, NULL, "");
+        }
+
+        if (comp->id == 1013)
+        {
+            startProcess("bruh:programs/flappyRocc/flappyRocc.elf", 0, NULL, "");
         }
 
 
