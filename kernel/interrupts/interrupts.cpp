@@ -745,7 +745,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         //Panic("INT IN INT", true);
         
         for (int i = 0; i < 20; i++)
-            GlobalRenderer->ClearButDont();
+            GlobalRenderer->ClearDotted(Colors.bred);
 
         //return;
     }
@@ -801,7 +801,14 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Serial::Writelnf("Task->userStack: %X", (uint64_t)task->userStack);
             Serial::Writelnf("Task->pageTableContext: %X", (uint64_t)task->pageTableContext);
             Serial::Writelnf("Task->frame: %X", (uint64_t)task->frame);
-            
+            Serial::Writelnf(" - Task->frame->rip: %X", task->frame->rip);
+            Serial::Writelnf(" - Task->frame->rsp: %X", task->frame->rsp);
+            Serial::Writelnf(" - Task->frame->rbp: %X", task->frame->rbp);
+            Serial::Writelnf(" - Task->frame->rflags: %X", task->frame->rflags);
+            Serial::Writelnf(" - Task->frame->cs: %X", task->frame->cs);
+            Serial::Writelnf(" - Task->frame->ss: %X", task->frame->ss);
+            Serial::Writelnf(" - Task->frame->error_code: %X", task->frame->error_code);
+    
             Serial::Writelnf("Task->requestedPages: %d", task->requestedPages->GetCount());
             Serial::Writelnf("Task->Priority: %d/%d", task->priorityStep, task->priority);
             Serial::Writelnf("Task->Timeout: %d", task->taskTimeoutDone);
@@ -810,6 +817,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Serial::Writelnf("Task->active: %B", task->active);
             Serial::Writelnf("Task->doExit: %B", task->doExit);
             Serial::Writelnf("Task->isUserMode: %B", !task->isKernelModule);
+
+            Serial::Writelnf("Task->pid: %X", task->pid);
+            Serial::Writelnf("Task->parentPid: %X", task->parentPid);
+            Serial::Writelnf("Task->elfPath: \"%s\"", task->elfPath);
+            Serial::Writelnf("Task->startedAtPath: \"%s\"", task->startedAtPath);
         }
 
         {
