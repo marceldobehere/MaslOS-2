@@ -205,6 +205,18 @@ int main(int argc, char** argv)
             gui->screen->children->Add(btn);
         }
 
+        {
+            GuiComponentStuff::ButtonComponent* btn = new GuiComponentStuff::ButtonComponent("Tic Tac Toe", 
+            Colors.bgreen, Colors.yellow, Colors.black, 
+            Colors.black, Colors.black, Colors.white,
+            GuiComponentStuff::ComponentSize(96, 20),
+            GuiComponentStuff::Position(0, 260), gui->screen
+            );
+            btn->mouseClickedCallBack = StartMenuButtonClick;
+            btn->id = 1012;
+            
+            gui->screen->children->Add(btn);
+        }
     }
 
 
@@ -316,6 +328,14 @@ void StartMenuButtonClick(GuiComponentStuff::BaseComponent* comp, GuiComponentSt
             // BLEHUS_CMD   = "paint";
             // BLEHUS_HIDE = true;
             startProcess("bruh:programs/paint/paint.elf", 0, NULL, "");
+        }
+
+        if (comp->id == 1012)
+        {
+            // BLEHUS_TITLE = "Paint";
+            // BLEHUS_CMD   = "paint";
+            // BLEHUS_HIDE = true;
+            startProcess("bruh:programs/ticTacToe/ticTacToe.elf", 0, NULL, "");
         }
 
 

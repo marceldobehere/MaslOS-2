@@ -46,6 +46,16 @@ uint64_t getParentPid()
     return pid;
 }
 
+const char* getElfPath(uint64_t pid)
+{
+    int syscall = SYSCALL_GET_ELF_PATH_PID;
+    const char* path;
+
+    asm("int $0x31" : "=a"(path): "a"(syscall), "b"(pid));
+    return path;
+
+}
+
 const char* getElfPath()
 {
     int syscall = SYSCALL_GET_ELF_PATH;

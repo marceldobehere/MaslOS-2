@@ -1836,6 +1836,25 @@ void Syscall_handler(interrupt_frame* frame)
             frame->rax = (uint64_t)path2;
         }
     }
+    else if (syscall == SYSCALL_GET_ELF_PATH_PID)
+    {
+        Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
+        frame->rax = 0;
+        uint64_t pid = frame->rbx;
+
+        osTask* task = Scheduler::GetTask(pid);
+        if (task != NULL)
+        {
+            const char* path = task->elfPath;
+            char* path2 = (char*)taskHeap->_Xmalloc(StrLen(path) + 1, "Malloc for elf path");
+            if (IsAddressValidForTask(path2))
+            {
+                _memcpy((void*)path, (void*)path2, StrLen(path));
+                path2[StrLen(path)] = 0;
+                frame->rax = (uint64_t)path2;
+            }
+        }
+    }
     else if (syscall == SYSCALL_GET_WORKING_PATH)
     {        
         Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;

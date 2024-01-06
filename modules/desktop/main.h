@@ -13,6 +13,29 @@
 #include <libm/images/bitmapImage.h>
 #include <libm/list/list_basic_msg.h>
 
+struct WindowIconEntry
+{
+    Window* window;
+    ImageStuff::BitmapImage* icon;
+
+    WindowIconEntry(Window* window, ImageStuff::BitmapImage* icon)
+    {
+        this->window = window;
+        this->icon = icon;
+    }
+
+    void Free()
+    {
+        if (icon != NULL)
+        {
+            _Free(icon->imageBuffer);
+            _Free(icon);
+        }
+        icon = NULL;
+    }
+};
+
+extern List<void*>* windowIconEntries;
 
 static const int countOfButtonIcons = 9;
 

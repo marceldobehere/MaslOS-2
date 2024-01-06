@@ -13,6 +13,8 @@ uint64_t getParentPid();
 const char* getElfPath();
 const char* getWorkingPath();
 
+const char* getElfPath(uint64_t pid);
+
 void* requestNextPage();
 void* requestNextPages(int count);
 

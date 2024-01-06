@@ -10,6 +10,7 @@
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 #include <libm/images/bitmapImage.h>
 #include "taskbarConst.h"
+#include <libm/fsStuff/extra/fsExtra.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -22,6 +23,7 @@ Framebuffer* backgroundImage = NULL;
 
 Framebuffer* taskbar;
 
+List<void*>* windowIconEntries;
 List<Window*>* windows;
 List<Window*>* windowsToDelete;
 List<Window*>* windowsUpdated;
@@ -51,6 +53,8 @@ uint64_t lastFrameTime = 0;
 void InitStuff()
 {
     ENV_DATA* env = getEnvData();
+
+    windowIconEntries = new List<void*>();
 
     actualScreenFramebuffer = env->globalFrameBuffer;
     actualScreenRenderer = new TempRenderer(actualScreenFramebuffer, env->globalFont);
@@ -367,6 +371,18 @@ void AddWindowToBeRemoved(Window* window)
     if (idx != -1)
         windows->RemoveAt(idx);
 
+    for (int i = 0; i < windowIconEntries->GetCount(); i++)
+    {
+        WindowIconEntry* entry = (WindowIconEntry*)windowIconEntries->ElementAt(i);
+        if (entry->window == window)
+        {
+            windowIconEntries->RemoveAt(i);
+            entry->Free();
+            _Free(entry);
+            i--;
+        }
+    }
+
     if (activeWindow == window)
         activeWindow = NULL;
     if (startMenuWindow == window)
@@ -547,6 +563,54 @@ uint64_t DrawFrame()
                 window->Dimensions.x + window->Dimensions.width + 1,
                 window->Dimensions.y + window->Dimensions.height + 1
                 ));
+            
+            // Load the window icon if it exists
+            {
+                const char* elfPath = getElfPath(pidFrom);
+                if (elfPath != NULL)
+                {
+                    const char* elfDrive = FS_EXTRA::GetDriveNameFromFullPath(elfPath);
+                    if (elfDrive != NULL)
+                    {
+                        const char* elfFolder = FS_EXTRA::GetFolderPathFromFullPath(elfPath);
+                        if (elfFolder != NULL)
+                        {
+                            elfDrive = StrCombineAndFree(elfDrive, ":");
+                            elfFolder = StrCombineAndFree(elfFolder, "/assets/icon.mbif");
+                            const char* res = StrCombine(elfDrive, elfFolder);
+
+                            serialPrint("IMG FILE: ");
+                            serialPrintLn(res);
+
+                            void* buffer = NULL;
+                            uint64_t byteCount = 0;
+                            if (fsReadFile(res, &buffer, &byteCount))
+                            {
+                                ImageStuff::BitmapImage* img = ImageStuff::ConvertBufferToBitmapImage((char*)buffer, byteCount);
+                                if (img != NULL)
+                                {
+                                    WindowIconEntry* entry = new WindowIconEntry(window, img);
+                                    windowIconEntries->Add(entry);
+                                }
+                                serialPrintLn("File does exist!");
+                            }
+                            else
+                                serialPrintLn("File does not exist");
+                            
+
+                            if (buffer != NULL)
+                                _Free(buffer);
+                            _Free(res);
+                            _Free(elfFolder);
+                        }
+
+                        _Free(elfDrive);
+                    }
+                }
+                else
+                    serialPrintLn("NULL");
+                _Free(elfPath);
+            }
 
             if (pidFrom != getPid())
             {

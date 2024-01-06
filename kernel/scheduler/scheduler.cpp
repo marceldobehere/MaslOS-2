@@ -424,7 +424,7 @@ namespace Scheduler
             
             //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
             frame->rsp = (uint64_t)userStackEnd;
-            //frame->rbp = (uint64_t)userStackEnd - 0x2000;
+            frame->rbp = (uint64_t)userStackEnd;
             //frame->rax = (uint64_t)0;
             frame->cs = 0x28 | 0x03;
             frame->ss = 0x20 | 0x03;
@@ -438,7 +438,7 @@ namespace Scheduler
             frame->cr0 = 0x80000000;
             //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
             frame->rsp = (uint64_t)userStackEnd;
-            //frame->rbp = (uint64_t)userStackEnd - 0x2000;
+            frame->rbp = (uint64_t)userStackEnd;
             //frame->rax = (uint64_t)module.entryPoint;
             frame->cs = 0x8;
             frame->ss = 0x10;

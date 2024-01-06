@@ -165,8 +165,21 @@ namespace Taskbar
                     renderer->Clear(x, 2, x + size, height - 3, defaultTabBackgroundColor); // Clear whole Rect
                 RemoveFromStack();
 
-                // TODO: Add Icons to executeables someday and use them hear
+                // Get the correct icon
                 ImageStuff::BitmapImage* icon = internalWindowIcons[windowIconEnum.TERMINAL];
+                for (int i = 0; i < windowIconEntries->GetCount(); i++)
+                {
+                    AddToStack();
+                    WindowIconEntry* entry = (WindowIconEntry*)windowIconEntries->ElementAt(i);
+                    RemoveFromStack();
+
+                    if (entry->window == window && entry->icon != NULL)
+                    {
+                        icon = entry->icon;
+                        break;
+                    }
+                }
+
                 AddToStack();
                 bool drawIcon = (icon != NULL);
                 if (drawIcon)
