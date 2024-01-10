@@ -1,24 +1,15 @@
+include ../defaults.mk
 OUTPUT = FINAL_libm.o
 OBJDIR = ../objects/libm
 
-
-CC = gcc
-LD = ld
-
-
-LDFLAGS = -m elf_x86_64 -r -unresolved-symbols=ignore-all
-
-
-NASMFLAGS = -F dwarf -g -f elf64
-CFLAGS    = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../
-CPPFLAGS  = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
-# -w -Os
-
+LDFLAGS = $(LD_RELO_FLAGS)
+NASMFLAGS = $(BASE_NASM_FLAGS)
+CFLAGS    = $(C_RELO_FLAGS)
+CPPFLAGS  = $(CPP_RELO_FLAGS)
 
 CFILES    = $(shell find . -type f -name '*.c')
 CPPFILES  = $(shell find . -type f -name '*.cpp')
 NASMFILES = $(shell find . -type f -name '*.asm')
-
 
 OBJ       = $(patsubst %.c,   $(OBJDIR)/%.o,               $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o,               $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o,               $(NASMFILES))
 OBJ1      = $(patsubst %.c,   $(OBJDIR)/%.o.user_module,   $(CFILES)) $(patsubst %.cpp,   $(OBJDIR)/%.o.user_module,   $(CPPFILES)) $(patsubst %.asm,   $(OBJDIR)/%_asm.o.user_module,   $(NASMFILES))

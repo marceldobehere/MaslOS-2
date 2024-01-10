@@ -1,25 +1,15 @@
+include ../../defaults.mk
 OUTPUT = $(shell basename "$(shell pwd)").elf
 OBJDIR = ../../objects/modules/$(shell basename "$(shell pwd)")
 
-
-CC = gcc
-LD = ld
-
-    
-LDFLAGS += -m elf_x86_64 -pic -unresolved-symbols=ignore-all --gc-sections 
-
-
-
-NASMFLAGS ?= -F dwarf -g -f elf64
-CFLAGS   = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../../ 
-CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../../ -fpermissive -Wno-pmf-conversions
-# -w
-
+LDFLAGS = $(LD_APP_FLAGS)
+NASMFLAGS = $(BASE_NASM_FLAGS)
+CFLAGS   = $(C_APP_FLAGS)
+CPPFLAGS = $(CPP_APP_FLAGS)
 
 CFILES    = $(shell find . -type f -name '*.c')
 CPPFILES  = $(shell find . -type f -name '*.cpp')
 NASMFILES = $(shell find . -type f -name '*.asm')
-
 
 OBJ       = $(patsubst %.c,   $(OBJDIR)/%.o,     $(CFILES))
 OBJ      += $(patsubst %.cpp, $(OBJDIR)/%.o,     $(CPPFILES))
@@ -42,7 +32,7 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%_asm.o: %.asm
 	@mkdir -p $(@D)
-	nasm $(NASMFLAGS) $< -o $@
+	$(AS) $(NASMFLAGS) $< -o $@
 
 
 .PHONY: clean

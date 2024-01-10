@@ -1,33 +1,11 @@
+include ../defaults.mk
 OUTPUT = kernel.elf
 OBJDIR = ../objects/kernel-loader
 
-
-CC = gcc
-LD = ld
-
-    
-LDFLAGS =                                   \
-    -unresolved-symbols=ignore-all          \
-    -nostdlib                               \
-    -static                                 \
-    -Bsymbolic                              \
-    -m elf_x86_64                           \
-    -z max-page-size=0x1000                 \
-    --gc-sections                                \
-    -T linker.ld
-
-# Check if the linker supports -no-pie and enable it if it does
-ifeq ($(shell $(LD) --help 2>&1 | grep 'no-pie' >/dev/null 2>&1; echo $$?),0)
-    override LDFLAGS += -no-pie
-endif
-
-
-CPPFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -I ../
-# -w
-
+LDFLAGS = $(LD_KERNEL_LOADER_FLAGS)
+CPPFLAGS = $(CPP_RELO_FLAGS)
 
 CPPFILES = $(shell find . -type f -name '*.cpp')
-
 
 OBJ      = $(patsubst %.cpp, $(OBJDIR)/%.o, $(CPPFILES))
 

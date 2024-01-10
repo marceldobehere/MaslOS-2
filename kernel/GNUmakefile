@@ -1,25 +1,16 @@
+include ../defaults.mk
 OUTPUT = FINAL_kernel.o
 OBJDIR = ../objects/kernel
 
-
-CC = gcc
-LD = ld
-
-
-LDFLAGS = -m elf_x86_64 -r -unresolved-symbols=ignore-all
-
-
-NASMFLAGS = -F dwarf -g -f elf64
-CFLAGS    = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../ 
-CPPFLAGS  = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -I ../ -fpermissive -Wno-pmf-conversions
-# -w 
-
+LDFLAGS = $(LD_RELO_FLAGS)
+NASMFLAGS = $(BASE_NASM_FLAGS)
+CFLAGS    = $(C_RELO_FLAGS)
+CPPFLAGS  = $(CPP_RELO_FLAGS)
 
 CFILES    = $(shell find . -type f -name '*.c')
 CPPFILES  = $(shell find . -type f -name '*.cpp')
 ASFILES   = $(shell find . -type f -name '*.S')
 NASMFILES = $(shell find . -type f -name '*.asm')
-
 
 OBJ       = $(patsubst %.c,   $(OBJDIR)/%.o,     $(CFILES))
 OBJ      += $(patsubst %.cpp, $(OBJDIR)/%.o,     $(CPPFILES))
@@ -47,7 +38,7 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/%_asm.o: %.asm
 	@mkdir -p $(@D)
-	nasm $(NASMFLAGS) $< -o $@
+	$(AS) $(NASMFLAGS) $< -o $@
 
 
 .PHONY: clean
