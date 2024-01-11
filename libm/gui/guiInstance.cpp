@@ -111,6 +111,8 @@ void GuiInstance::Update()
 {
     if (screen == NULL)
         return;
+    
+    checkWindowManagerStuff();
 
     // Window Updates
     if (true)

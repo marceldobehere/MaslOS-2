@@ -6,6 +6,7 @@
 #include "../list/list_basic_msg.h"
 
 void initWindowManagerStuff();
+void checkWindowManagerStuff();
 extern uint64_t desktopPID;
 
 Window* getPartialWindow(uint64_t id);

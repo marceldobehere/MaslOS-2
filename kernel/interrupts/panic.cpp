@@ -7,13 +7,157 @@
 #include "..//devices/serial/serial.h"
 #include <libm/cstr.h>
 #include <libm/cstrTools.h>
+#include <libm/interrupt_frame.h>
+
+void PrintReg(BasicRenderer* renderer, const char* reg, uint64_t val)
+{
+    renderer->Print(reg);
+    renderer->Print(": ");
+    renderer->Print("0x");
+    renderer->Print(ConvertHexToString(val));
+    renderer->Print("  ");
+
+    Serial::Write(reg);
+    Serial::Write(": ");
+    Serial::Write("0x");
+    Serial::Write(ConvertHexToString(val));
+    Serial::Write(" ");
+}
+
+void PrintLn(BasicRenderer* renderer)
+{
+    renderer->Println();
+    Serial::Writeln();
+}
+
+void PrintLn(BasicRenderer* renderer, const char* str)
+{
+    renderer->Println(str);
+    Serial::Writeln(str);   
+}
+
+void PrintTaskRegisterDump(void* _renderer, void* _frame)
+{
+    BasicRenderer* renderer = (BasicRenderer*)_renderer;
+    interrupt_frame* frame = (interrupt_frame*)_frame;
+
+    PrintLn(renderer);
+    PrintLn(renderer, "Register dump (TASK): ");
+    PrintLn(renderer);
+
+    PrintReg(renderer, "rax", frame->rax);
+    PrintReg(renderer, "rcx", frame->rcx);
+    PrintReg(renderer, "rdx", frame->rdx);
+    PrintReg(renderer, "rbx", frame->rbx);
+    PrintLn(renderer);
+
+    PrintReg(renderer, "rsp", frame->rsp);
+    PrintReg(renderer, "rbp", frame->rbp);
+    PrintReg(renderer, "rsi", frame->rsi);
+    PrintReg(renderer, "rdi", frame->rdi);
+    PrintLn(renderer);
+
+    PrintReg(renderer, "r8", frame->r8);
+    PrintReg(renderer, "r9", frame->r9);
+    PrintReg(renderer, "r10", frame->r10);
+    PrintReg(renderer, "r11", frame->r11);
+    PrintLn(renderer);
+
+    PrintReg(renderer, "r12", frame->r12);
+    PrintReg(renderer, "r13", frame->r13);
+    PrintReg(renderer, "r14", frame->r14);
+    PrintReg(renderer, "r15", frame->r15);
+    PrintLn(renderer);
+
+    PrintReg(renderer, "rip", frame->rip);
+    PrintReg(renderer, "cs", frame->cs);
+    PrintReg(renderer, "rflags", frame->rflags);
+    PrintReg(renderer, "rsp", frame->rsp);
+    PrintReg(renderer, "ss", frame->ss);
+    PrintLn(renderer);
+
+    PrintReg(renderer, "cr0", frame->cr0);
+    PrintReg(renderer, "cr2", frame->cr2);
+    PrintReg(renderer, "cr3", frame->cr3);
+    PrintReg(renderer, "cr4", frame->cr4);
+    PrintLn(renderer);
+}
 
 void PrintRegisterDump(void* _renderer)
 {
     BasicRenderer* renderer = (BasicRenderer*)_renderer;
     uint64_t Register = 0;
-    //Panic("Page Fault Detected! {}", to_string(*((uint64_t*)frame)), true);
-    renderer->Println();
+
+    PrintLn(renderer);
+    PrintLn(renderer, "Register dump: ");
+    PrintLn(renderer);
+
+    asm volatile("mov %%rax, %0" : "=r"(Register));
+    PrintReg(renderer, "rax", Register);
+    asm volatile("mov %%rcx, %0" : "=r"(Register));
+    PrintReg(renderer, "rcx", Register);
+    asm volatile("mov %%rdx, %0" : "=r"(Register));
+    PrintReg(renderer, "rdx", Register);
+    asm volatile("mov %%rbx, %0" : "=r"(Register));
+    PrintReg(renderer, "rbx", Register);
+    PrintLn(renderer);
+
+    asm volatile("mov %%rsp, %0" : "=r"(Register));
+    PrintReg(renderer, "rsp", Register);
+    asm volatile("mov %%rbp, %0" : "=r"(Register));
+    PrintReg(renderer, "rbp", Register);
+    asm volatile("mov %%rsi, %0" : "=r"(Register));
+    PrintReg(renderer, "rsi", Register);
+    asm volatile("mov %%rdi, %0" : "=r"(Register));
+    PrintReg(renderer, "rdi", Register);
+    PrintLn(renderer);
+
+    asm volatile("mov %%r8, %0" : "=r"(Register));
+    PrintReg(renderer, "r8", Register);
+    asm volatile("mov %%r9, %0" : "=r"(Register));
+    PrintReg(renderer, "r9", Register);
+    asm volatile("mov %%r10, %0" : "=r"(Register));
+    PrintReg(renderer, "r10", Register);
+    asm volatile("mov %%r11, %0" : "=r"(Register));
+    PrintReg(renderer, "r11", Register);
+    PrintLn(renderer);
+
+    asm volatile("mov %%r12, %0" : "=r"(Register));
+    PrintReg(renderer, "r12", Register);
+    asm volatile("mov %%r13, %0" : "=r"(Register));
+    PrintReg(renderer, "r13", Register);
+    asm volatile("mov %%r14, %0" : "=r"(Register));
+    PrintReg(renderer, "r14", Register);
+    asm volatile("mov %%r15, %0" : "=r"(Register));
+    PrintReg(renderer, "r15", Register);
+    PrintLn(renderer);
+
+    //asm volatile("mov %%rip, %0" : "=r"(Register));
+    //PrintReg(renderer, "rip", 0);
+    asm volatile("mov %%cs, %0" : "=r"(Register));
+    PrintReg(renderer, "cs", Register);
+    //asm volatile("mov %%rflags, %0" : "=r"(Register));
+    //PrintReg(renderer, "rflags", Register);
+    asm volatile("mov %%rsp, %0" : "=r"(Register));
+    PrintReg(renderer, "rsp", Register);
+    asm volatile("mov %%ss, %0" : "=r"(Register));
+    PrintReg(renderer, "ss", Register);
+    PrintLn(renderer);
+
+    asm volatile("mov %%cr0, %0" : "=r"(Register));
+    PrintReg(renderer, "cr0", Register);
+    asm volatile("mov %%cr2, %0" : "=r"(Register));
+    PrintReg(renderer, "cr2", Register);
+    asm volatile("mov %%cr3, %0" : "=r"(Register));
+    PrintReg(renderer, "cr3", Register);
+    asm volatile("mov %%cr4, %0" : "=r"(Register));
+    PrintReg(renderer, "cr4", Register);
+    PrintLn(renderer);
+
+}
+
+/*
+ renderer->Println();
 	renderer->Println("Register dump: ");
     renderer->Println();
 	renderer->Print("rax: ");
@@ -73,70 +217,7 @@ void PrintRegisterDump(void* _renderer)
     renderer->Print(ConvertHexToString(Register));
     renderer->Print("  ");
     renderer->Println();
-
-    
-
-    Serial::Writeln();
-    Serial::Writeln("Register dump: ");
-    Serial::Writeln();
-    Serial::Write("rax: ");
-    asm volatile("mov %%rax, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rcx: ");
-    asm volatile("mov %%rcx, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rdx: ");
-    asm volatile("mov %%rdx, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rbx: ");
-    asm volatile("mov %%rbx, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));    
-    Serial::Writeln();
-    Serial::Write("rsp: ");
-    asm volatile("mov %%rsp, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rbp: ");
-    asm volatile("mov %%rbp, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rsi: ");
-    asm volatile("mov %%rsi, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("rdi: ");
-    asm volatile("mov %%rdi, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Writeln();
-    Serial::Write("cr0: ");
-    asm volatile("mov %%cr0, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("cr2: ");
-    asm volatile("mov %%cr2, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Write("cr3: ");
-    asm volatile("mov %%cr3, %0" : "=r"(Register));
-    Serial::Write("0x");
-    Serial::Write(ConvertHexToString(Register));
-    Serial::Write("  ");
-    Serial::Writeln();
-    
-}
+*/
 
 int kernelPanicCount = 0;
 

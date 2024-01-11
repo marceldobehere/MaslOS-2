@@ -81,6 +81,14 @@ namespace Scheduler
             
             osTasks.Unlock();
             AddTask(DesktopTask);
+
+            // Make all tasks waiting for an event stop waiting
+            for (int i = 0; i < osTasks.obj->GetCount(); i++)
+            {
+                osTask* tsk = osTasks.obj->ElementAt(i);
+                if (tsk->waitTillMessage)
+                    tsk->waitTillMessage = false;
+            }
             osTasks.Lock();
         }
 

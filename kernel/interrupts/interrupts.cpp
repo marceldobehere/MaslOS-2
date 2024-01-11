@@ -278,6 +278,80 @@ bool speakA = false;
 int _usedHeapCount = 0;
 int _usedPages = 0;
 
+void DrawStats()
+{    
+    Point tempPoint = GlobalRenderer->CursorPosition;
+    GlobalRenderer->CursorPosition.x = 0;
+    GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - (osData.inBootProcess ? 16 : 80);
+
+    GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
+
+    uint32_t currCol = 0;
+    
+    // currCol = Colors.orange;
+    // GlobalRenderer->Print("DATE: ", currCol);
+    // GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
+    // GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
+    // GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
+    // GlobalRenderer->Print(" - ", Colors.white);
+
+    // currCol = Colors.yellow;
+    // GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
+    // GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
+    // GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
+    // GlobalRenderer->Print(" - ", Colors.white);
+
+    currCol = Colors.bgreen;
+    GlobalRenderer->Print("HEAP: ", currCol);
+    GlobalRenderer->Print("Used Count: {}, ", to_string(usedHeapCount), currCol);
+    GlobalRenderer->Print("Used Amount: {} Bytes", to_string(usedHeapAmount), currCol);
+    // GlobalRenderer->Print("Malloc Count: {}", to_string((int)mallocCount), currCol);
+    GlobalRenderer->Print(" - ", Colors.white);
+
+
+    currCol = Colors.cyan;
+    GlobalRenderer->Print("GLOB ALLOC: ", currCol);
+    GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
+    GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
+    GlobalRenderer->Print("  - ", Colors.white);
+
+    currCol = Colors.lime;
+    GlobalRenderer->Print("Runnings Tasks: ", currCol);
+    if (!Scheduler::osTasks.IsLocked())
+    {
+        Scheduler::osTasks.Lock();
+        GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
+        Scheduler::osTasks.Unlock();
+    }
+    //GlobalRenderer->Print("  - ", Colors.white);
+
+    #define PRINT_MEM_STATS_TO_SERIAL false
+
+    if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
+        Serial::Writelnf("MEM> Malloced %d times", mallocCount);
+    if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
+        Serial::Writelnf("MEM> Freed %d times", freeCount);
+
+    freeCount = 0;
+    mallocCount = 0;
+    
+    GlobalRenderer->CursorPosition = tempPoint;
+
+    if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
+    {
+        _usedHeapCount = usedHeapCount;
+        Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
+        Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
+    }
+
+    if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
+    {
+        _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
+
+        Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
+    }
+}
+
 int _pitCount = 0;
 
 void TempPitRoutine(interrupt_frame* frame)
@@ -298,77 +372,7 @@ void TempPitRoutine(interrupt_frame* frame)
     if (_pitCount++ >= 80 && true)   
     {
         _pitCount = 0;
-        
-        Point tempPoint = GlobalRenderer->CursorPosition;
-        GlobalRenderer->CursorPosition.x = 0;
-        GlobalRenderer->CursorPosition.y = GlobalRenderer->framebuffer->Height - (osData.inBootProcess ? 16 : 80);
-
-        GlobalRenderer->Clear(0, GlobalRenderer->CursorPosition.y, GlobalRenderer->framebuffer->Width - 1, GlobalRenderer->CursorPosition.y + 15, Colors.black);
-
-        uint32_t currCol = 0;
-        
-        // currCol = Colors.orange;
-        // GlobalRenderer->Print("DATE: ", currCol);
-        // GlobalRenderer->Print("{}.", to_string((int)RTC::Day), currCol);
-        // GlobalRenderer->Print("{}.", to_string((int)RTC::Month), currCol);
-        // GlobalRenderer->Print("{}", to_string((int)RTC::Year), currCol);
-        // GlobalRenderer->Print(" - ", Colors.white);
-
-        // currCol = Colors.yellow;
-        // GlobalRenderer->Print("{}:", to_string((int)RTC::Hour), currCol);
-        // GlobalRenderer->Print("{}:", to_string((int)RTC::Minute), currCol);
-        // GlobalRenderer->Print("{}", to_string((int)RTC::Second), currCol);
-        // GlobalRenderer->Print(" - ", Colors.white);
-
-        currCol = Colors.bgreen;
-        GlobalRenderer->Print("HEAP: ", currCol);
-        GlobalRenderer->Print("Used Count: {}, ", to_string(usedHeapCount), currCol);
-        GlobalRenderer->Print("Used Amount: {} Bytes", to_string(usedHeapAmount), currCol);
-        // GlobalRenderer->Print("Malloc Count: {}", to_string((int)mallocCount), currCol);
-        GlobalRenderer->Print(" - ", Colors.white);
-
-
-        currCol = Colors.cyan;
-        GlobalRenderer->Print("GLOB ALLOC: ", currCol);
-        GlobalRenderer->Print("Used: {} KB / ", to_string(GlobalAllocator->GetUsedRAM() / 1024), currCol);
-        GlobalRenderer->Print("{} KB", to_string(GlobalAllocator->GetFreeRAM() / 1024), currCol);
-        GlobalRenderer->Print("  - ", Colors.white);
-
-        currCol = Colors.lime;
-        GlobalRenderer->Print("Runnings Tasks: ", currCol);
-        if (!Scheduler::osTasks.IsLocked())
-        {
-            Scheduler::osTasks.Lock();
-            GlobalRenderer->Print("{}", to_string(Scheduler::osTasks.obj->GetCount()), currCol);
-            Scheduler::osTasks.Unlock();
-        }
-        //GlobalRenderer->Print("  - ", Colors.white);
-
-        #define PRINT_MEM_STATS_TO_SERIAL false
-
-        if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-            Serial::Writelnf("MEM> Malloced %d times", mallocCount);
-        if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-            Serial::Writelnf("MEM> Freed %d times", freeCount);
-
-        freeCount = 0;
-        mallocCount = 0;
-        
-        GlobalRenderer->CursorPosition = tempPoint;
-
-        if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
-        {
-            _usedHeapCount = usedHeapCount;
-            Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
-            Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
-        }
-
-        if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
-        {
-            _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
-
-            Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
-        }
+        DrawStats();
 
         // TestSetSpeakerPosition(speakA);
         // speakA = !speakA;
@@ -780,6 +784,8 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         Serial::Writeln();
         PrintRegisterDump(GlobalRenderer);
         Serial::Writeln();
+        PrintTaskRegisterDump(GlobalRenderer, frame);
+        Serial::Writeln();
 
         GlobalRenderer->Println();   
         GlobalRenderer->Println("ERROR CODE: {}", to_string(frame->error_code), Colors.yellow);   
@@ -837,6 +843,8 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             Scheduler::CurrentRunningTask->removeMe = true;
         }
         Scheduler::CurrentRunningTask = NULL;
+
+        DrawStats();
 
         for (int i = 0; i < 20; i++)
             GlobalRenderer->ClearButDont();

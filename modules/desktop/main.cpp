@@ -476,7 +476,8 @@ uint64_t DrawFrame()
                 }
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x3F) // F5 
                 {
-                    uint64_t newPid = startProcess("bruh:programs/empty/empty.elf", 0, NULL, "");
+                    for (int i = 0; i < 10; i++)
+                        uint64_t newPid = startProcess("bruh:programs/empty/empty.elf", 0, NULL, "");
                 }
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x40) // F6
                 {

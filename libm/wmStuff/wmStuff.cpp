@@ -16,6 +16,13 @@ void initWindowManagerStuff()
     }
 }
 
+void checkWindowManagerStuff()
+{
+    uint64_t tempDesktop = envGetDesktopPid();
+    if (tempDesktop != desktopPID)
+        programCrash();
+}
+
 // GenericMessagePacket* getWindowCreatePacket()
 // {
 //     for (int i = 0; i < yesWindowPackets->GetCount(); i++)
