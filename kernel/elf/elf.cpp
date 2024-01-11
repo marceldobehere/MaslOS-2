@@ -111,9 +111,9 @@ namespace Elf
         // TODO: might make a check here for kernel modules, so ya cant run or see it as userspace
         GlobalPageTableManager.MapMemories((void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET), (void*)offset, pageCount, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
         
-        pageCount--;
-        offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET + 0x1000);
+        offset = (void*)((uint64_t)offset + MEM_AREA_ELF_MAP_OFFSET);
         _memset(offset, 0, pageCount * 0x1000);
+        
 
         ph = (Elf64_Phdr*) (((char*) data) + header->e_phoff);
         for (int i = 0; i < header->e_phnum; i++, ph++)

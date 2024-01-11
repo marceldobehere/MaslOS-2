@@ -51,9 +51,16 @@ And it mostly works on real hardware.
    - idk more stuff
 
 ## How to use
+You can click on the start menu in the bottom left corner to see a list of things you can launch
+
+There also some debug shortcuts:
  - Press F10 to open the explorer
  - Press F12 to open a shell (there is a help command)
  - Press F11 to redraw the desktop (eg. If you get an error)
+ - Press F5 to launch an empty elf
+ - Press F6 to launch a mini window test
+ - Press ALT + F4 to force close a program
+ 
 
 ## How to build (Linux)
  - Install `qemu-system` if you haven't.

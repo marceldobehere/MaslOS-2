@@ -474,6 +474,14 @@ uint64_t DrawFrame()
                 {
                     uint64_t newPid = startProcess("bruh:programs/shell/shell.elf", 0, NULL, "");
                 }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x3F) // F5 
+                {
+                    uint64_t newPid = startProcess("bruh:programs/empty/empty.elf", 0, NULL, "");
+                }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x40) // F6
+                {
+                    uint64_t newPid = startProcess("bruh:programs/miniWinTest/miniWinTest.elf", 0, NULL, "");
+                }
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x57) // F11
                 {
                     Clear(true);
