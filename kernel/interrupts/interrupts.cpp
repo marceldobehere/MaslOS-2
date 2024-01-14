@@ -736,7 +736,7 @@ Mouse::MiniMousePacket lastMousePacket = Mouse::InvalidMousePacket;
 extern "C" void intr_common_handler_c(interrupt_frame* frame) 
 {
     //asm volatile("mov %0, %%cr3" : : "r"((uint64_t)GlobalPageTableManager.PML4) : "memory");
-    GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+    //GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
     
     //Serial::Writelnf("INT> INT %d, (%X, %X)", frame->interrupt_number, frame->cr3, frame->cr0);
 
@@ -747,10 +747,16 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
     {
         Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT %d!", frame->interrupt_number, lastInt);
         //Panic("INT IN INT", true);
-        
+
         for (int i = 0; i < 20; i++)
             GlobalRenderer->ClearDotted(Colors.bred);
 
+        GlobalRenderer->Println("INT IN INT", Colors.white);
+
+        for (int i = 0; i < 40; i++)
+            GlobalRenderer->ClearButDont();
+
+        //while (true);
         //return;
     }
     lastInt = frame->interrupt_number;

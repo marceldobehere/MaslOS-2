@@ -13,10 +13,9 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress)
 {
     PageBitMap.Size = bitmapSize;
     PageBitMap.Buffer = (uint8_t*) bufferAddress;
-    for (int64_t i = 0; i < bitmapSize; i++)
-        PageBitMap.Buffer[i] = 0;
+    _memset(PageBitMap.Buffer, 0x0, bitmapSize);
     pageBitmapIndex = 0;
-    memStartAddr = (((uint64_t)bufferAddress + bitmapSize + 0xFFF) / 0x1000) * 0x1000;
+    memStartAddr = (uint64_t)bufferAddress;//(((uint64_t)bufferAddress + bitmapSize + 0xFFF) / 0x1000) * 0x1000;
 }
 
 void PageFrameAllocator::ReservePage(void* address)
@@ -217,6 +216,10 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
     reservedMemory = 0;
     usedMemory = 0;
     uint64_t bitmapSize =  ((memorySize / 0x1000) / 8) + 1;
+    EFI_START = (uint64_t)start;
+    EFI_SIZE = size;
+    EFI_BITMAP_START = (uint64_t)start;
+    EFI_BITMAP_SIZE = bitmapSize;
 
     PrintMsgStartLayer("Info");
     PrintMsgCol("Largest Mem Size: {} Bytes.", to_string(largestFreeMemSegSize), Colors.yellow);
@@ -231,11 +234,12 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
     int resPageCount = (memStart + 0xFFF) / 0x1000 + 10;
     if (resPageCount > 0x1000)
         resPageCount = 0x1000;
+    
     PrintMsg("> Reserving first {} Pages", to_string(resPageCount));
     ReservePages((void*)memStartAddr, resPageCount);
     
     PrintMsg("> Reserving Pages for the Bitmap buffer starting at 0x{}", ConvertHexToString((uint64_t)PageBitMap.Buffer));
-    ReservePages(PageBitMap.Buffer, bitmapSize / 0x1000 + 1);
+    ReservePages((void*)memStartAddr, bitmapSize / 0x1000 + 1);
 
 
     PrintMsgStartLayer("Info");

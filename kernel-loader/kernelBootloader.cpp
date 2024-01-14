@@ -389,6 +389,15 @@ extern "C" void _start(void) {
         else if (e->base == (uint64_t)kernelStart)
         {
             kernelSize = e->length;
+            if ((uint64_t)kernelStart != e->base)
+            {
+                e9_printf("> Kernel start is not the same as the base of the first memory map entry!");
+                done();
+            }
+        }
+        else if (e->type == LIMINE_MEMMAP_KERNEL_AND_MODULES)
+        {
+            e9_printf("> Kernel and modules: %x->%x %s", e->base, e->base + e->length, get_memmap_type(e->type));
         }
     }
     if (freeMemStart == NULL) 
@@ -399,6 +408,7 @@ extern "C" void _start(void) {
     startRAMAddr = freeMemStart;
     
     //done();
+    //while (true);
 
 
     if (module_request.response == NULL) {
@@ -502,7 +512,7 @@ extern "C" void _start(void) {
     //done();
 
     terminal_request.response->write(terminal, "> Completed Boot Init!\n", 23);
-    bootTest(fb, rsdp, &font, &assets, startRAMAddr, freeMemStart, freeMemSize, kernelStart, kernelSize, kernelStartV, (limineSmpResponse*)smp_response);
+    bootTest(fb, rsdp, &font, &assets, startRAMAddr, freeMemStart, freeMemSize, kernelStart, kernelSize, kernelStartV, (limineSmpResponse*)smp_response, (void*)memmap_response->entries, memmap_response->entry_count);
     
     //done();
     

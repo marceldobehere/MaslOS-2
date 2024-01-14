@@ -60,7 +60,7 @@ void boot(void* _bootInfo)
         MStackData::stackArr[i] = MStack();
 
     osData.enableStackTrace = RECORD_STACK_TRACE;
-    MStackData::BenchmarkEnabled = true;
+    MStackData::BenchmarkEnabled = false;
     AddToStack();
     osData.crashCount = 0;
     //
@@ -77,6 +77,8 @@ void boot(void* _bootInfo)
     osData.booting = false;
 
     osData.inBootProcess = false;
+
+    //MStackData::BenchmarkEnabled = true;
 
     PIT::Sleep(100);
 
@@ -235,7 +237,7 @@ void boot(void* _bootInfo)
 
 
  
-volatile void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAssetStruct* assets, void* freeMemStart, void* extraMemStart, uint64_t freeMemSize, void* kernelStart, uint64_t kernelSize, void* kernelStartV, limineSmpResponse* smpData)
+volatile void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, MaslOsAssetStruct* assets, void* freeMemStart, void* extraMemStart, uint64_t freeMemSize, void* kernelStart, uint64_t kernelSize, void* kernelStartV, limineSmpResponse* smpData, void* memMap, uint64_t memEntryCount)
 {
     //MStackData::BenchmarkEnabled = false;
     BootInfo tempBootInfo;
@@ -256,6 +258,9 @@ volatile void bootTest(Framebuffer fb, ACPI::RSDP2* rsdp, PSF1_FONT* psf1_font, 
     tempBootInfo.kernelStartV = kernelStartV;
 
     tempBootInfo.smpData = smpData;
+
+    tempBootInfo.memEntries = (MEM_MAP_ENTRY**)memMap;
+    tempBootInfo.memEntryCount = memEntryCount;
 
     for (int y = 0; y < 100; y++)
         for (int x = 500; x < 600; x++)

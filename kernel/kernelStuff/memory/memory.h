@@ -8,6 +8,11 @@
 #include "../../devices/acpi/acpi.h"
 #include "../../kernel.h"
 
+struct MEM_MAP_ENTRY {
+    uint64_t base;
+    uint64_t length;
+    uint64_t type;
+};
 
 struct BootInfo
 {
@@ -27,6 +32,8 @@ struct BootInfo
 	uint64_t kernelSize;
 	void* kernelStartV;
 	limineSmpResponse* smpData;
+	MEM_MAP_ENTRY** memEntries;
+	uint64_t memEntryCount;
 };
 
 uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize);

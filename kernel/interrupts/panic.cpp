@@ -57,8 +57,8 @@ void PrintTaskRegisterDump(void* _renderer, void* _frame)
     PrintReg(renderer, "rdi", frame->rdi);
     PrintLn(renderer);
 
-    PrintReg(renderer, "r8", frame->r8);
-    PrintReg(renderer, "r9", frame->r9);
+    PrintReg(renderer, " r8", frame->r8);
+    PrintReg(renderer, " r9", frame->r9);
     PrintReg(renderer, "r10", frame->r10);
     PrintReg(renderer, "r11", frame->r11);
     PrintLn(renderer);
@@ -70,10 +70,10 @@ void PrintTaskRegisterDump(void* _renderer, void* _frame)
     PrintLn(renderer);
 
     PrintReg(renderer, "rip", frame->rip);
-    PrintReg(renderer, "cs", frame->cs);
-    PrintReg(renderer, "rflags", frame->rflags);
+    PrintReg(renderer, " cs", frame->cs);
     PrintReg(renderer, "rsp", frame->rsp);
-    PrintReg(renderer, "ss", frame->ss);
+    PrintReg(renderer, " ss", frame->ss);
+    PrintReg(renderer, "rflags", frame->rflags);
     PrintLn(renderer);
 
     PrintReg(renderer, "cr0", frame->cr0);
@@ -113,9 +113,9 @@ void PrintRegisterDump(void* _renderer)
     PrintLn(renderer);
 
     asm volatile("mov %%r8, %0" : "=r"(Register));
-    PrintReg(renderer, "r8", Register);
+    PrintReg(renderer, " r8", Register);
     asm volatile("mov %%r9, %0" : "=r"(Register));
-    PrintReg(renderer, "r9", Register);
+    PrintReg(renderer, " r9", Register);
     asm volatile("mov %%r10, %0" : "=r"(Register));
     PrintReg(renderer, "r10", Register);
     asm volatile("mov %%r11, %0" : "=r"(Register));
@@ -135,13 +135,13 @@ void PrintRegisterDump(void* _renderer)
     //asm volatile("mov %%rip, %0" : "=r"(Register));
     //PrintReg(renderer, "rip", 0);
     asm volatile("mov %%cs, %0" : "=r"(Register));
-    PrintReg(renderer, "cs", Register);
+    PrintReg(renderer, " cs", Register);
     //asm volatile("mov %%rflags, %0" : "=r"(Register));
     //PrintReg(renderer, "rflags", Register);
     asm volatile("mov %%rsp, %0" : "=r"(Register));
     PrintReg(renderer, "rsp", Register);
     asm volatile("mov %%ss, %0" : "=r"(Register));
-    PrintReg(renderer, "ss", Register);
+    PrintReg(renderer, " ss", Register);
     PrintLn(renderer);
 
     asm volatile("mov %%cr0, %0" : "=r"(Register));

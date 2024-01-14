@@ -5,7 +5,8 @@
 #include "../kernelStuff/memory/memory.h"
 
 
-class PageFrameAllocator{
+class PageFrameAllocator 
+{
     private:
     uint64_t freeMemory;
     uint64_t reservedMemory;
@@ -25,6 +26,11 @@ class PageFrameAllocator{
 
 
     public:
+
+    uint64_t EFI_START;
+    uint64_t EFI_SIZE;
+    uint64_t EFI_BITMAP_START;
+    uint64_t EFI_BITMAP_SIZE;
 
     Bitmap PageBitMap;
 

@@ -75,7 +75,7 @@ void PercentDone(int percent)
         ((((i + 70) * 140) / 100) * 0x00010101) & 0xFF00FF00 + 0xFF000000);
     }
 }
-int maxSteps = 16;
+int maxSteps = 17;
 int currStep = 0;
 void StepDone()
 {

@@ -17,7 +17,7 @@ namespace DiskInterface
         InterfaceType = DiskInterface::Sata;
         this->Port = port;
         this->Port->buffer = (uint8_t*)GlobalAllocator->RequestPage(); // 4096 Bytes
-        GlobalPageTableManager.MapMemory(this->Port->buffer, this->Port->buffer, false);
+        GlobalPageTableManager.MapMemory(this->Port->buffer, this->Port->buffer);
         RemoveFromStack();
 
         AddToStack();

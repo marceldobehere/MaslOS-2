@@ -43,15 +43,15 @@ void InitKernel(BootInfo* bootInfo)
     PrintMsg("> Preparing Memory");
     PrepareMemory(bootInfo);
     StepDone();
-
-    
     
     PrintMsg("> Preparing GDT");
     //InitInitialGdt();
     DoGdtStuff();
     StepDone();
     
-    
+    PrintMsg("> Preparing Interrupts");
+    PrepareInterrupts();
+    StepDone();
     
 
     PrintMsg("> Initializing Heap");
@@ -116,8 +116,8 @@ void InitKernel(BootInfo* bootInfo)
     Scheduler::InitScheduler();
     StepDone();
 
-    PrintMsg("> Preparing Interrupts");
-    PrepareInterrupts();
+    PrintMsg("> Preparing Interrupts (2)");
+    PrepareInterrupts2();
     PIT::Inited = true;
     StepDone();
 
@@ -266,25 +266,33 @@ void enable_fpu()
 void DoGdtStuff()
 {
     //GlobalRenderer->Clear(Colors.red);
+    //void* x = GlobalAllocator->RequestPage();
     GDTBlock* gdt_block = (GDTBlock*)GlobalAllocator->RequestPage();
+    //while (true);
     //GlobalRenderer->Clear(Colors.green);
     GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
     //GlobalRenderer->Clear(Colors.blue);
     Serial::Writelnf("GDT: %X", (uint64_t)gdt_block);
     
+    //while (true);
 
     char* stack_kernel = (char*)GlobalAllocator->RequestPages(8);
     char* stack_kernel_end = stack_kernel + 0x1000 * 8;
     GlobalPageTableManager.MapMemories(stack_kernel, stack_kernel, 8);
+
     char* stack_isr = (char*)GlobalAllocator->RequestPages(8);
     char* stack_isr_end = stack_isr + 0x1000 * 8;
     GlobalPageTableManager.MapMemories(stack_isr, stack_isr, 8);
+
     char* stack_irq = (char*)GlobalAllocator->RequestPages(8);
     char* stack_irq_end = stack_irq + 0x1000 * 8;
     GlobalPageTableManager.MapMemories(stack_irq, stack_irq, 8);
+
     char* stack_timer = (char*)GlobalAllocator->RequestPages(8);
     char* stack_timer_end = stack_timer + 0x1000 * 8;
     GlobalPageTableManager.MapMemories(stack_timer, stack_timer, 8);
+
+    //while (true);
 
     gdt_init(gdt_block);
 	gdt_set_tss_ring(gdt_block, 0, stack_kernel_end);
@@ -324,7 +332,6 @@ void PrepareMemory(BootInfo* bootInfo)
     PrintMsgStartLayer("EFI Memory Map");
     GlobalAllocator->ReadEFIMemoryMap(bootInfo->m2MapStart, bootInfo->mMapSize); 
     PrintMsgEndLayer("EFI Memory Map");
-
     
 
     //uint64_t kernelSize = (((uint64_t)&_KernelEnd) - ((uint64_t)&_KernelStart));
@@ -332,38 +339,115 @@ void PrepareMemory(BootInfo* bootInfo)
 
     //GlobalAllocator->LockPages(&_KernelStart, kernelPages);
 
+    uint64_t stackPointer = 0;
+    uint64_t stackPageCount = 16;
+    asm volatile("mov %%rsp, %0" : "=r"(stackPointer));
+    stackPointer &= 0xfffffffffffff000;
+    stackPointer -= 0x1000 * stackPageCount;
+    stackPageCount += 4;
+
+    uint64_t bootInfoAddr = (uint64_t)bootInfo;
+
     uint64_t rFB = earlyVirtualToPhysicalAddr(GlobalRenderer->framebuffer->BaseAddress);
 
     PageTable* PML4 = (PageTable*)GlobalAllocator->RequestPage();
     //GlobalPageTableManager.MapMemory(PML4, PML4);
     _memset(PML4, 0, 0x1000);
+    GlobalPageTableManager = PageTableManager(PML4);
     PrintMsg("> Getting PML4 Stuff");
     //GlobalRenderer->Println("PML4 ADDR:          {}", ConvertHexToString((uint64_t)PML4), Colors.yellow);
-    asm volatile("mov %%cr3, %0" : "=r"(PML4));
+    //asm volatile("mov %%cr3, %0" : "=r"(PML4));
     // asm("mov %0, %%cr3" : : "r" (PML4) );
     PrintMsgStartLayer("Info");
     PrintMsgCol("PML4 ADDR:          {}", ConvertHexToString((uint64_t)PML4), Colors.yellow);
+    PrintMsgCol("ALLOC ADDR:         {}", ConvertHexToString(GlobalAllocator->EFI_BITMAP_START + GlobalAllocator->EFI_BITMAP_SIZE), Colors.yellow);
     PrintMsgCol("FB 1 ADDR:          {}", ConvertHexToString(rFB), Colors.yellow);
     PrintMsgCol("FB 2 ADDR:          {}", ConvertHexToString((uint64_t)GlobalRenderer->framebuffer->BaseAddress), Colors.yellow);
     PrintMsgCol("FB 3 ADDR:          {}", ConvertHexToString((uint64_t)bootInfo->framebuffer->BaseAddress), Colors.yellow);
     PrintMsgCol("MMAP ADDR:          {}", ConvertHexToString((uint64_t)bootInfo->mMapStart), Colors.yellow);
+    PrintMsgCol("MMAP2 ADDR:         {}", ConvertHexToString((uint64_t)bootInfo->m2MapStart), Colors.yellow);
     PrintMsgCol("KERNEL ADDR:        {}", ConvertHexToString((uint64_t)bootInfo->kernelStart), Colors.yellow);
+    PrintMsgCol("KERNEL ADDR 2:      {}", ConvertHexToString(earlyVirtualToPhysicalAddr(bootInfo->kernelStart)), Colors.yellow);
     PrintMsgCol("KERNEL V ADDR:      {}", ConvertHexToString((uint64_t)bootInfo->kernelStartV), Colors.yellow);
-    GlobalPageTableManager = PageTableManager(PML4);
+    PrintMsgCol("KERNEL SIZE:        {}", ConvertHexToString((uint64_t)bootInfo->kernelSize), Colors.yellow);
+    PrintMsgCol("KERNEL END:         {}", ConvertHexToString((uint64_t)bootInfo->kernelStart + (uint64_t)bootInfo->kernelSize), Colors.yellow);
+    PrintMsgCol("KERNEL V END:       {}", ConvertHexToString((uint64_t)bootInfo->kernelStartV + (uint64_t)bootInfo->kernelSize), Colors.yellow);
+    PrintMsgCol("STACK BASE ADDR:    {}", ConvertHexToString(earlyVirtualToPhysicalAddr((void*)(stackPointer - stackPageCount * 0x1000))), Colors.yellow);
+    PrintMsgCol("STACK ADDR:         {}", ConvertHexToString(earlyVirtualToPhysicalAddr((void*)stackPointer)), Colors.yellow);
+    PrintMsgCol("STACK V ADDR:       {}", ConvertHexToString(stackPointer), Colors.yellow);
+    PrintMsgCol("STACK SIZE:         {}", ConvertHexToString(stackPageCount * 0x1000), Colors.yellow);
+    PrintMsgCol("BOOT INFO ADDR:     {}", ConvertHexToString(bootInfoAddr), Colors.yellow);
+    PrintMsgCol("RSDP ADDR:          {}", ConvertHexToString((uint64_t)bootInfo->rsdp), Colors.yellow);
+    PrintMsgCol("PROG ADDR:          {}", ConvertHexToString((uint64_t)bootInfo->programs), Colors.yellow);
     PrintMsgEndLayer("Info");
 
-    //GlobalPageTableManager.MakeEveryEntryUserReadable();
+    //while (true);
 
-    GlobalPageTableManager.TrimPageTable();
-    
-    uint64_t fbBase = (uint64_t)bootInfo->framebuffer->BaseAddress;
-    uint64_t fbSize = (uint64_t)bootInfo->framebuffer->BufferSize;
-    //GlobalAllocator->LockPages((void*)earlyVirtualToPhysicalAddr((void*)fbBase), fbSize / 0x1000);
+    Serial::Writeln("");
+    Serial::Writelnf("psf1_font: %X", &GlobalRenderer->psf1_font);
+    Serial::Writelnf("fb: %X", &GlobalRenderer->framebuffer);
+    Serial::Writelnf("fb->buff: %X", &GlobalRenderer->framebuffer->BaseAddress);
+    Serial::Writelnf("psf1_font->glyph: %X", &GlobalRenderer->psf1_font->glyphBuffer);
+    Serial::Writelnf("psf1_font->psf1_Header: %X", &GlobalRenderer->psf1_font->psf1_Header);
 
-    PrintMsg("> Mapping Framebuffer Memory");
+    //while (true);
 
-    //for (uint64_t i = fbBase; i < fbBase + fbSize; i+=4096)
-    //    GlobalPageTableManager.MapFramebufferMemory((void*)i, (void*)i);
+    // Map the efi memory things
+    {
+        for (int i = 0; i < bootInfo->memEntryCount; i++)
+        {
+            MEM_MAP_ENTRY* entry = bootInfo->memEntries[i];
+            // if (entry->type != 6)
+            //     continue;
+            uint64_t entryStartReal = entry->base;
+            uint64_t entryStartVirt = entry->base | 0xffff800000000000; // ffff80007f5f4003
+            uint64_t entrySize = entry->length;
+            uint64_t entryPageCount = (entrySize + 0xFFF) / 0x1000;
+            Serial::Writelnf("Entry %d: %X -> %X (%d pages)", i, entryStartVirt, entryStartReal, entryPageCount);
+            GlobalPageTableManager.MapMemories((void*)entryStartReal, (void*)entryStartReal, entryPageCount);
+            GlobalPageTableManager.MapMemories((void*)entryStartVirt, (void*)entryStartReal, entryPageCount);
+        }
+    }
+
+    // Map Kernel
+    {
+        uint64_t kernelStartReal = (uint64_t)bootInfo->kernelStart;
+        uint64_t kernelStartVirtual = (uint64_t)bootInfo->kernelStartV;
+        uint64_t kernelStartVirtual2 = kernelStartReal | 0xffff800000000000;
+        uint64_t kernelPageCount = (bootInfo->kernelSize + 0xFFF) / 0x1000;
+        GlobalPageTableManager.MapMemories((void*)kernelStartVirtual, (void*)kernelStartReal, kernelPageCount);
+        GlobalPageTableManager.MapMemories((void*)kernelStartVirtual2, (void*)kernelStartReal, kernelPageCount);
+    }
+
+    // Map Stack
+    {
+        uint64_t stackBaseReal = (uint64_t)earlyVirtualToPhysicalAddr((void*)stackPointer);
+        uint64_t stackBaseVirtual = stackPointer;
+        // Serial::Writelnf("ADDR: %X", stackPointer);
+        // Serial::Writelnf("ADDR: %X", stackBaseVirtual);
+        // Serial::Writelnf("ADDR: %X", stackPageCount);
+        GlobalPageTableManager.MapMemories((void*)stackBaseVirtual, (void*)stackBaseReal, stackPageCount);
+    }
+
+    // Map the starting 0x1000 pages of TRANSLATED_PHYSICAL_MEMORY_BEGIN
+    {
+        uint64_t startVirtual = TRANSLATED_PHYSICAL_MEMORY_BEGIN;
+        uint64_t startReal = earlyVirtualToPhysicalAddr((void*)TRANSLATED_PHYSICAL_MEMORY_BEGIN);
+        uint64_t pageCount = 0x1000;
+        GlobalPageTableManager.MapMemories((void*)startVirtual, (void*)startReal, pageCount);
+    }
+
+    // Map framebuffer
+    {
+        uint64_t fbBaseReal = (uint64_t)rFB;
+        uint64_t fbBaseVirtual = (uint64_t)bootInfo->framebuffer->BaseAddress;
+        uint64_t fbSize = (uint64_t)bootInfo->framebuffer->BufferSize;
+        uint64_t fbPageCount = (fbSize + 0xFFF) / 0x1000;
+        GlobalPageTableManager.MapMemories((void*)fbBaseVirtual, (void*)fbBaseReal, fbPageCount, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_WriteThrough | PT_Flag_CacheDisabled);
+    }
+
+    asm("mov %0, %%cr3" : : "r" (PML4) );
+
 }
 
 
@@ -454,8 +538,14 @@ void PrepareInterrupts()
     io_wait();    
     __asm__ volatile ("lidt %0" : : "m" (idtr));
     io_wait();    
-    //asm ("int $0x1");
+    __asm__ volatile ("sti");
+    io_wait();    
 
+    //asm ("int $0x1");
+}
+
+void PrepareInterrupts2()
+{
     AddToStack();
     // RemapPIC(
     //     0b11111000, //0b11111000, 
@@ -470,7 +560,6 @@ void PrepareInterrupts()
     io_wait();    
     __asm__ volatile ("sti");
     RemoveFromStack();
-    
 }
 
 #include "../../devices/acpi/acpiShutdown.h"
@@ -493,10 +582,11 @@ void PrepareACPI(BootInfo* bootInfo)
     PrintMsg("RSDP Addr: {}", ConvertHexToString((uint64_t)bootInfo->rsdp));
     RemoveFromStack();
 
+    
+
     AddToStack();   
     ACPI::SDTHeader* rootThing = NULL;
     int div = 1;
-
 
     if (bootInfo->rsdp->firstPart.Revision == 0)
     {
@@ -522,6 +612,7 @@ void PrepareACPI(BootInfo* bootInfo)
     {
         PrintMsg("ACPI Version: 2");
         rootThing = (ACPI::SDTHeader*)(bootInfo->rsdp->XSDTAddress);
+
         PrintMsg("XSDT Header Addr: {}", ConvertHexToString((uint64_t)rootThing));
         div = 8;
 
