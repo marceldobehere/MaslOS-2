@@ -549,6 +549,9 @@ uint64_t DrawFrame()
             WindowBufferUpdatePacket* windowBufferUpdatePacket = new WindowBufferUpdatePacket(msg);
 
             updateFramePackets->Enqueue(windowBufferUpdatePacket);
+
+            // some goofy code bc we using references
+            msg = new GenericMessagePacket(MessagePacketType::WINDOW_BUFFER_EVENT, NULL, 0);
         }
         else if (msg->Type == MessagePacketType::WINDOW_CREATE_EVENT && (msg->Size == 0 || msg->Size == 8))
         {

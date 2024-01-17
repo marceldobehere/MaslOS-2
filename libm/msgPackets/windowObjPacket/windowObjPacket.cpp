@@ -207,10 +207,13 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint64_t CONVO_ID_WM_WINDOW_CLOSED
     count += 8;
 
-
-    uint8_t* buffer = (uint8_t*)_Malloc(count, "Window Object Packet Buffer");
-
-    uint8_t* tBuffer = buffer;
+    GenericMessagePacket* msg = NULL;
+    if (Set)
+        msg = new GenericMessagePacket(count, MessagePacketType::WINDOW_SET_EVENT);
+    else
+        msg = new GenericMessagePacket(count, MessagePacketType::WINDOW_GET_EVENT);
+    
+    uint8_t* tBuffer = msg->Data;
 
     // Set
     *(uint8_t*)tBuffer = Set;
@@ -304,15 +307,6 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // uint64_t CONVO_ID_WM_WINDOW_CLOSED
     *(uint64_t*)tBuffer = PartialWindow->CONVO_ID_WM_WINDOW_CLOSED;
     tBuffer += 8;
-
-
-    GenericMessagePacket* msg = NULL;
-    if (Set)
-        msg = new GenericMessagePacket(MessagePacketType::WINDOW_SET_EVENT, buffer, count);
-    else
-        msg = new GenericMessagePacket(MessagePacketType::WINDOW_GET_EVENT, buffer, count);
-
-    _Free(buffer);
 
     return msg;
 }

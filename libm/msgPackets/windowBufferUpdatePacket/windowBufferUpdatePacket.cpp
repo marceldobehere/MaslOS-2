@@ -4,6 +4,7 @@
 
 WindowBufferUpdatePacket::WindowBufferUpdatePacket(int x, int y, int width, int height, uint64_t windowId, uint32_t* buffer)
 {
+    internalPacket = NULL;
     this->X = x;
     this->Y = y;
     this->Width = width;
@@ -14,32 +15,35 @@ WindowBufferUpdatePacket::WindowBufferUpdatePacket(int x, int y, int width, int 
 }
 WindowBufferUpdatePacket::WindowBufferUpdatePacket(GenericMessagePacket* genericMessagePacket)
 {
+    internalPacket = genericMessagePacket;
     WindowBufferUpdatePacket* packet = (WindowBufferUpdatePacket*)genericMessagePacket->Data;
     this->X = packet->X;
     this->Y = packet->Y;
     this->Width = packet->Width;
     this->Height = packet->Height;
     this->WindowId = packet->WindowId;
-    uint32_t* buffer = (uint32_t*)(genericMessagePacket->Data + sizeof(WindowBufferUpdatePacket));
-    this->Buffer = (uint32_t*)_Malloc(sizeof(uint32_t) * Width * Height);
-    _memcpy(buffer, this->Buffer, sizeof(uint32_t) * Width * Height);
+    this->Buffer = (uint32_t*)(genericMessagePacket->Data + sizeof(WindowBufferUpdatePacket));
 }
 
 GenericMessagePacket* WindowBufferUpdatePacket::ToGenericMessagePacket()
 {
     int siz = sizeof(WindowBufferUpdatePacket);
     int fullSize = siz + sizeof(uint32_t) * Width * Height;
-    uint8_t* tBuff = (uint8_t*)_Malloc(siz + fullSize);
-    _memcpy(this, tBuff, siz);
-    _memcpy(Buffer, tBuff + siz, fullSize - siz);
-    GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::WINDOW_BUFFER_EVENT, tBuff, fullSize);
-    _Free(tBuff);
+    GenericMessagePacket* packet = new GenericMessagePacket(fullSize, MessagePacketType::WINDOW_BUFFER_EVENT);
+    _memcpy(this, packet->Data, siz);
+    _memcpy(Buffer, packet->Data + siz, fullSize - siz);
     return packet;
 }
 
 void WindowBufferUpdatePacket::Free()
 {
-    if (Buffer != NULL)
+    if (internalPacket != NULL)
+    {
+        internalPacket->Free();
+        internalPacket = NULL;
+        Buffer = NULL;
+    }
+    else if (Buffer != NULL)
     {
         _Free(Buffer);
         Buffer = NULL;

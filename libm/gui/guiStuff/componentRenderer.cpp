@@ -4,6 +4,7 @@
 #include <libm/math.h>
 #include <libm/cstrTools.h>
 #include <libm/rendering/Cols.h>
+#include <libm/memStuff.h>
 
 namespace GuiComponentStuff
 {
@@ -42,11 +43,26 @@ namespace GuiComponentStuff
 
         componentFrameBuffer = temp;
         if (paint)
-            Fill(bgCol);
+            ;//Fill(bgCol);
         componentFrameBuffer = old;
         
         if (paint)  
-            Render(Position(0,0), Field(Position(0, 0), Position(old->Width - 1, old->Height - 1)), temp);
+        {
+            // Render(Position(0,0), Field(Position(0, 0), Position(old->Width - 1, old->Height - 1)), temp);
+            int minW = min(old->Width, temp->Width);
+            int minH = min(old->Height, temp->Height);
+
+            for (int y = 0; y < minH; y++)
+                _memcpy(old->pixels + y * old->Width, temp->pixels + y * temp->Width, minW * 4);
+            
+            for (int y = 0; y < minH; y++)
+                for (int x = minW; x < temp->Width; x++)
+                    temp->pixels[x + y * temp->Width] = bgCol;
+
+            for (int y = minH; y < temp->Height; y++)
+                for (int x = 0; x < temp->Width; x++)
+                    temp->pixels[x + y * temp->Width] = bgCol;
+        }
 
         componentFrameBuffer = temp;
         old->Free();

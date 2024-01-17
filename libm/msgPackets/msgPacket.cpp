@@ -2,6 +2,15 @@
 #include "../memStuff.h"
 #include "../stubs.h"
 
+GenericMessagePacket::GenericMessagePacket(uint64_t size, MessagePacketType type)
+{
+    Type = type;
+    Size = size;
+    Data = (uint8_t*)_Malloc(size, "Generic Message Data");
+    FromPID = 0;
+    ConvoID = 0;
+}
+
 GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size)
 {
     Type = type;
@@ -26,6 +35,15 @@ void GenericMessagePacket::Free()
         _Free(Data);    
         Data = NULL;
     }
+}
+
+GenericMessagePacket::GenericMessagePacket(uint64_t size, MessagePacketType type, Heap::HeapManager* manager)
+{
+    Type = type;
+    Size = size;
+    Data = (uint8_t*)manager->_Xmalloc(size, "Generic Message Data");
+    FromPID = 0;
+    ConvoID = 0;
 }
 
 GenericMessagePacket::GenericMessagePacket(MessagePacketType type, uint8_t* data, uint64_t size, Heap::HeapManager* manager)
