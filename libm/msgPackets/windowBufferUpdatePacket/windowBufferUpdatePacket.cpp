@@ -40,6 +40,7 @@ void WindowBufferUpdatePacket::Free()
     if (internalPacket != NULL)
     {
         internalPacket->Free();
+        _Free(internalPacket);
         internalPacket = NULL;
         Buffer = NULL;
     }

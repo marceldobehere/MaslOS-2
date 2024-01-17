@@ -3,6 +3,7 @@
 #include "../syscallManager.h"
 #include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
 #include <libm/cstr.h>
+#include <libm/memStuff.h>
 
 uint64_t desktopPID;
 
@@ -224,10 +225,14 @@ bool SendWindowFrameBufferUpdate(Window* window, int x1, int y1, int x2, int y2)
 
     uint32_t* buffer = (uint32_t*)_Malloc(width * height * 4);
 
-    for (int i = 0, y = y1; y <= y2; y++)
-        for (int x = x1; x <= x2; x++, i++)
-            buffer[i] = ((uint32_t*)window->Buffer->BaseAddress)[x + y * window->Buffer->Width];
+    // for (int i = 0, y = y1; y <= y2; y++)
+    //     for (int x = x1; x <= x2; x++, i++)
+    //         buffer[i] = ((uint32_t*)window->Buffer->BaseAddress)[x + y * window->Buffer->Width];
     
+    uint32_t* tBuff = (uint32_t*)window->Buffer->BaseAddress;
+    for (int y = y1; y <= y2; y++)
+        _memcpy(tBuff + window->Buffer->Width * y + x1, buffer + (y - y1) * width, width * 4);
+
 
     WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
         x1, y1, width, height,

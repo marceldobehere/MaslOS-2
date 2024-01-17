@@ -158,7 +158,10 @@ void Restart()
 
     spacePressed = false;
     while (!envGetKeyState(0x39) || !window->IsActive)
+    {
         guiInstance->Update();
+        programWait(50);
+    }
     while (envGetKeyState(0x39) || !window->IsActive)
         guiInstance->Update();
     gameOver = false;
