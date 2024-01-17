@@ -125,9 +125,24 @@ namespace GuiComponentStuff
         uint32_t* pxls = componentFrameBuffer->pixels;
         int h = componentFrameBuffer->Height;
         int w = componentFrameBuffer->Width;
-        long t = h * (long)w;
-        for (long x = 0; x < t; x++)
-            pxls[x] = col;
+        if (h < 4)
+        {
+            for (int x = 0; x < h * w; x++)
+                pxls[x] = col;
+            RemoveFromStack();
+            return;
+        }
+        else
+        {
+            // first line
+            for (int x = 0; x < w; x++)
+                pxls[x] = col;
+            
+            // all lines after
+            for (int y = 1; y < h; y++)
+                _memcpy(pxls, pxls + w * y, w * 4);
+        }
+        
         RemoveFromStack();
     }
 
@@ -147,9 +162,22 @@ namespace GuiComponentStuff
         if (field.BR.y >= h)
             field.BR.y = h - 1;
 
-        for (int y = field.TL.y; y <= field.BR.y; y++)
+        if ((field.BR.y - field.TL.y) < 4)
+        {
+            for (int y = field.TL.y; y <= field.BR.y; y++)
+                for (int x = field.TL.x; x <= field.BR.x; x++)
+                    pxls[x + y * w] = col;
+        }
+        else
+        { 
             for (int x = field.TL.x; x <= field.BR.x; x++)
-                pxls[x + y * w] = col;
+                pxls[x + field.TL.y * w] = col;
+            
+            for (int y = field.TL.y + 1; y <= field.BR.y; y++)
+                _memcpy(pxls + field.TL.x + field.TL.y * w, pxls + field.TL.x + y * w, (field.BR.x - field.TL.x + 1) * 4);
+        }
+
+
         RemoveFromStack();
     }
 
