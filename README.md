@@ -36,7 +36,7 @@ And it mostly works on real hardware.
      - Maalbrot
    - Notepad (basics be working)
    - Paint (mostly working)
-   - Doom (soon)
+   - Doom (it exists, but no input yet)
    - MicroEdit (somewhat working)
    - 3D Cube Renderer
    + Dialogs
