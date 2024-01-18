@@ -534,6 +534,10 @@ void PrepareInterrupts()
 
      SetIDTGate((void*)intr_stub_49, 0x31, IDT_TA_InterruptGate | IDT_FLAG_RING3, 0x08); // SYSCALL
 
+    RemapPIC(
+        0xFF, //0b11111000, 
+        0xFF //0b11101111
+    );
 
     io_wait();    
     __asm__ volatile ("lidt %0" : : "m" (idtr));

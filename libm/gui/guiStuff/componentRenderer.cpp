@@ -162,6 +162,9 @@ namespace GuiComponentStuff
         if (field.BR.y >= h)
             field.BR.y = h - 1;
 
+        if (field.BR.x < field.TL.x || field.BR.y < field.TL.y)
+            return;
+
         if ((field.BR.y - field.TL.y) < 4)
         {
             for (int y = field.TL.y; y <= field.BR.y; y++)
@@ -172,11 +175,12 @@ namespace GuiComponentStuff
         { 
             for (int x = field.TL.x; x <= field.BR.x; x++)
                 pxls[x + field.TL.y * w] = col;
-            
-            for (int y = field.TL.y + 1; y <= field.BR.y; y++)
-                _memcpy(pxls + field.TL.x + field.TL.y * w, pxls + field.TL.x + y * w, (field.BR.x - field.TL.x + 1) * 4);
-        }
 
+            uint32_t* lineStart = pxls + field.TL.x + field.TL.y * w;
+            int tWidth = field.BR.x - field.TL.x + 1;
+            for (int y = field.TL.y + 1; y <= field.BR.y; y++)
+                _memcpy(lineStart, pxls + field.TL.x + y * w, tWidth * 4);
+        }
 
         RemoveFromStack();
     }
