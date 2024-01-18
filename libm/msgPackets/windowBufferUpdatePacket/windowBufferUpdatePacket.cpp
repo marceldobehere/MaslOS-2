@@ -2,9 +2,28 @@
 #include <libm/memStuff.h>
 #include <libm/stubs.h>
 
+WindowBufferUpdatePacket::WindowBufferUpdatePacket(int x, int y, int width, int height, uint64_t windowId, uint32_t* buffer, bool isRef)
+{
+    internalPacket = NULL;
+    this->isRef = isRef;
+    this->X = x;
+    this->Y = y;
+    this->Width = width;
+    this->Height = height;
+    this->WindowId = windowId;
+    if (isRef)
+        this->Buffer = buffer;
+    else
+    {
+        this->Buffer = (uint32_t*)_Malloc(sizeof(uint32_t) * width * height);
+        _memcpy(buffer, this->Buffer, sizeof(uint32_t) * width * height);
+    }
+}
+
 WindowBufferUpdatePacket::WindowBufferUpdatePacket(int x, int y, int width, int height, uint64_t windowId, uint32_t* buffer)
 {
     internalPacket = NULL;
+    isRef = false;
     this->X = x;
     this->Y = y;
     this->Width = width;
@@ -16,6 +35,7 @@ WindowBufferUpdatePacket::WindowBufferUpdatePacket(int x, int y, int width, int 
 WindowBufferUpdatePacket::WindowBufferUpdatePacket(GenericMessagePacket* genericMessagePacket)
 {
     internalPacket = genericMessagePacket;
+    isRef = true;
     WindowBufferUpdatePacket* packet = (WindowBufferUpdatePacket*)genericMessagePacket->Data;
     this->X = packet->X;
     this->Y = packet->Y;
@@ -46,7 +66,8 @@ void WindowBufferUpdatePacket::Free()
     }
     else if (Buffer != NULL)
     {
-        _Free(Buffer);
+        if (!isRef)
+            _Free(Buffer);
         Buffer = NULL;
     }
 }

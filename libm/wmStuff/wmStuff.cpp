@@ -237,7 +237,8 @@ bool SendWindowFrameBufferUpdate(Window* window, int x1, int y1, int x2, int y2)
     WindowBufferUpdatePacket* packet = new WindowBufferUpdatePacket(
         x1, y1, width, height,
         window->ID,
-        buffer
+        buffer,
+        true
     );
 
     GenericMessagePacket* msg = packet->ToGenericMessagePacket();
