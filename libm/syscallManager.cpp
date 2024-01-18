@@ -262,6 +262,15 @@ int programSetPriority(int priority)
     return actualPrio;
 }
 
+uint64_t envGetTimeMicroS()
+{
+    int syscall = SYSCALL_ENV_GET_TIME_MICRO_S;
+    uint64_t timeMicroS;
+    asm("int $0x31" : "=a"(timeMicroS) : "a"(syscall));
+    return timeMicroS;
+
+}
+
 uint64_t envGetTimeMs()
 {
     int syscall = SYSCALL_ENV_GET_TIME_MS;

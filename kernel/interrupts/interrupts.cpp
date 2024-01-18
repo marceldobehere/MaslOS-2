@@ -1807,6 +1807,10 @@ void Syscall_handler(interrupt_frame* frame)
     {
         frame->rax = PIT::TimeSinceBootMS();
     }
+    else if (syscall == SYSCALL_ENV_GET_TIME_MICRO_S)
+    {
+        frame->rax = PIT::TimeSinceBootMicroS();
+    }
     else if (syscall == SYSCALL_ENV_GET_TIME_RTC)
     {
         Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
