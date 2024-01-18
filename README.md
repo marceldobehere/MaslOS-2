@@ -116,6 +116,7 @@ If you need any help / have any questions or are curious about MaslOS2, feel fre
 ## Screenshots
 ![Showing off some apps](/images/demo.png)
 ![The start menu](/images/wm%207.png)
+![Doom](/images/doom-test.png)
 ![More apps ported](/images/some%20stuff.jpg)
 ![Working more on the terminal](/images/wm%206.png)
 ![Working on the terminal](/images/terminal%201.gif)
