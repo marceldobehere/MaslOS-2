@@ -1,12 +1,4 @@
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <vector>
-
-struct token {
-  char type;
-  int val;
-};
+#include "expression.hpp"
 
 bool isDigit(const char c) { return c <= '9' && c >= '0'; }
 
@@ -88,47 +80,41 @@ int oper(const char op, int lhs, int rhs) {
   case '/':
     if (rhs != 0) {
       return lhs / rhs;
-    } else {
-      printf("error: divding by zero!");
-      exit(-1);
+    case ')':
+      return lhs;
     }
-  case ')':
-    return lhs;
-  default:
-    printf("parsing error: %c", op);
-    exit(-1);
   }
 }
 
-std::vector<token> tokenize(const char *s) {
-  std::vector<token> tokens{};
+List<token> tokenize(const char *s) {
+  List<token> tokens {};
 
   while (*s != '\0') {
     if (isDigit(*s)) {
       int num{};
       s += parseNum(s, &num);
-      tokens.push_back(token{'\0', num});
+      tokens.Add(token{'\0', num});
     } else if (isUnary(*s)) {
-      tokens.push_back(token{*s, 0});
+      tokens.Add(token{*s, 0});
       s++;
     } else if (*s == '(') {
 
-      tokens.push_back(token{'(', parensLength(s)});
+      tokens.Add(token{'(', parensLength(s)});
       s++;
     } else if (*s == ')') {
-      tokens.push_back(token{')', 0});
+      tokens.Add(token{')', 0});
       s++;
     } else {
       s++;
     }
   }
 
-  tokens.push_back(token{0, 0});
+  tokens.Add(token{0, 0});
 
   return tokens;
 }
 
-int expr(std::vector<token> &tokens, int prec, int index) {
+int expr(List<token> &tokens, int prec, int index) {
   int rhs{};
   int lhs{};
   char op{};
@@ -150,15 +136,4 @@ int expr(std::vector<token> &tokens, int prec, int index) {
   }
 
   return lhs;
-}
-
-int main() {
-
-  std::string input{};
-  std::cin >> input;
-  std::vector<token> tokens = tokenize(input.c_str());
-
-  printf("%d", expr(tokens, 0, 0));
-
-  return 0;
 }
