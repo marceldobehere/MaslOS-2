@@ -1,4 +1,6 @@
 #include <cstdio>
+#include <cstdlib>
+#include <iostream>
 #include <vector>
 
 struct token {
@@ -6,15 +8,31 @@ struct token {
   int val;
 };
 
-int equation(std::vector<token> &tokens, int prec, int index);
-int expr(std::vector<token> &tokens, int prec, int index);
+bool isDigit(const char c) { return c <= '9' && c >= '0'; }
 
-bool isDigit(const char c) {
-  if (c <= '9' && c >= '0') {
-    return true;
-  } else {
-    return false;
+bool isDigitToken(token t) { return t.type == '\0'; }
+
+int parensLength(const char *s) {
+  int matched = 0;
+  int length = 1;
+
+  if (*s == '(') {
+    matched++;
+    s++;
   }
+
+  while (matched != 0) {
+    if (*s == '(') {
+      matched++;
+    } else if (*s == ')') {
+      matched--;
+    }
+
+    length++;
+    s++;
+  }
+
+  return length;
 }
 
 bool isUnary(const char c) {
@@ -23,6 +41,7 @@ bool isUnary(const char c) {
   case '-':
   case '/':
   case '*':
+  case ')':
     return true;
   default:
     return false;
@@ -70,16 +89,19 @@ int oper(const char op, int lhs, int rhs) {
     if (rhs != 0) {
       return lhs / rhs;
     } else {
-      // TODO: error handling
+      printf("error: divding by zero!");
+      exit(-1);
     }
-    // default:
-    // TODO: error handling
+  case ')':
+    return lhs;
+  default:
+    printf("parsing error: %c", op);
+    exit(-1);
   }
 }
 
 std::vector<token> tokenize(const char *s) {
   std::vector<token> tokens{};
-  int index = 0;
 
   while (*s != '\0') {
     if (isDigit(*s)) {
@@ -90,10 +112,11 @@ std::vector<token> tokenize(const char *s) {
       tokens.push_back(token{*s, 0});
       s++;
     } else if (*s == '(') {
-      tokens.push_back(token{*s, 0});
+
+      tokens.push_back(token{'(', parensLength(s)});
       s++;
     } else if (*s == ')') {
-      tokens.push_back(token{*s, 0});
+      tokens.push_back(token{')', 0});
       s++;
     } else {
       s++;
@@ -107,42 +130,35 @@ std::vector<token> tokenize(const char *s) {
 
 int expr(std::vector<token> &tokens, int prec, int index) {
   int rhs{};
+  int lhs{};
+  char op{};
 
-  int lhs = tokens[index].val;
-  index++;
-  char op = tokens[index].type;
+  if (tokens[index].type == '(') {
+    lhs = expr(tokens, 0, index + 1);
+    index += tokens[index].val;
+    op = tokens[index].type;
+  } else {
+    lhs = tokens[index].val;
+    index++;
+    op = tokens[index].type;
+  }
 
   while (isUnary(tokens[index].type) && getPrec(tokens[index].type) >= prec) {
     index++;
-    rhs = equation(tokens, getPrec(tokens[index].type) + 1, index);
+    rhs = expr(tokens, getPrec(tokens[index].type) + 1, index);
     lhs = oper(op, lhs, rhs);
   }
 
   return lhs;
 }
 
-int equation(std::vector<token> &tokens, int prec, int index) {
-  int result = 0;
-
-  int lhs = tokens[index].val;
-  index++;
-  char op = tokens[index].type;
-
-  if (tokens[index].type == '(') {
-    index++;
-    for (; index < tokens.size() && tokens[index].type != ')'; ++index) {
-      result = expr(tokens, prec, index);
-    }
-    index++;
-  }
-
-  return result;
-}
-
 int main() {
-  std::vector<token> tokens = tokenize("(3+  10) * 4");
 
-  printf("%d", equation(tokens, 0, 0));
+  std::string input{};
+  std::cin >> input;
+  std::vector<token> tokens = tokenize(input.c_str());
+
+  printf("%d", expr(tokens, 0, 0));
 
   return 0;
 }
