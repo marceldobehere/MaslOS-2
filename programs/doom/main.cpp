@@ -9,6 +9,7 @@
 #include <libm/msgPackets/keyPacket/keyPacket.h>
 #include <libm/msgPackets/mousePacket/mousePacket.h>
 #include <libm/cstr.h>
+#include <libm/stdio/stdio.h>
 
 extern "C"
 {
@@ -35,10 +36,12 @@ void DoDoomInit();
 void HandleUpdates();
 bool DoFrame();
 
+using namespace STDIO;
 
 int main(int argc, char** argv)
 {
     initWindowManagerStuff();
+    initStdio(false);
     window = requestWindow();
     if (window == NULL)
         return 0;
@@ -283,11 +286,11 @@ void HandleUpdates()
 
         if (deltaX != 0 || deltaY != 0)
         {
-            serialPrint("MOUSE MOVE (");
-            serialPrint(to_string(deltaX));
-            serialPrint(", ");
-            serialPrint(to_string(deltaY));
-            serialPrintLn(")");
+            // serialPrint("MOUSE MOVE (");
+            // serialPrint(to_string(deltaX));
+            // serialPrint(", ");
+            // serialPrint(to_string(deltaY));
+            // serialPrintLn(")");
 
             doom_mouse_move(deltaX * DOOM_SCALE, deltaY * DOOM_SCALE);
         }
@@ -308,7 +311,7 @@ void doomExit(int code)
 
 void doomPrint(const char* str)
 {
-    serialPrint(str);
+    print(str);
     return;
 }
 
@@ -360,10 +363,11 @@ void* doomOpen(const char* path, const char* mode)
     //GlobalRenderer->Println("Doom tried to open a file!", Colors.white);
     //GlobalRenderer->Println("PATH: \"{}\"", path, Colors.white);
     //GlobalRenderer->Println("MODE: \"{}\"", mode, Colors.white);
-    serialPrintLn("Doom tried to open a file!");
-    serialPrint("PATH: \"");
-    serialPrint(path);
-    serialPrintLn("\"");
+    // print("Doom tried to open a file!");
+    // print("PATH: \"");
+    // print(path);
+    // println("\"");
+    printlnf("Doom tried to open a file!\nPATH: \"%s\"\nMODE: \"%s\"", path, mode);
 
     char* resBuffer = NULL;
     uint64_t resBufferLen = 0;
@@ -425,10 +429,11 @@ int doomWrite(void* handle, const void* buffer, int size)
         return 0;
 
     BruhFile* bruhFile = (BruhFile*)handle;
-    serialPrintLn("Doom tried to write to a file!");
-    serialPrint("PATH: \"");
-    serialPrint(bruhFile->path);
-    serialPrintLn("\"");
+    // serialPrintLn("Doom tried to write to a file!");
+    // serialPrint("PATH: \"");
+    // serialPrint(bruhFile->path);
+    // serialPrintLn("\"");
+    printlnf("Doom tried to write to a file!\nPATH: \"%s\"", bruhFile->path);
 
     // GlobalRenderer->Clear(Colors.black);
     // GlobalRenderer->Println("Doom tried to write to a file!", Colors.white);
