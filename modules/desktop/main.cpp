@@ -11,6 +11,7 @@
 #include <libm/images/bitmapImage.h>
 #include "taskbarConst.h"
 #include <libm/fsStuff/extra/fsExtra.h>
+#include <libm/keyboard.h>
 
 TempRenderer* actualScreenRenderer;
 Framebuffer* actualScreenFramebuffer;
@@ -529,6 +530,16 @@ uint64_t DrawFrame()
                 else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && keyMsg->Scancode == 0x44) // F10
                 {
                     uint64_t newPid = startProcess("bruh:programs/explorer/explorer.elf", 0, NULL, "");
+                }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && 
+                    (keyMsg->Scancode == 0x01 || keyMsg->Scancode == 0x1D) && // ESC or CTRL
+                    (envGetKeyState(Key_Escape) && envGetKeyState(Key_LeftControl))) // ESC and CTRL
+                {
+                    if (activeWindow != NULL)
+                    {
+                        windowsUpdated->AddIfUnique(activeWindow);
+                        MakeWinActive(activeWindow, NULL);
+                    }
                 }
                 else if (activeWindow != NULL)
                 {

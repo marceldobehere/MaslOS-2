@@ -51,15 +51,42 @@ And it mostly works on real hardware.
    - idk more stuff
 
 ## How to use
-You can click on the start menu in the bottom left corner to see a list of things you can launch
 
-There also some debug shortcuts:
+### Start Menu
+You can click on the start menu button in the bottom left corner, to open the start menu.
+
+In the start menu, you can click on the programs and it will open them.
+
+### Taskbar
+ - You can left click on one of the tabs to select it.
+ - You can middle click a tab to close it.
+
+
+### Desktop / Windows
+ - You can click on a window to select it.
+ - You can drag the window around by holding its top bar.
+ - You can also resize it, if allowed, by dragging the sides/corners.
+ - You can also minimize the window by clicking the minimize button.
+ - You cannot currently maximize the window.
+ - To close a window, you can click on the X button.
+ - You can quit the whole process of the window by holding SHIFT and pressing the close button.
+ - You can also close the window by pressing ALT + F4.
+
+### Mouse Capture
+A window can capture your mouse. This makes sense for games and such.
+
+You can escape the capture by pressing CONTROL and ESCAPE.
+
+
+### All Shortcuts
+Here are all the shortcuts for quick reference: (including debug ones)
  - Press F10 to open the explorer
  - Press F12 to open a shell (there is a help command)
  - Press F11 to redraw the desktop (eg. If you get an error)
  - Press F5 to launch an empty elf
  - Press F6 to launch a mini window test
  - Press ALT + F4 to force close a program
+ - Press CTRL + ESC to escape mouse capture
  
 
 

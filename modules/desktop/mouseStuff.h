@@ -5,6 +5,9 @@
 #include <libm/rendering/virtualRenderer.h>
 #include <libm/math.h>
 
+#include <libm/window/window.h>
+void MakeWinActive(Window* oldActive, Window* newActive);
+
 extern uint32_t CurrentMouseCol;
 extern bool DrawMouse;
 

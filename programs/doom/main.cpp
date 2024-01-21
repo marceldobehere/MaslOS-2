@@ -26,13 +26,12 @@ List<void*>* openMallocs = NULL;
 
 
 int DOOM_SCALE = 2;
-
 bool tempMouseBtns[3];
-MPoint tempDoomMousePos;
 
 Window* window;
 
 void DoDoomInit();
+void HandleWinUpdates();
 void HandleUpdates();
 bool DoFrame();
 
@@ -51,6 +50,7 @@ int main(int argc, char** argv)
     window->Resizeable = false;
     window->Dimensions.width = DOOM_WIDTH * DOOM_SCALE;
     window->Dimensions.height = DOOM_HEIGHT * DOOM_SCALE;
+    window->CaptureMouse = true;
     setWindow(window);
     SendWindowFrameBufferUpdate(window);
 
@@ -58,7 +58,6 @@ int main(int argc, char** argv)
 
     while (!CheckForWindowClosed(window))
     {
-        HandleUpdates();
         if (DoFrame())
             SendWindowFrameBufferUpdate(window);
     }
@@ -68,39 +67,12 @@ int main(int argc, char** argv)
 
 bool DoFrame()
 {
+    HandleWinUpdates();
+
     if (!window->IsActive)
     {
-        programWaitMsg();
+        programWait(300);
         return false;
-    }
-
-    // if (window == NULL ||
-    //     window->Dimensions.width != DOOM_WIDTH * DOOM_SCALE ||
-    //     window->size.height != DOOM_HEIGHT * DOOM_SCALE)
-    // {
-    //     window->newSize.width = DOOM_WIDTH * DOOM_SCALE;
-    //     window->newSize.height = DOOM_HEIGHT * DOOM_SCALE;
-    //     return;
-    // }
-
-    if (envGetKeyState(Key_Escape) && envGetKeyState(Key_GeneralControl))
-    {
-        if (window->CaptureMouse)
-        {
-            updateWindow(window);
-            window->CaptureMouse = false;
-            setWindow(window);
-        }
-        return false;
-    }
-    else
-    {
-        if (!window->CaptureMouse)
-        {
-            updateWindow(window);
-            window->CaptureMouse = true;
-            setWindow(window);
-        }
     }
 
     uint64_t time = envGetTimeMs();
@@ -110,25 +82,14 @@ bool DoFrame()
     }
     lastTime = time;
 
-
-
-    tempDoomMousePos = MPoint(DOOM_WIDTH * DOOM_SCALE / 2 + window->Dimensions.x, DOOM_HEIGHT * DOOM_SCALE / 2 + window->Dimensions.y);
-    // if (tempDoomMousePos.x != MousePosition.x || 
-    //     tempDoomMousePos.y != MousePosition.y)
-    // {
-    //     int xDiff = MousePosition.x - tempDoomMousePos.x;
-    //     int yDiff = MousePosition.y - tempDoomMousePos.y;
-    //     SetMousePosition(tempDoomMousePos);
-    //     doom_mouse_move(xDiff, yDiff);
-    // }
+    HandleUpdates();
 
     doom_update();
-
 
     uint32_t* toBuff = (uint32_t*)window->Buffer->BaseAddress;
     int toWidth = window->Buffer->Width;
     int toHeight = window->Buffer->Height;
-    uint32_t* fromBuff = (uint32_t*)doom_get_framebuffer(4 /* RGBA */);
+    uint32_t* fromBuff = (uint32_t*)doom_get_framebuffer(4);
     
     for (int y = 0; y < DOOM_HEIGHT * DOOM_SCALE; y++)
     {
@@ -153,7 +114,7 @@ bool DoFrame()
     return true;
 }
 
-void HandleUpdates()
+void HandleWinUpdates()
 {
     checkWindowManagerStuff();
 
@@ -193,7 +154,10 @@ void HandleUpdates()
             window->Updates->Clear();
         }
     }
+}
 
+void HandleUpdates()
+{
     // Keyboard Events
     for (int i = 0; i < 500; i++)
     {
