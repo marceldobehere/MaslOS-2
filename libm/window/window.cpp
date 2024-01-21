@@ -22,6 +22,7 @@ Window::Window()
     Closeable = true;
     IsActive = false;
     IsFrozen = false;
+    CaptureMouse = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -35,6 +36,7 @@ Window::Window()
     OldHidden = Hidden;
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
+    OldCaptureMouse = CaptureMouse;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -73,6 +75,7 @@ Window::Window(uint64_t id)
     Closeable = true;
     IsActive = false;
     IsFrozen = false;
+    CaptureMouse = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -85,6 +88,7 @@ Window::Window(uint64_t id)
     OldHidden = Hidden;
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
+    OldCaptureMouse = CaptureMouse;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -128,6 +132,7 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     Closeable = true;
     IsActive = false;
     IsFrozen = false;
+    CaptureMouse = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -141,6 +146,7 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     OldHidden = Hidden;
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
+    OldCaptureMouse = CaptureMouse;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -353,6 +359,14 @@ void Window::_CheckVisChange()
     }
 }
 
+void Window::_CheckOtherChange()
+{
+    if (CaptureMouse != OldCaptureMouse)
+    {
+        OldCaptureMouse = CaptureMouse;
+    }
+}
+
 void Window::UpdateCheck()
 {
     _CheckBorderChange();
@@ -362,6 +376,8 @@ void Window::UpdateCheck()
     _CheckDimensionChange();
 
     _CheckVisChange();
+
+    _CheckOtherChange();
 }
 
 void Window::UpdateUsingPartialWindow(Window* window, bool updateId, bool updatePid, bool updateActive)
@@ -406,6 +422,8 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateId, bool update
     DefaultBackgroundColor = window->DefaultBackgroundColor;
     // IsFrozen
     IsFrozen = window->IsFrozen;
+    // CaptureMouse
+    CaptureMouse = window->CaptureMouse;
     
     // CONVO_ID_WM_MOUSE_STUFF
     CONVO_ID_WM_MOUSE_STUFF = window->CONVO_ID_WM_MOUSE_STUFF;

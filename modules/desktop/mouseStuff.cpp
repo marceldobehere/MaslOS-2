@@ -2,6 +2,8 @@
 #include <libm/rendering/Cols.h>
 #include "main.h"
 
+bool DrawMouse = true;
+
 uint32_t MouseDataMap[] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -138,6 +140,9 @@ void FigureOutCorrectMouseImage()
 
 void DrawMousePointerNew(MPoint point, PointerBuffer* framebuffer)
 {
+    if (!DrawMouse)
+        return;
+    
     if (windows != NULL)
     {
         FigureOutCorrectMouseImage();

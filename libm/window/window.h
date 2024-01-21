@@ -103,6 +103,7 @@ class Window
     bool Moveable;
     bool Resizeable;
     bool Closeable;
+    bool CaptureMouse;
 
     bool IsActive;
     bool IsFrozen;
@@ -112,6 +113,7 @@ class Window
     bool OldHidden;
     bool OldIsActive;
     bool OldIsFrozen;
+    bool OldCaptureMouse;
 
     uint32_t DefaultBorderColor;
     uint32_t SelectedBorderColor;
@@ -155,6 +157,8 @@ class Window
     void _CheckBorderChange();
 
     void _CheckVisChange();
+
+    void _CheckOtherChange();
 
     void UpdateCheck();
     

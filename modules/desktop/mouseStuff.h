@@ -6,6 +6,7 @@
 #include <libm/math.h>
 
 extern uint32_t CurrentMouseCol;
+extern bool DrawMouse;
 
 void DrawMousePointer(MPoint point, PointerBuffer* framebuffer);
 

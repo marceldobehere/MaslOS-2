@@ -5,6 +5,10 @@
 #include <libm/list/list_basics.h>
 #include <libm/math.h>
 #include <libm/keyboard.h>
+#include <libm/msgPackets/windowObjPacket/windowObjPacket.h>
+#include <libm/msgPackets/keyPacket/keyPacket.h>
+#include <libm/msgPackets/mousePacket/mousePacket.h>
+#include <libm/cstr.h>
 
 extern "C"
 {
@@ -22,14 +26,14 @@ List<void*>* openMallocs = NULL;
 
 int DOOM_SCALE = 2;
 
-bool doomKeyboardTemp[256];
-bool doomMouseTemp[3];
+bool tempMouseBtns[3];
 MPoint tempDoomMousePos;
 
 Window* window;
 
 void DoDoomInit();
-void DoFrame();
+void HandleUpdates();
+bool DoFrame();
 
 
 int main(int argc, char** argv)
@@ -51,19 +55,21 @@ int main(int argc, char** argv)
 
     while (!CheckForWindowClosed(window))
     {
-        // Get Window Update
-        DoFrame();
-        SendWindowFrameBufferUpdate(window);
-        //programWaitMsg();
+        HandleUpdates();
+        if (DoFrame())
+            SendWindowFrameBufferUpdate(window);
     }
     
     return 0;
 }
 
-void DoFrame()
+bool DoFrame()
 {
     if (!window->IsActive)
-        return;
+    {
+        programWaitMsg();
+        return false;
+    }
 
     // if (window == NULL ||
     //     window->Dimensions.width != DOOM_WIDTH * DOOM_SCALE ||
@@ -76,52 +82,24 @@ void DoFrame()
 
     if (envGetKeyState(Key_Escape) && envGetKeyState(Key_GeneralControl))
     {
-        // window->CaptureMouse = false;
-        // setWindow(window);
-        return;
+        window->CaptureMouse = false;
+        setWindow(window);
+        return false;
     }
     else
     {
-        // window->CaptureMouse = true;
-        // setWindow(window);
+        window->CaptureMouse = true;
+        setWindow(window);
     }
 
     uint64_t time = envGetTimeMs();
     if (time < lastTime + 5)
     {
-        //return;
+        return false;
     }
     lastTime = time;
 
-    //MouseClickState
-    //doom_button_t
 
-    //doom_key_t t;
-    // for (int i = 0; i < 256; i++)
-    // {
-    //     if (doomKeyboardTemp[i] != KeyboardScancodeState[i])
-    //     {
-    //         doomKeyboardTemp[i] = KeyboardScancodeState[i];
-    //         doom_key_t key = (doom_key_t)QWERTYKeyboard::Translate((uint8_t)i, false);
-    //         if (doomKeyboardTemp[i])
-    //             doom_key_down(key);
-    //         else
-    //             doom_key_up(key);
-    //     }
-    // }
-
-    // for (int i = 0; i < 3; i++)
-    // {
-    //     if (doomMouseTemp[i] != MouseClickState[i])
-    //     {
-    //         doomMouseTemp[i] = MouseClickState[i];
-    //         doom_button_t button = (doom_button_t)i;
-    //         if (doomMouseTemp[i])
-    //             doom_button_down(button);
-    //         else
-    //             doom_button_up(button);
-    //     }
-    // }
 
     tempDoomMousePos = MPoint(DOOM_WIDTH * DOOM_SCALE / 2 + window->Dimensions.x, DOOM_HEIGHT * DOOM_SCALE / 2 + window->Dimensions.y);
     // if (tempDoomMousePos.x != MousePosition.x || 
@@ -160,9 +138,161 @@ void DoFrame()
             toBuff[indexTo] = toCol;
         }
     }
+
+    return true;
 }
 
+void HandleUpdates()
+{
+    checkWindowManagerStuff();
 
+    // Window Updates
+    {
+        bool updateEverHappened = false;
+        for (int i = 0; i < 500; i++)
+        {
+            GenericMessagePacket* wPacket = msgGetConv(window->CONVO_ID_WM_WINDOW_UPDATE);
+            if (wPacket != NULL)
+            {
+                if (wPacket->FromPID == desktopPID)
+                {
+                    WindowObjectPacket* gotObj = new WindowObjectPacket(wPacket);
+                    Window* partialWindow = gotObj->PartialWindow;
+                    gotObj->Free();
+                    _Free(gotObj);
+
+                    if (partialWindow != NULL)
+                    {
+                        window->UpdateUsingPartialWindow(partialWindow, true, true, true);
+                        updateEverHappened = true;
+                        partialWindow->Free();
+                        _Free(partialWindow);
+                    }
+                }
+                
+                wPacket->Free();
+                _Free(wPacket);
+            }
+            else
+                break;
+        }
+        if (updateEverHappened)
+        {
+            window->UpdateCheck();
+            window->Updates->Clear();
+        }
+    }
+
+    // Keyboard Events
+    for (int i = 0; i < 500; i++)
+    {
+        GenericMessagePacket* mPacket = msgGetConv(window->CONVO_ID_WM_KB_STUFF);
+        if (mPacket != NULL)
+        {
+            if (mPacket->Size >= sizeof(KeyMessagePacket))
+            {
+                KeyMessagePacket* kbMsg = (KeyMessagePacket*)mPacket->Data;
+                
+                if (kbMsg->Type == KeyMessagePacketType::KEY_PRESSED)
+                    doom_key_down((doom_key_t)kbMsg->KeyChar);
+                else if (kbMsg->Type == KeyMessagePacketType::KEY_RELEASE)
+                    doom_key_up((doom_key_t)kbMsg->KeyChar);
+            }
+
+            mPacket->Free();
+            _Free(mPacket);
+        }
+        else
+            break;
+    }
+
+    // Mouse Button Change Events
+    {
+        MouseState* mState = envGetMouseState();
+        if (mState != NULL)
+        {
+            if (tempMouseBtns[0] != mState->Left)
+            {
+                tempMouseBtns[0] = mState->Left;
+                if (tempMouseBtns[0])
+                    doom_button_down(doom_button_t::DOOM_LEFT_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_LEFT_BUTTON);
+            }
+
+            if (tempMouseBtns[1] != mState->Right)
+            {
+                tempMouseBtns[1] = mState->Right;
+                if (tempMouseBtns[1])
+                    doom_button_down(doom_button_t::DOOM_RIGHT_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_RIGHT_BUTTON);
+            }
+
+            if (tempMouseBtns[2] != mState->Middle)
+            {
+                tempMouseBtns[2] = mState->Middle;
+                if (tempMouseBtns[2])
+                    doom_button_down(doom_button_t::DOOM_MIDDLE_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_MIDDLE_BUTTON);
+            }
+            
+            _Free(mState);
+        }
+    }
+
+    // Mouse Move Events
+    {
+        int deltaX = 0;
+        int deltaY = 0;
+        for (int i = 0; i < 500; i++)
+        {
+            GenericMessagePacket* mPacket = msgGetConv(window->CONVO_ID_WM_MOUSE_STUFF);
+            if (mPacket != NULL)
+            {
+                if (mPacket->Size >= sizeof(MouseMessagePacket))
+                {
+                    MouseMessagePacket* mouseMsg = (MouseMessagePacket*)mPacket->Data;
+                    // if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
+                    // {
+                    //     GuiComponentStuff::MouseClickEventInfo info = GuiComponentStuff::MouseClickEventInfo(
+                    //         GuiComponentStuff::Position(
+                    //             mouseMsg->MouseX - window->Dimensions.x, 
+                    //             mouseMsg->MouseY - window->Dimensions.y
+                    //         ),
+                    //         mouseMsg->Left, mouseMsg->Right, mouseMsg->Middle
+                    //     );
+                    //     //screen->MouseClicked(info);
+                    // }
+
+                    // Check for movement
+                    if (mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE)
+                    {
+                        deltaX += mouseMsg->MouseX;
+                        deltaY += mouseMsg->MouseY;
+                    }
+                }
+
+                mPacket->Free();
+                _Free(mPacket);
+            }
+            else
+                break;
+        }
+
+        if (deltaX != 0 || deltaY != 0)
+        {
+            serialPrint("MOUSE MOVE (");
+            serialPrint(to_string(deltaX));
+            serialPrint(", ");
+            serialPrint(to_string(deltaY));
+            serialPrintLn(")");
+
+            doom_mouse_move(deltaX * DOOM_SCALE, deltaY * DOOM_SCALE);
+        }
+    }
+}
 
 
 
@@ -178,8 +308,7 @@ void doomExit(int code)
 
 void doomPrint(const char* str)
 {
-    serialPrint("DOOM> ");
-    serialPrintLn(str);
+    serialPrint(str);
     return;
 }
 
@@ -209,7 +338,7 @@ void doomGetTime(int* s, int* u)
 
 char* doomGetEnv(const char* var)
 {
-    return "bruh:programs/doom/assets";
+    return (char*)"bruh:programs/doom/assets";
 }
 
 
@@ -386,11 +515,8 @@ void DoDoomInit()
 
     doomRunning = true;
 
-    for (int i = 0; i < 256; i++)
-        doomKeyboardTemp[i] = false;
-
     for (int i = 0; i < 3; i++)
-        doomMouseTemp[i] = false;
+        tempMouseBtns[i] = false;
 
     openMallocs = new List<void*>();
 

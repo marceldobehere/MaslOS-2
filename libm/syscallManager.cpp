@@ -102,13 +102,36 @@ uint64_t envGetStartMenuPid()
 }
 
 
+#include <libm/memStuff.h>
+#ifdef _KERNEL_SRC
+#include "../kernel/memory/heap.h"
+#else
+#include <libm/heap/heap.h>
+#endif
+
 MouseState* envGetMouseState()
 {
-    int syscall = SYSCALL_ENV_GET_MOUSE_STATE;
-    MouseState* state;
+    GenericMessagePacket* packet = new GenericMessagePacket(0, MessagePacketType::DESKTOP_GET_MOUSE_STATE);
+    msgSendConv(packet, envGetDesktopPid());
+    GenericMessagePacket* response = msgWaitConv(packet->ConvoID, 1000);
+    packet->Free();
+    _Free(packet);
 
-    asm("int $0x31" : "=a"(state): "a"(syscall));
-    return state;
+    if (response == NULL)
+        return NULL;
+    if (response->Size != sizeof(MouseState))
+    {
+        response->Free();
+        _Free(response);
+        return NULL;
+    }
+
+    MouseState* mouseState = (MouseState*)_Malloc(sizeof(MouseState));
+    _memcpy(response->Data, mouseState, sizeof(MouseState));
+
+    response->Free();
+    _Free(response);
+    return mouseState;
 }
 
 bool envGetKeyState(int scancode)

@@ -22,8 +22,8 @@ namespace Mouse
     uint64_t clickTimes[3] = {0, 0, 0};
     Lockable<Queue<MousePacket>*> mousePackets;
 
-    MPoint IMousePosition;
-    MPoint MousePosition;
+    // MPoint IMousePosition;
+    // MPoint MousePosition;
     bool ShowMouseCursor = true;
 
 
@@ -221,10 +221,10 @@ namespace Mouse
         //startDrag = false;
         //dragWindow = NULL;
 
-        IMousePosition.x = 0;
-        IMousePosition.y = 0;
-        MousePosition.x = 0;
-        MousePosition.y = 0;
+        // IMousePosition.x = 0;
+        // IMousePosition.y = 0;
+        // MousePosition.x = 0;
+        // MousePosition.y = 0;
         // currentMouseImage = NULL;
         // //SaveIntoBuffer(IMousePosition, GlobalRenderer->framebuffer);
         // DrawMousePointer();
@@ -744,20 +744,20 @@ namespace Mouse
         tempM.x = (tempM.x * osData.mouseSensitivity) / 100;
         tempM.y = (tempM.y * osData.mouseSensitivity) / 100;
 
-        IMousePosition.x += tempM.x;
-        IMousePosition.y += tempM.y;
+        //IMousePosition.x += tempM.x;
+        //IMousePosition.y += tempM.y;
         
 
 
-        if(IMousePosition.x < 0)
-            IMousePosition.x = 0;
-        else if(IMousePosition.x > GlobalRenderer->framebuffer->Width - 16)
-            IMousePosition.x = GlobalRenderer->framebuffer->Width - 16;
+        // if(IMousePosition.x < 0)
+        //     IMousePosition.x = 0;
+        // else if(IMousePosition.x > GlobalRenderer->framebuffer->Width - 16)
+        //     IMousePosition.x = GlobalRenderer->framebuffer->Width - 16;
 
-        if(IMousePosition.y < 0)
-            IMousePosition.y = 0;
-        else if(IMousePosition.y > GlobalRenderer->framebuffer->Height - 16)
-            IMousePosition.y = GlobalRenderer->framebuffer->Height - 16;
+        // if(IMousePosition.y < 0)
+        //     IMousePosition.y = 0;
+        // else if(IMousePosition.y > GlobalRenderer->framebuffer->Height - 16)
+        //     IMousePosition.y = GlobalRenderer->framebuffer->Height - 16;
 
 
         //DrawMousePointer();
@@ -810,13 +810,13 @@ namespace Mouse
         MiniMousePacket res;
 
         res.Valid = true;
-        res.X = IMousePosition.x;
-        res.Y = IMousePosition.y;
+        res.X = tempM.x;
+        res.Y = tempM.y;
         res.LeftButton = leftButton;
         res.RightButton = rightButton;
         res.MiddleButton = middleButton;
 
-        MousePosition = IMousePosition;
+        //MousePosition = IMousePosition;
         clicks[0] = leftButton;
         clicks[1] = rightButton;
         clicks[2] = middleButton;
