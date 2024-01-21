@@ -1,5 +1,5 @@
-#include "common_includes.hpp"
 #include "expression.hpp"
+#include "common_includes.hpp"
 #include "vars.hpp"
 
 bool isDigit(const char c) { return c <= '9' && c >= '0'; }
@@ -57,13 +57,13 @@ double getPrec(const char c) {
   }
 }
 
-double parseNum(const char *s, double *des) {
-  long num = 0;
+long parseNum(const char *s, double *des) {
+  double num = 0;
   long index = 0;
   double floating{};
   bool isFloating = false;
 
-  for (index = 0; isDigit(*s); ++index) {
+  for (index = 0; isDigit(*s) || (*s == '.' && isFloating); ++index) {
     if (*(s + 1) == '.' && isFloating == false) {
       isFloating = true;
       floating = 0.1;
@@ -99,18 +99,19 @@ double oper(const char op, double lhs, double rhs) {
   }
 }
 
-token *mkToken(const char type, double val) {
-  token *t = (token *)_Malloc(sizeof(token));
+void *mkToken(const char type, double val) {
+  token *t = new token();
   t->type = type;
   t->val = val;
   return t;
 }
 
-void tokenize(List<token *> *tokens, const char *s) {
-  double index = 0;
+void tokenize(List<void *> *tokens, const char *s) {
+  long index = 0;
   while (*s != '\0') {
     if (isDigit(*s)) {
-      double num = parseNum(s, &num);
+      double num{};
+      s += parseNum(s, &num);
       tokens->Add(mkToken('\0', num));
     } else if (isUnary(*s)) {
       tokens->Add(mkToken(*s, 0));
@@ -125,9 +126,9 @@ void tokenize(List<token *> *tokens, const char *s) {
       s++;
     } else {
       InvalidChar();
+      s++;
     }
-    serialPrint("token: ");
-    serialPrintLn(to_string(tokens->ElementAt(index)->val));
+    serialPrintLn("HERE!");
     index++;
   }
 
@@ -135,30 +136,27 @@ void tokenize(List<token *> *tokens, const char *s) {
 }
 
 double expr(List<token *> *tokens, long prec, long index) {
-  serialPrint("parsing: ");
-  serialPrintChar(tokens->ElementAt(index)->type - '0');
-  serialPrintLn("");
+  serialPrintLn("here!");
   double rhs{};
   double lhs{};
   char op{};
 
-  if (tokens->ElementAt(index)->type == '(') {
+  if (((token *)tokens->ElementAt(index))->type == '(') {
     lhs = expr(tokens, 0, index + 1);
-    index += tokens->ElementAt(index)->val;
-    op = tokens->ElementAt(index)->type;
+    index += ((token *)tokens->ElementAt(index))->val;
+    op = ((token *)tokens->ElementAt(index))->type;
   } else {
-    lhs = tokens->ElementAt(index)->val;
+    lhs = ((token *)tokens->ElementAt(index))->val;
     index++;
-    op = tokens->ElementAt(index)->type;
+    op = ((token *)tokens->ElementAt(index))->type;
   }
 
-  while (isUnary(tokens->ElementAt(index)->type) &&
-         getPrec(tokens->ElementAt(index)->type) >= prec) {
+  while (isUnary(((token *)tokens->ElementAt(index))->type) &&
+         getPrec(((token *)tokens->ElementAt(index))->type) >= prec) {
     index++;
-    rhs = expr(tokens, getPrec(tokens->ElementAt(index)->type) + 1, index);
+    rhs = expr(tokens, getPrec(((token *)tokens->ElementAt(index))->type) + 1,
+               index);
     lhs = oper(op, lhs, rhs);
   }
-
-  serialPrintLn("end of Parsing");
   return lhs;
 }

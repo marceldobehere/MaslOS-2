@@ -10,13 +10,9 @@ void OnButtonClicked(void *func, ButtonComponent *btn,
 
 void OnEqualClicked(void *func, ButtonComponent *btn,
                     MouseClickEventInfo click) {
-  serialPrintLn("now on to tokenizing!");
-  List<token *> *tokens = new List<token *>();
+  List<void *> *tokens = new List<void *>;
   tokenize(tokens, screen->textComp->text);
-  serialPrintLn("now on to parsing!");
-  int res = expr(tokens, 0, 0);
-  serialPrint("on to printing!");
-  serialPrintLn(to_string(res));
+  double res = expr(tokens, 0, 0);
   _Free(screen->textComp->text);
   screen->textComp->text = StrCopy(to_string(res));
 }

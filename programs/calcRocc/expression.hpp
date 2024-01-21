@@ -4,8 +4,8 @@
 
 struct token {
   char type;
-  int val;
+  double val;
 };
 
-void tokenize(List<token *> *, const char *);
-double expr(List<token *> *, long, long);
+void tokenize(List<void *> *, const char *);
+double expr(List<void *> *, long, long);
