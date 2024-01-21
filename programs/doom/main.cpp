@@ -85,14 +85,22 @@ bool DoFrame()
 
     if (envGetKeyState(Key_Escape) && envGetKeyState(Key_GeneralControl))
     {
-        window->CaptureMouse = false;
-        setWindow(window);
+        if (window->CaptureMouse)
+        {
+            updateWindow(window);
+            window->CaptureMouse = false;
+            setWindow(window);
+        }
         return false;
     }
     else
     {
-        window->CaptureMouse = true;
-        setWindow(window);
+        if (!window->CaptureMouse)
+        {
+            updateWindow(window);
+            window->CaptureMouse = true;
+            setWindow(window);
+        }
     }
 
     uint64_t time = envGetTimeMs();
@@ -292,7 +300,7 @@ void HandleUpdates()
             // serialPrint(to_string(deltaY));
             // serialPrintLn(")");
 
-            doom_mouse_move(deltaX * DOOM_SCALE, deltaY * DOOM_SCALE);
+            doom_mouse_move(deltaX * DOOM_SCALE * 2, deltaY * DOOM_SCALE * 2);
         }
     }
 }
