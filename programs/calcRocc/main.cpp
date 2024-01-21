@@ -1,13 +1,5 @@
+#include "common_includes.hpp"
 #include "components.hpp"
-
-#include <libm/cstr.h>
-#include <libm/cstrTools.h>
-#include <libm/gui/guiInstance.h>
-#include <libm/gui/guiStuff/components/button/buttonComponent.h>
-#include <libm/heap/heap.h>
-#include <libm/rendering/Cols.h>
-#include <libm/syscallManager.h>
-#include <libm/wmStuff/wmStuff.h>
 
 using namespace GuiComponentStuff;
 

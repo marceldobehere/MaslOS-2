@@ -1,18 +1,14 @@
+#include "common_includes.hpp"
 #include "expression.hpp"
-
-#include <libm/cstr.h>
-#include <libm/cstrTools.h>
-#include <libm/heap/heap.h>
-#include <libm/memStuff.h>
-#include <libm/syscallManager.h>
+#include "vars.hpp"
 
 bool isDigit(const char c) { return c <= '9' && c >= '0'; }
 
 bool isDigitToken(token t) { return t.type == '\0'; }
 
-int parensLength(const char *s) {
-  int matched = 0;
-  int length = 1;
+long parensLength(const char *s) {
+  long matched = 0;
+  long length = 1;
 
   if (*s == '(') {
     matched++;
@@ -46,7 +42,7 @@ bool isUnary(const char c) {
   }
 }
 
-int getPrec(const char c) {
+double getPrec(const char c) {
   switch (c) {
   case '+':
     return 1;
@@ -61,21 +57,29 @@ int getPrec(const char c) {
   }
 }
 
-int parseNum(const char *s, int *des) {
-  int num = 0;
-  int index = 0;
+double parseNum(const char *s, double *des) {
+  long num = 0;
+  long index = 0;
+  double floating{};
+  bool isFloating = false;
 
   for (index = 0; isDigit(*s); ++index) {
+    if (*(s + 1) == '.' && isFloating == false) {
+      isFloating = true;
+      floating = 0.1;
+    } else if (isFloating == true) {
+      floating *= 10;
+    }
     num *= 10;
     num += *s - '0';
     s++;
   }
 
-  *des = num;
+  *des = num / floating;
   return index;
 }
 
-int oper(const char op, int lhs, int rhs) {
+double oper(const char op, double lhs, double rhs) {
   switch (op) {
   case '+':
     return lhs + rhs;
@@ -89,10 +93,13 @@ int oper(const char op, int lhs, int rhs) {
     case ')':
       return lhs;
     }
+  default:
+    ParseError();
+    return 0;
   }
 }
 
-token *mkToken(const char type, int val) {
+token *mkToken(const char type, double val) {
   token *t = (token *)_Malloc(sizeof(token));
   t->type = type;
   t->val = val;
@@ -100,25 +107,24 @@ token *mkToken(const char type, int val) {
 }
 
 void tokenize(List<token *> *tokens, const char *s) {
-  int index = 0;
+  double index = 0;
   while (*s != '\0') {
     if (isDigit(*s)) {
-      int num{};
-      s += parseNum(s, &num);
+      double num = parseNum(s, &num);
       tokens->Add(mkToken('\0', num));
     } else if (isUnary(*s)) {
-
       tokens->Add(mkToken(*s, 0));
       s++;
     } else if (*s == '(') {
-
       tokens->Add(mkToken('(', parensLength(s)));
       s++;
     } else if (*s == ')') {
       tokens->Add(mkToken(')', 0));
       s++;
-    } else {
+    } else if (*s == ' ') {
       s++;
+    } else {
+      InvalidChar();
     }
     serialPrint("token: ");
     serialPrintLn(to_string(tokens->ElementAt(index)->val));
@@ -128,13 +134,12 @@ void tokenize(List<token *> *tokens, const char *s) {
   tokens->Add(mkToken(0, 0));
 }
 
-int expr(List<token *> *tokens, int prec, int index) {
+double expr(List<token *> *tokens, long prec, long index) {
   serialPrint("parsing: ");
   serialPrintChar(tokens->ElementAt(index)->type - '0');
-  serialPrint(to_string(tokens->ElementAt(index)->val));
   serialPrintLn("");
-  int rhs{};
-  int lhs{};
+  double rhs{};
+  double lhs{};
   char op{};
 
   if (tokens->ElementAt(index)->type == '(') {

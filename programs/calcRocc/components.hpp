@@ -1,5 +1,5 @@
-#pragma once 
+#pragma once
 
-#include <libm/gui/guiInstance.h>
+#include "common_includes.hpp"
 
 void style(GuiInstance *guiInstance);

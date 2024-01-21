@@ -1,6 +1,6 @@
 #pragma once
 
-#include <libm/list/list_all.h>
+#include "common_includes.hpp"
 
 struct token {
   char type;
@@ -8,4 +8,4 @@ struct token {
 };
 
 void tokenize(List<token *> *, const char *);
-int expr(List<token *> *, int, int);
+double expr(List<token *> *, long, long);

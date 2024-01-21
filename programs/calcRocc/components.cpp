@@ -1,9 +1,5 @@
+#include "common_includes.hpp"
 #include "vars.hpp"
-#include "functions.hpp"
-
-#include <libm/cstr.h>
-#include <libm/cstrTools.h>
-#include <libm/wmStuff/wmStuff.h>
 
 void style(GuiInstance *guiInstance) {
   // + button
