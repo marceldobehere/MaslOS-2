@@ -48,16 +48,13 @@ double pow(double x, int n)
 
 double sin(double x)
 {
-    double res;
-    __asm__("fsin" : "=t"(res) : "0"(x));
-    return res;
+    while(x > 6.2831) x -= 6.2831;
+    while(x < 0) x += 6.2831;
+    return (double)(x - (pow(x, 3)/6) + (pow(x, 5)/120) - (pow(x, 7)/5040) + (pow(x, 9)/362880) - (pow(x,11)/39916800) + (pow(x,13)/6227020800) - (pow(x,15)/1307674368000) + (pow(x,17)/355687428096000));
 }
-
 double cos(double x)
 {
-    double res;
-    __asm__("fcos" : "=t"(res) : "0"(x));
-    return res;
+    return sin(1.570796 - x);
 }
 
 double tan(double x)

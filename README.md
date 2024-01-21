@@ -13,34 +13,34 @@ And it mostly works on real hardware.
 
 ## Features
  + Basics
-   - Scheduler (working)
-   - Elf loading (working, rarely crashes at the start for no apparent reason?)
-   - User Space (working)
-   - Inter Process Communication (working)
-   - Stdio using IPC (working)
+   - Scheduler 
+   - Elf loading
+   - User Space 
+   - Inter Process Communication
+   - Stdio using IPC
  + GUI
-   - MaslOS GUI Framework port (working)
-   - Mouse/Keyboard interaction (working)
-   - MaslOS Desktop / WM (mostly working)
-   - Taskbar (mostly working)
-   - Start Menu (mostly working)
+   - MaslOS GUI Framework port
+   - Mouse/Keyboard interaction 
+   - MaslOS Desktop / WM 
+   - Taskbar 
+   - Start Menu
  + Apps
-   - Tic Tac Toe (working)
-   - Flappy Rocc (working)
+   - Tic Tac Toe
+   - Flappy Rocc 
    - Snake (soon)
-   - Terminal (basics be working)
-   - Explorer (working)
-   - Image Viewer (working)
-   + MAAB interpreter (working)
+   - Terminal 
+   - Explorer 
+   - Image Viewer 
+   + MAAB interpreter
      - Pong
      - Maalbrot
-   - Notepad (basics be working)
+   - Notepad
    - Paint (mostly working)
-   - Doom (it exists, but no input yet)
+   - Doom (To escape mouse capture, hold ESC and LSHIFT)
    - MicroEdit (somewhat working)
    - 3D Cube Renderer
    + Dialogs
-     - Open File Dialog (working)
+     - Open File Dialog 
      - Save File Dialog (soon)
      - Generic Information Dialog (soon)
      - Generic Text Input Dialog (soon)
@@ -61,6 +61,7 @@ There also some debug shortcuts:
  - Press F6 to launch a mini window test
  - Press ALT + F4 to force close a program
  
+
 
 ## How to build (Linux)
  - Install `qemu-system` if you haven't.
