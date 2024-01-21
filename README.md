@@ -36,7 +36,7 @@ And it mostly works on real hardware.
      - Maalbrot
    - Notepad
    - Paint (mostly working)
-   - Doom (To escape mouse capture, hold ESC and LSHIFT)
+   - Doom
    - MicroEdit (somewhat working)
    - 3D Cube Renderer
    + Dialogs
