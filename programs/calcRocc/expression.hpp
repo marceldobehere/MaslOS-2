@@ -7,4 +7,5 @@ struct token {
   int val;
 };
 
-int expr(List<token> &, int prec, int index);
+void tokenize(List<token *> *, const char *);
+int expr(List<token *> *, int, int);
