@@ -156,7 +156,7 @@ double parse(List<void *> *tokens, long prec, long index) {
   while (isUnary(((Token *)tokens->ElementAt(index))->type) &&
          getPrec(((Token *)tokens->ElementAt(index))->type) >= prec) {
     index++;
-    rhs = parse(tokens, getPrec(((token *)tokens->ElementAt(index))->type) + 1,
+    rhs = parse(tokens, getPrec(((Token*)tokens->ElementAt(index))->type) + 1,
                 index);
     lhs = oper(op, lhs, rhs);
   }
