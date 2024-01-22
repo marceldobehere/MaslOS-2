@@ -27,7 +27,6 @@ And it mostly works on real hardware.
  + Apps
    - Tic Tac Toe
    - Flappy Rocc 
-   - Snake (soon)
    - Terminal 
    - Explorer 
    - Image Viewer 
@@ -37,8 +36,10 @@ And it mostly works on real hardware.
    - Notepad
    - Paint (mostly working)
    - Doom
-   - MicroEdit (somewhat working)
-   - 3D Cube Renderer
+   - MicroEdit (has some issues)
+   - 3D Cube Renderer (has some issues)
+   - CalcRocc (has some issues)
+   - Snake (soon)
    + Dialogs
      - Open File Dialog 
      - Save File Dialog (soon)
