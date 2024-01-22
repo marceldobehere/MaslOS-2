@@ -12,7 +12,7 @@ void OnEqualClicked(void *func, ButtonComponent *btn,
                     MouseClickEventInfo click) {
   List<void *> *tokens = new List<void *>;
   tokenize(tokens, screen->textComp->text);
-  double res = expr(tokens, 0, 0);
+  double res = parse(tokens, 0, 0);
   _Free(screen->textComp->text);
   screen->textComp->text = StrCopy(to_string(res));
 }

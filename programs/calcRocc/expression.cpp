@@ -4,7 +4,7 @@
 
 bool isDigit(const char c) { return c <= '9' && c >= '0'; }
 
-bool isDigitToken(token t) { return t.type == '\0'; }
+bool isDigitToken(Token t) { return t.type == '\0'; }
 
 long parensLength(const char *s) {
   long matched = 0;
@@ -58,25 +58,31 @@ double getPrec(const char c) {
 }
 
 long parseNum(const char *s, double *des) {
-  double num = 0;
+  double num = 0.0;
   long index = 0;
-  double floating{};
-  bool isFloating = false;
+  long floatingCount = 0;
+  double floatingNum = 0.0;
 
-  for (index = 0; isDigit(*s) || (*s == '.' && isFloating); ++index) {
-    if (*(s + 1) == '.' && isFloating == false) {
-      isFloating = true;
-      floating = 0.1;
-    } else if (isFloating == true) {
-      floating *= 10;
+  for (index = 0; isDigit(*s) || *s == '.'; ++index) {
+    if (*s == '.') {
+      floatingNum = 1.0;
+      s++;
+      index++;
+      floatingCount += parseNum(s, &floatingNum);
+      break;
     }
-    num *= 10;
-    num += *s - '0';
+
+    num *= 10.0;
+    num += (double)(*s - '0');
     s++;
   }
 
-  *des = num / floating;
-  return index;
+  for (int i = floatingCount; i; i--) {
+    floatingNum /= 10;
+  }
+
+  *des = num + floatingNum;
+  return index + floatingCount;
 }
 
 double oper(const char op, double lhs, double rhs) {
@@ -100,17 +106,16 @@ double oper(const char op, double lhs, double rhs) {
 }
 
 void *mkToken(const char type, double val) {
-  token *t = new token();
+  Token *t = new Token();
   t->type = type;
   t->val = val;
   return t;
 }
 
 void tokenize(List<void *> *tokens, const char *s) {
-  long index = 0;
   while (*s != '\0') {
     if (isDigit(*s)) {
-      double num{};
+      double num = 0.0;
       s += parseNum(s, &num);
       tokens->Add(mkToken('\0', num));
     } else if (isUnary(*s)) {
@@ -128,34 +133,31 @@ void tokenize(List<void *> *tokens, const char *s) {
       InvalidChar();
       s++;
     }
-    serialPrintLn("HERE!");
-    index++;
   }
 
   tokens->Add(mkToken(0, 0));
 }
 
-double expr(List<token *> *tokens, long prec, long index) {
-  serialPrintLn("here!");
+double parse(List<void *> *tokens, long prec, long index) {
   double rhs{};
   double lhs{};
   char op{};
 
-  if (((token *)tokens->ElementAt(index))->type == '(') {
-    lhs = expr(tokens, 0, index + 1);
-    index += ((token *)tokens->ElementAt(index))->val;
-    op = ((token *)tokens->ElementAt(index))->type;
+  if (((Token *)tokens->ElementAt(index))->type == '(') {
+    lhs = parse(tokens, 0, index + 1);
+    index += ((Token *)tokens->ElementAt(index))->val;
+    op = ((Token *)tokens->ElementAt(index))->type;
   } else {
-    lhs = ((token *)tokens->ElementAt(index))->val;
+    lhs = ((Token *)tokens->ElementAt(index))->val;
     index++;
-    op = ((token *)tokens->ElementAt(index))->type;
+    op = ((Token *)tokens->ElementAt(index))->type;
   }
 
-  while (isUnary(((token *)tokens->ElementAt(index))->type) &&
-         getPrec(((token *)tokens->ElementAt(index))->type) >= prec) {
+  while (isUnary(((Token *)tokens->ElementAt(index))->type) &&
+         getPrec(((Token *)tokens->ElementAt(index))->type) >= prec) {
     index++;
-    rhs = expr(tokens, getPrec(((token *)tokens->ElementAt(index))->type) + 1,
-               index);
+    rhs = parse(tokens, getPrec(((token *)tokens->ElementAt(index))->type) + 1,
+                index);
     lhs = oper(op, lhs, rhs);
   }
   return lhs;
