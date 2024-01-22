@@ -32,7 +32,7 @@ Window* window;
 void DoDoomInit();
 void HandleWinUpdates();
 void HandleUpdates();
-bool DoFrame();
+bool DoFrame(bool force);
 
 using namespace STDIO;
 
@@ -55,27 +55,30 @@ int main(int argc, char** argv)
 
     DoDoomInit();
 
+    DoFrame(true);
+    SendWindowFrameBufferUpdate(window);
+
     while (!CheckForWindowClosed(window))
     {
-        if (DoFrame())
+        if (DoFrame(false))
             SendWindowFrameBufferUpdate(window);
     }
     
     return 0;
 }
 
-bool DoFrame()
+bool DoFrame(bool force)
 {
     HandleWinUpdates();
 
-    if (!window->IsActive || !window->IsCapturing)
+    if (!force && (!window->IsActive || !window->IsCapturing))
     {
         programWait(300);
         return false;
     }
 
     uint64_t time = envGetTimeMs();
-    if (time < lastTime + 5)
+    if (!force && (time < lastTime + 5))
     {
         return false;
     }
