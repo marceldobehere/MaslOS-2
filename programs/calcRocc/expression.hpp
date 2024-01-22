@@ -2,10 +2,11 @@
 
 #include "common_includes.hpp"
 
-struct Token {
-  char type;
-  double val;
+struct Token
+{
+    char type;
+    double val;
 };
 
-void tokenize(List<void *> *, const char *);
-double parse(List<void *> *, long, long);
+bool tokenize(List<void *> *, const char *);
+bool parse(List<void *> *, long, long, double *);

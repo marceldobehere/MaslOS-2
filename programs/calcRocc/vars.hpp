@@ -15,12 +15,6 @@ extern List<BaseComponent *> *keypad;
 extern TextFieldComponent *screen;
 
 // actions
-extern void OnButtonClicked(void *func, ButtonComponent *btn,
-                            MouseClickEventInfo click);
-
-extern void OnEqualClicked(void *func, ButtonComponent *btn,
-                           MouseClickEventInfo click);
-
-extern void ParseError();
-
-extern void InvalidChar();
+void OnButtonClicked(void *func, ButtonComponent *btn, MouseClickEventInfo click);
+void OnEqualClicked(void *func, ButtonComponent *btn, MouseClickEventInfo click);
+bool SpecialKeyHandler(void* bruh, GuiComponentStuff::BaseComponent* comp, GuiComponentStuff::KeyHitEventInfo info);
