@@ -47,6 +47,9 @@ namespace STDIO
                 packet->Free();
                 _Free(packet);
             }
+            parent->Free();
+            _Free(parent);
+            parent = NULL;
 
             // failed to connect with parent
             if (needLoggerWindow)
@@ -57,14 +60,10 @@ namespace STDIO
 
                 if (newPid == 0)
                 {
-                    parent->pid = 0;
-                    parent->convoId = 0;
                     Panic("Failed to start logger!", true);
                 }
                 else
                 {
-                    parent->Free();
-                    _Free(parent);
                     parent = initStdio(newPid);
                 }
             }
@@ -92,6 +91,9 @@ namespace STDIO
                 packet->Free();
                 _Free(packet);
             }
+            parent->Free();
+            _Free(parent);
+            parent = NULL;
 
             temp->Free();
             _Free(temp);
@@ -147,6 +149,9 @@ namespace STDIO
     // Print to any
     void print(const char* str, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+            
         GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, (uint8_t*)str, StrLen(str));
         msgSendConv(packet, other->pid, other->convoId);
         packet->Free();
@@ -155,6 +160,9 @@ namespace STDIO
     
     void print(char chr, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         char str[2];
         str[0] = chr;
         str[1] = '\0';
@@ -162,15 +170,24 @@ namespace STDIO
     }
     void println(StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         print("\n\r", other);
     }
     void println(char chr, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         print(chr, other);
         println(other);
     }
     void println(const char* str, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         print(str, other);
         println(other);
     }
@@ -196,6 +213,9 @@ namespace STDIO
 
     void printlnf(StdioInst* other, const char* str, ...)
     {
+        if (other == NULL)
+            return;
+
         va_list arg;
         va_start(arg, str);
         _printf(str, arg, other);
@@ -205,6 +225,9 @@ namespace STDIO
 
     void printf(StdioInst* other, const char* str, ...)
     {
+        if (other == NULL)
+            return;
+
         va_list arg;
         va_start(arg, str);
         _printf(str, arg, other);
@@ -225,6 +248,9 @@ namespace STDIO
     // %% -> %
     void _printf(const char* str, va_list arg, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         int len = StrLen(str);
 
         for (int i = 0; i < len; i++)
@@ -315,6 +341,9 @@ namespace STDIO
     // Clear any
     void clear(StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         print("\033[2J", other);
     }
 
@@ -337,6 +366,9 @@ namespace STDIO
 
     void CheckReadQueue(StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         while (true)
         {
             GenericMessagePacket* packet = msgGetConv(other->convoId);
@@ -361,6 +393,9 @@ namespace STDIO
     // Read from any
     int read(StdioInst* other)
     {
+        if (other == NULL)
+            return - 1;
+
         CheckReadQueue(other);
         if (other->readQueue->GetCount() > 0)
             return other->readQueue->Dequeue();
@@ -369,12 +404,18 @@ namespace STDIO
 
     bool available(StdioInst* other)
     {
+        if (other == NULL)
+            return false;
+
         CheckReadQueue(other);
         return other->readQueue->GetCount() > 0;
     }
 
     int bytesAvailable(StdioInst* other)
     {
+        if (other == NULL)
+            return 0;
+
         CheckReadQueue(other);
         return other->readQueue->GetCount();
     }
@@ -397,6 +438,9 @@ namespace STDIO
     
     void sendBytes(uint8_t* bytes, uint64_t size, StdioInst* other)
     {
+        if (other == NULL)
+            return;
+
         GenericMessagePacket* packet = new GenericMessagePacket(MessagePacketType::GENERIC_DATA, bytes, size);
         msgSendConv(packet, other->pid, other->convoId);
         packet->Free();
@@ -407,6 +451,9 @@ namespace STDIO
 
     uint64_t readBytes(uint8_t* bytes, uint64_t size, StdioInst* other)
     {
+        if (other == NULL)
+            return 0;
+
         for (int i = 0; i < size; i++)
         {
             while (true)
@@ -427,6 +474,9 @@ namespace STDIO
 
     const char* readLine(StdioInst* other)
     {
+        if (other == NULL)
+            return NULL;
+
         List<char>* line = new List<char>();
         while (true)
         {

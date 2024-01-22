@@ -18,8 +18,8 @@
 
 namespace Mouse
 {
-    bool clicks[3] = {false, false, false};
-    uint64_t clickTimes[3] = {0, 0, 0};
+    //bool clicks[3] = {false, false, false};
+    //uint64_t clickTimes[3] = {0, 0, 0};
     Lockable<Queue<MousePacket>*> mousePackets;
 
     // MPoint IMousePosition;
@@ -208,11 +208,11 @@ namespace Mouse
 
         mousePackets = Lockable<Queue<MousePacket>*>(new Queue<MousePacket>(4));
 
-        for (int i = 0; i < 3; i++)
-        {
-            clicks[i] = false;
-            clickTimes[i] = PIT::TimeSinceBootMS();
-        }
+        // for (int i = 0; i < 3; i++)
+        // {
+        //     clicks[i] = false;
+        //     clickTimes[i] = PIT::TimeSinceBootMS();
+        // }
 
        
         
@@ -817,9 +817,9 @@ namespace Mouse
         res.MiddleButton = middleButton;
 
         //MousePosition = IMousePosition;
-        clicks[0] = leftButton;
-        clicks[1] = rightButton;
-        clicks[2] = middleButton;
+        // clicks[0] = leftButton;
+        // clicks[1] = rightButton;
+        // clicks[2] = middleButton;
 
         // if(tClicks[0] || tClicks[1] || tClicks[2])
         //     HandleClick(tClicks[0], tClicks[1], tClicks[2]);

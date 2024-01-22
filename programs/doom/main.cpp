@@ -1,7 +1,6 @@
 #include <libm/syscallManager.h>
 #include <libm/cstrTools.h>
 #include <libm/wmStuff/wmStuff.h>
-#include <libm/gui/guiInstance.h>
 #include <libm/list/list_basics.h>
 #include <libm/math.h>
 #include <libm/keyboard.h>
@@ -69,7 +68,7 @@ bool DoFrame()
 {
     HandleWinUpdates();
 
-    if (!window->IsActive)
+    if (!window->IsActive || !window->IsCapturing)
     {
         programWait(300);
         return false;
@@ -181,46 +180,12 @@ void HandleUpdates()
             break;
     }
 
-    // Mouse Button Change Events
-    {
-        MouseState* mState = envGetMouseState();
-        if (mState != NULL)
-        {
-            if (tempMouseBtns[0] != mState->Left)
-            {
-                tempMouseBtns[0] = mState->Left;
-                if (tempMouseBtns[0])
-                    doom_button_down(doom_button_t::DOOM_LEFT_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_LEFT_BUTTON);
-            }
-
-            if (tempMouseBtns[1] != mState->Right)
-            {
-                tempMouseBtns[1] = mState->Right;
-                if (tempMouseBtns[1])
-                    doom_button_down(doom_button_t::DOOM_RIGHT_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_RIGHT_BUTTON);
-            }
-
-            if (tempMouseBtns[2] != mState->Middle)
-            {
-                tempMouseBtns[2] = mState->Middle;
-                if (tempMouseBtns[2])
-                    doom_button_down(doom_button_t::DOOM_MIDDLE_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_MIDDLE_BUTTON);
-            }
-            
-            _Free(mState);
-        }
-    }
-
-    // Mouse Move Events
+    // Mouse Events
     {
         int deltaX = 0;
         int deltaY = 0;
+        bool lastBtns[3] = {false, false, false};
+
         for (int i = 0; i < 500; i++)
         {
             GenericMessagePacket* mPacket = msgGetConv(window->CONVO_ID_WM_MOUSE_STUFF);
@@ -229,17 +194,6 @@ void HandleUpdates()
                 if (mPacket->Size >= sizeof(MouseMessagePacket))
                 {
                     MouseMessagePacket* mouseMsg = (MouseMessagePacket*)mPacket->Data;
-                    // if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
-                    // {
-                    //     GuiComponentStuff::MouseClickEventInfo info = GuiComponentStuff::MouseClickEventInfo(
-                    //         GuiComponentStuff::Position(
-                    //             mouseMsg->MouseX - window->Dimensions.x, 
-                    //             mouseMsg->MouseY - window->Dimensions.y
-                    //         ),
-                    //         mouseMsg->Left, mouseMsg->Right, mouseMsg->Middle
-                    //     );
-                    //     //screen->MouseClicked(info);
-                    // }
 
                     // Check for movement
                     if (mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE)
@@ -247,6 +201,10 @@ void HandleUpdates()
                         deltaX += mouseMsg->MouseX;
                         deltaY += mouseMsg->MouseY;
                     }
+
+                    lastBtns[0] = mouseMsg->Left;
+                    lastBtns[1] = mouseMsg->Right;
+                    lastBtns[2] = mouseMsg->Middle;
                 }
 
                 mPacket->Free();
@@ -256,6 +214,7 @@ void HandleUpdates()
                 break;
         }
 
+        // Movement
         if (deltaX != 0 || deltaY != 0)
         {
             // serialPrint("MOUSE MOVE (");
@@ -265,6 +224,36 @@ void HandleUpdates()
             // serialPrintLn(")");
 
             doom_mouse_move(deltaX * DOOM_SCALE * 2, deltaY * DOOM_SCALE * 2);
+        }
+
+        // Buttons
+        {
+            if (tempMouseBtns[0] != lastBtns[0])
+            {
+                tempMouseBtns[0] = lastBtns[0];
+                if (tempMouseBtns[0])
+                    doom_button_down(doom_button_t::DOOM_LEFT_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_LEFT_BUTTON);
+            }
+
+            if (tempMouseBtns[1] != lastBtns[1])
+            {
+                tempMouseBtns[1] = lastBtns[1];
+                if (tempMouseBtns[1])
+                    doom_button_down(doom_button_t::DOOM_RIGHT_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_RIGHT_BUTTON);
+            }
+
+            if (tempMouseBtns[2] != lastBtns[2])
+            {
+                tempMouseBtns[2] = lastBtns[2];
+                if (tempMouseBtns[2])
+                    doom_button_down(doom_button_t::DOOM_MIDDLE_BUTTON);
+                else
+                    doom_button_up(doom_button_t::DOOM_MIDDLE_BUTTON);
+            }
         }
     }
 }

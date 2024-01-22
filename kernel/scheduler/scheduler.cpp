@@ -131,8 +131,15 @@ namespace Scheduler
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
             osTask* task = osTasks.obj->ElementAt(i);
-            if (task->waitTillMessage && (task->messages->GetCount() != 0 || task->taskTimeoutDone < PIT::TimeSinceBootMS()))
+            if (task->waitTillMessage && ((task->messages->GetCount() != 0) || (task->taskTimeoutDone < PIT::TimeSinceBootMS())))
             {
+                // if (task != DesktopTask && task != StartMenuTask)
+                // {
+                //     if (task->messages->GetCount() != 0)
+                //         Serial::Writelnf("> TASK %d GOT MESSAGE", i);
+                //     else
+                //         Serial::Writelnf("> TASK %d WAIT TIMED OUT", i);
+                // }
                 task->waitTillMessage = false;
                 task->taskTimeoutDone = 0;
             }

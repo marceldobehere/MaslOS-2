@@ -461,27 +461,38 @@ uint64_t DrawFrame()
                     if (MousePosition.y + 16 >= actualScreenFramebuffer->Height)
                         MousePosition.y = actualScreenFramebuffer->Height - 16;
 
-                    bool handled = HandleMouseClickPacket(mouseMsg);
+                    mouseMsg->MouseX = MousePosition.x;
+                    mouseMsg->MouseY = MousePosition.y;
 
-                    if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK && !handled)
+                    bool handled = HandleMouseClickPacket(mouseMsg);
+                    // serialPrint("> M HANDLED: ");
+                    // serialPrint(to_string(handled));
+                    // serialPrint(", CLICK: ");
+                    // serialPrintLn(to_string(mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK));
+                    
+                    
+
+                    if (handled && activeWindow != NULL)
+                    {
+                        windowsUpdated->AddIfUnique(activeWindow);
+                    }
+                    else if (/*mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK &&*/ !handled)
                     {   
                         if (activeWindow != NULL)
                         {
+                            if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK && activeWindow->CaptureMouse)
+                                DrawMouse = false;
+                            
                             GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::MOUSE_EVENT, msg->Data, sizeof(MouseMessagePacket));
                             msgSendConv(msgNew, activeWindow->PID, activeWindow->CONVO_ID_WM_MOUSE_STUFF);
                             msgNew->Free();
                             _Free(msgNew);
                         }
                     }
-
-                    if (handled && activeWindow != NULL)
-                    {
-                        windowsUpdated->AddIfUnique(activeWindow);
-                    }
                 }
                 else
                 {
-                    if (mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE && !DrawMouse)
+                    if (/*mouseMsg->Type == MouseMessagePacketType::MOUSE_MOVE &&*/ !DrawMouse)
                     {
                         if (activeWindow != NULL)
                         {
@@ -543,38 +554,14 @@ uint64_t DrawFrame()
                 }
                 else if (activeWindow != NULL)
                 {
+                    if (activeWindow != NULL && activeWindow->CaptureMouse)
+                        DrawMouse = false;
+
                     GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));
                     msgSendConv(msgNew, activeWindow->PID, activeWindow->CONVO_ID_WM_KB_STUFF);
                     msgNew->Free();
                     _Free(msgNew);
                 }
-
-                // if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED)
-                // {
-                //     actualScreenRenderer->CursorPosition.x = 0;
-                //     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
-
-                //     actualScreenRenderer->Clear(
-                //         0, actualScreenRenderer->CursorPosition.y, 
-                //         160, actualScreenRenderer->CursorPosition.y + 16, 
-                //         Colors.black
-                //     );
-
-                //     actualScreenRenderer->Println("> KEY {} HELD", to_string((int)keyMsg->Scancode), Colors.white);
-                // }                
-                // else if (keyMsg->Type == KeyMessagePacketType::KEY_RELEASE)
-                // {
-                //     actualScreenRenderer->CursorPosition.x = 0;
-                //     actualScreenRenderer->CursorPosition.y = actualScreenFramebuffer->Height - 128;
-
-                //     actualScreenRenderer->Clear(
-                //         0, actualScreenRenderer->CursorPosition.y, 
-                //         160, actualScreenRenderer->CursorPosition.y + 16, 
-                //         Colors.black
-                //     );
-
-                //     actualScreenRenderer->Println("> KEY {} RELEASED", to_string((int)keyMsg->Scancode), Colors.white);
-                // }
             }
         }
         else
@@ -839,10 +826,18 @@ uint64_t DrawFrame()
 
         {
             window->CurrentTitleBackgroundColor = window->DefaultTitleBackgroundColor;
+
             bool oldActive = window->IsActive;
             window->IsActive = (window == activeWindow);
             if (oldActive != window->IsActive)
                 windowsUpdated->AddIfUnique(window);
+        
+            bool oldCapture = window->IsCapturing;
+            window->IsCapturing = (window == activeWindow) && window->CaptureMouse && !DrawMouse;
+            if (oldCapture != window->IsCapturing)
+                windowsUpdated->AddIfUnique(window);
+                
+            
             if (window == activeWindow)
             {
                 window->CurrentTitleColor = window->SelectedTitleColor;
@@ -946,14 +941,24 @@ uint64_t DrawFrame()
         Taskbar::Scounter = 10000;
     }
 
+    // {
+    //     bool tDrawMouse = (activeWindow == NULL) || !activeWindow->CaptureMouse;
+    //     if (DrawMouse != tDrawMouse)
+    //     {
+    //         DrawMouse = tDrawMouse;
+    //         doUpdate = true;
+    //     }
+    // }
+    if (activeWindow == NULL && !DrawMouse)
     {
-        bool tDrawMouse = (activeWindow == NULL) || !activeWindow->CaptureMouse;
-        if (DrawMouse != tDrawMouse)
-        {
-            DrawMouse = tDrawMouse;
-            doUpdate = true;
-        }
+        DrawMouse = true;
+        doUpdate = true;
     }
+    // else if (activeWindow != NULL && !DrawMouse)
+    // {
+    //     DrawMouse = true;
+    //     doUpdate = true;
+    // }
 
     if (!doUpdate)
         return 0;

@@ -23,6 +23,7 @@ Window::Window()
     IsActive = false;
     IsFrozen = false;
     CaptureMouse = false;
+    IsCapturing = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -37,6 +38,7 @@ Window::Window()
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
     OldCaptureMouse = CaptureMouse;
+    OldIsCapturing = IsCapturing;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -76,6 +78,7 @@ Window::Window(uint64_t id)
     IsActive = false;
     IsFrozen = false;
     CaptureMouse = false;
+    IsCapturing = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -89,6 +92,7 @@ Window::Window(uint64_t id)
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
     OldCaptureMouse = CaptureMouse;
+    OldIsCapturing = IsCapturing;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -133,6 +137,7 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     IsActive = false;
     IsFrozen = false;
     CaptureMouse = false;
+    IsCapturing = false;
 
     DefaultBorderColor = Colors.dgray;
     SelectedBorderColor = Colors.bgreen;
@@ -147,6 +152,7 @@ Window::Window(int x, int y, int width, int height, const char* title, uint64_t 
     OldIsActive = IsActive;
     OldIsFrozen = IsFrozen;
     OldCaptureMouse = CaptureMouse;
+    OldIsCapturing = IsCapturing;
 
     CurrentBorderColor = DefaultBorderColor;
     CurrentTitleColor = DefaultTitleColor;
@@ -364,6 +370,13 @@ void Window::_CheckOtherChange()
     if (CaptureMouse != OldCaptureMouse)
     {
         OldCaptureMouse = CaptureMouse;
+        Updates->Add(WindowUpdate(0,0,1,1));
+    }
+
+    if (IsCapturing != OldIsCapturing)
+    {
+        OldIsCapturing = IsCapturing;
+        Updates->Add(WindowUpdate(0,0,1,1));
     }
 }
 
@@ -450,6 +463,7 @@ void Window::UpdateUsingPartialWindow(Window* window, bool updateId, bool update
     {
         // IsActive
         IsActive = window->IsActive;
+        IsCapturing = window->IsCapturing;
     }
 
     // if (doUpdateCheck)

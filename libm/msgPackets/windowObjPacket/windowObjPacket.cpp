@@ -96,6 +96,9 @@ WindowObjectPacket::WindowObjectPacket(GenericMessagePacket* genericMessagePacke
     // bool CaptureMouse
     PartialWindow->CaptureMouse = *(uint8_t*)tBuffer;
     tBuffer += 1;
+    // bool IsCapturing
+    PartialWindow->IsCapturing = *(uint8_t*)tBuffer;
+    tBuffer += 1;
 
     // uint32_t DefaultBorderColor;
     PartialWindow->DefaultBorderColor = *(uint32_t*)tBuffer;
@@ -177,6 +180,8 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     // bool IsFrozen
     count += 1;
     // bool CaptureMouse
+    count += 1;
+    // bool IsCapturing
     count += 1;
     // uint32_t DefaultBorderColor;
     count += 4;
@@ -266,6 +271,9 @@ GenericMessagePacket* WindowObjectPacket::ToGenericMessagePacket()
     tBuffer += 1;
     // bool CaptureMouse
     *(uint8_t*)tBuffer = PartialWindow->CaptureMouse;
+    tBuffer += 1;
+    // bool IsCapturing
+    *(uint8_t*)tBuffer = PartialWindow->IsCapturing;
     tBuffer += 1;
 
     // uint32_t DefaultBorderColor;

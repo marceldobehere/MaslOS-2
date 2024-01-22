@@ -1,6 +1,7 @@
 #include "main.h"
 #include <libm/gui/guiStuff/components/text/textComponent.h>
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>
+#include <libm/cstr.h>
 
 using namespace GuiComponentStuff;
 
@@ -251,7 +252,7 @@ int main(int argc, char** argv)
     {
         // Update and render the frame
         gui->Render(true);
-
+     
         // Wait until we get a message
         programWaitMsg();
     }

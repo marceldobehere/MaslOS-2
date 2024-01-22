@@ -925,7 +925,6 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
             mousePacket.PrevMiddle = lastMousePacket.MiddleButton;
 
             bool clickDone = false;
-
             if (packet.LeftButton && !lastMousePacket.LeftButton)
                 clickDone = true;
             if (packet.RightButton && !lastMousePacket.RightButton)
@@ -1782,7 +1781,7 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_WAIT_MSG)
     {
         Scheduler::CurrentRunningTask->waitTillMessage = true;
-        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 10;
+        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 200;
         Scheduler::CurrentRunningTask->justYielded = true;
 
         Scheduler::SchedulerInterrupt(frame);

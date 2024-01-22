@@ -107,6 +107,7 @@ class Window
 
     bool IsActive;
     bool IsFrozen;
+    bool IsCapturing;
 
     bool OldShowTitleBar;
     bool OldShowBorder;
@@ -114,6 +115,7 @@ class Window
     bool OldIsActive;
     bool OldIsFrozen;
     bool OldCaptureMouse;
+    bool OldIsCapturing;
 
     uint32_t DefaultBorderColor;
     uint32_t SelectedBorderColor;

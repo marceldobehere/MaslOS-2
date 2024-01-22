@@ -156,18 +156,6 @@ void GuiInstance::Update()
         updateWindow(window);
     }
 
-    // Update Mouse Position
-    {
-        MouseState* temp = envGetMouseState();
-        if (temp != NULL)
-        {
-            mouseState = *temp;
-            mouseState.MouseX -= window->Dimensions.x;
-            mouseState.MouseY -= window->Dimensions.y;
-            _Free(temp);
-        }
-    }
-    
     // Keyboard Events
     for (int i = 0; i < 500; i++)
     {
@@ -198,6 +186,15 @@ void GuiInstance::Update()
             if (mPacket->Size >= sizeof(MouseMessagePacket))
             {
                 MouseMessagePacket* mouseMsg = (MouseMessagePacket*)mPacket->Data;
+                
+                {
+                    mouseState.MouseX = mouseMsg->MouseX - window->Dimensions.x;
+                    mouseState.MouseY = mouseMsg->MouseY - window->Dimensions.y;
+                    mouseState.Left = mouseMsg->Left;
+                    mouseState.Right = mouseMsg->Right;
+                    mouseState.Middle = mouseMsg->Middle;
+                }
+
                 if (mouseMsg->Type == MouseMessagePacketType::MOUSE_CLICK)
                 {
                     GuiComponentStuff::MouseClickEventInfo info = GuiComponentStuff::MouseClickEventInfo(
@@ -217,6 +214,21 @@ void GuiInstance::Update()
         else
             break;
     }
+
+    // // Update Mouse Position
+    // {
+    //     MouseState* temp = envGetMouseState();
+    //     if (temp != NULL)
+    //     {
+    //         mouseState = *temp;
+    //         mouseState.MouseX -= window->Dimensions.x;
+    //         mouseState.MouseY -= window->Dimensions.y;
+    //         _Free(temp);
+    //     }
+    //     else
+    //     {
+    //     }
+    // }
 }
 
 void GuiInstance::Render(bool update)

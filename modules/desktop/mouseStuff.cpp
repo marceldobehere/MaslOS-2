@@ -194,11 +194,15 @@ bool HandleMouseClickPacket(MouseMessagePacket* packet)
     tClicks[2] = packet->Middle && !packet->PrevMiddle;
     tHolds[2] = packet->Middle && packet->PrevMiddle;
 
-    // instant reset if mouse ever stopped holding
-    doingWindowDrag &= packet->Left;
+    // instant reset if mouse ever stopped holding or win is null
     doingWindowDrag &= activeWindow != NULL;
-
     bool res = false;
+    if (doingWindowDrag && !packet->Left)
+    {
+        doingWindowDrag = false;
+        res = true;
+    }
+    
 
     if (tClicks[0] || tClicks[1] || tClicks[2])
         res |= HandleClick(tClicks[0], tClicks[1], tClicks[2]);
@@ -297,6 +301,7 @@ bool HandleClick(bool L, bool R, bool M)
                     
 
                     res |= doingWindowDrag;
+
 
                     // if (MousePosition.y < activeWindow->Dimensions.y + 22)
                     // {
@@ -426,7 +431,7 @@ bool HandleClick(bool L, bool R, bool M)
 
 bool HandleDrag(bool L, bool R, bool M)
 {
-    bool res = true;
+    bool res = false;
     if (L)
     {
         doingWindowDrag &= activeWindow != NULL;

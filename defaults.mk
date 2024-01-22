@@ -2,8 +2,8 @@ CC = gcc
 LD = ld
 AS = nasm
 
-BASE_C_FLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions 
-BASE_CPP_FLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions
+BASE_C_FLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -ffunction-sections -fdata-sections
+BASE_CPP_FLAGS = -ffreestanding -fshort-wchar -mno-red-zone -fno-omit-frame-pointer -fno-exceptions -fpermissive -Wno-pmf-conversions -ffunction-sections -fdata-sections
 BASE_NASM_FLAGS = -F dwarf -g -f elf64
 # -w
 

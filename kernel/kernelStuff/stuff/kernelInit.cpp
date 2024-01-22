@@ -559,8 +559,6 @@ void PrepareInterrupts2()
         0, //0b11111000, 
         0 //0b11101111
     );
-
-
     io_wait();    
     __asm__ volatile ("sti");
     RemoveFromStack();

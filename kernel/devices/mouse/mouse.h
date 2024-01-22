@@ -7,7 +7,7 @@
 
 namespace Mouse
 {
-    extern bool clicks[3];
+    //extern bool clicks[3];
     //extern MPoint MousePosition;
 
     extern int mouseCycleSkip;
