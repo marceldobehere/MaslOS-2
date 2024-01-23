@@ -17,7 +17,7 @@ long parensLength(const char *s)
         s++;
     }
 
-    while (matched != 0)
+    while (matched != 0 && *s != '\0')
     {
         if (*s == '(')
         {

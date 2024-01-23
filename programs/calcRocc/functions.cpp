@@ -19,6 +19,14 @@ void FreeTokens(List<void *> *tokens)
 
 void OnEqualClicked(void *func, ButtonComponent *btn, MouseClickEventInfo click)
 {
+    if (StrEquals(screen->textComp->text, "invalid input!"))
+    {
+        screen->bgCol = Colors.white;
+        _Free(screen->textComp->text);
+        screen->textComp->text = StrCopy("");
+        return;
+    }
+
     List<void *>* tokens = new List<void *>();
     if (!tokenize(tokens, screen->textComp->text))
     {
@@ -29,7 +37,7 @@ void OnEqualClicked(void *func, ButtonComponent *btn, MouseClickEventInfo click)
         return;
     }
     
-    if (tokens->GetCount() == 0)
+    if (tokens->GetCount() == 0 || StrEquals(screen->textComp->text, ""))
     {
         screen->bgCol = Colors.white;
         _Free(screen->textComp->text);

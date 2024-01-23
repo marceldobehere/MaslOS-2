@@ -205,9 +205,9 @@ void HandleUpdates()
                         deltaY += mouseMsg->MouseY;
                     }
 
-                    lastBtns[0] = mouseMsg->Left;
-                    lastBtns[1] = mouseMsg->Right;
-                    lastBtns[2] = mouseMsg->Middle;
+                    lastBtns[0] |= mouseMsg->Left;
+                    lastBtns[1] |= mouseMsg->Right;
+                    lastBtns[2] |= mouseMsg->Middle;
                 }
 
                 mPacket->Free();
