@@ -26,6 +26,7 @@ List<void*>* openMallocs = NULL;
 
 int DOOM_SCALE = 2;
 bool tempMouseBtns[3];
+bool turnMouseOff[3];
 
 Window* window;
 
@@ -183,11 +184,43 @@ void HandleUpdates()
             break;
     }
 
+    // Mouse Up
+    {
+        if (turnMouseOff[0])
+        {
+            turnMouseOff[0] = false;
+            if (tempMouseBtns[0])
+            {
+                tempMouseBtns[0] = false;
+                doom_button_up(doom_button_t::DOOM_LEFT_BUTTON);
+            }
+        }
+
+        if (turnMouseOff[1])
+        {
+            turnMouseOff[1] = false;
+            if (tempMouseBtns[1])
+            {
+                tempMouseBtns[1] = false;
+                doom_button_up(doom_button_t::DOOM_RIGHT_BUTTON);
+            }
+        }
+
+        if (turnMouseOff[2])
+        {
+            turnMouseOff[2] = false;
+            if (tempMouseBtns[2])
+            {
+                tempMouseBtns[2] = false;
+                doom_button_up(doom_button_t::DOOM_MIDDLE_BUTTON);
+            }
+        }
+    }
+
     // Mouse Events
     {
         int deltaX = 0;
         int deltaY = 0;
-        bool lastBtns[3] = {false, false, false};
 
         for (int i = 0; i < 500; i++)
         {
@@ -205,9 +238,41 @@ void HandleUpdates()
                         deltaY += mouseMsg->MouseY;
                     }
 
-                    lastBtns[0] |= mouseMsg->Left;
-                    lastBtns[1] |= mouseMsg->Right;
-                    lastBtns[2] |= mouseMsg->Middle;
+                    if (mouseMsg->Left)
+                    {
+                        turnMouseOff[0] = false;
+                        if (!tempMouseBtns[0])
+                        {
+                            tempMouseBtns[0] = true;
+                            doom_button_down(doom_button_t::DOOM_LEFT_BUTTON);
+                        }
+                    }
+                    else
+                        turnMouseOff[0] = true;
+
+                    if (mouseMsg->Right)
+                    {
+                        turnMouseOff[1] = false;
+                        if (!tempMouseBtns[1])
+                        {
+                            tempMouseBtns[1] = true;
+                            doom_button_down(doom_button_t::DOOM_RIGHT_BUTTON);
+                        }
+                    }
+                    else
+                        turnMouseOff[1] = true;
+
+                    if (mouseMsg->Middle)
+                    {
+                        turnMouseOff[2] = false;
+                        if (!tempMouseBtns[2])
+                        {
+                            tempMouseBtns[2] = true;
+                            doom_button_down(doom_button_t::DOOM_MIDDLE_BUTTON);
+                        }
+                    }
+                    else
+                        turnMouseOff[2] = true;
                 }
 
                 mPacket->Free();
@@ -227,36 +292,6 @@ void HandleUpdates()
             // serialPrintLn(")");
 
             doom_mouse_move(deltaX * DOOM_SCALE * 2, deltaY * DOOM_SCALE * 2);
-        }
-
-        // Buttons
-        {
-            if (tempMouseBtns[0] != lastBtns[0])
-            {
-                tempMouseBtns[0] = lastBtns[0];
-                if (tempMouseBtns[0])
-                    doom_button_down(doom_button_t::DOOM_LEFT_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_LEFT_BUTTON);
-            }
-
-            if (tempMouseBtns[1] != lastBtns[1])
-            {
-                tempMouseBtns[1] = lastBtns[1];
-                if (tempMouseBtns[1])
-                    doom_button_down(doom_button_t::DOOM_RIGHT_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_RIGHT_BUTTON);
-            }
-
-            if (tempMouseBtns[2] != lastBtns[2])
-            {
-                tempMouseBtns[2] = lastBtns[2];
-                if (tempMouseBtns[2])
-                    doom_button_down(doom_button_t::DOOM_MIDDLE_BUTTON);
-                else
-                    doom_button_up(doom_button_t::DOOM_MIDDLE_BUTTON);
-            }
         }
     }
 }
@@ -485,7 +520,10 @@ void DoDoomInit()
     doomRunning = true;
 
     for (int i = 0; i < 3; i++)
+    {
         tempMouseBtns[i] = false;
+        turnMouseOff[i] = false;
+    }
 
     openMallocs = new List<void*>();
 

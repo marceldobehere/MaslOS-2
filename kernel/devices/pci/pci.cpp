@@ -36,6 +36,12 @@ namespace PCI
 
         uint64_t busAddress = baseAddress + offset;
 
+        if (busAddress == 0)
+        {
+            RemoveFromStack();
+            return;
+        }
+
         //GlobalPageTableManager.MapMemory((void*)busAddress, (void*)busAddress);
         
         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)busAddress;
@@ -56,6 +62,12 @@ namespace PCI
         uint64_t offset = device << 15;
 
         uint64_t deviceAddress = busAddress + offset;
+
+        if (deviceAddress == 0)
+        {
+            RemoveFromStack();
+            return;
+        }
 
         //GlobalPageTableManager.MapMemory((void*)deviceAddress, (void*)deviceAddress);
         
@@ -78,7 +90,11 @@ namespace PCI
 
         uint64_t functionAddress = deviceAddress + offset;
 
-        if (functionAddress == 0x0000000000000000) {RemoveFromStack(); return;}
+        if (functionAddress == 0)
+        {
+            RemoveFromStack();
+            return;
+        }
 
         //GlobalPageTableManager.MapMemory((void*)functionAddress, (void*)functionAddress);
         
