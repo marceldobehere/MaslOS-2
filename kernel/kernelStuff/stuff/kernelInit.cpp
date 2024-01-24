@@ -542,7 +542,7 @@ void PrepareInterrupts()
     io_wait();    
     __asm__ volatile ("lidt %0" : : "m" (idtr));
     io_wait();    
-    __asm__ volatile ("sti");
+    __asm__ volatile ("cli");
     io_wait();    
 
     //asm ("int $0x1");
