@@ -36,6 +36,8 @@ And it mostly works on real hardware.
    - Notepad
    - Paint (mostly working)
    - Doom
+   - Minesweeper (not functional yet)
+   - GUI Connect four (soon)
    - MicroEdit (has some issues)
    - 3D Cube Renderer (has some issues)
    - CalcRocc (has some issues)
