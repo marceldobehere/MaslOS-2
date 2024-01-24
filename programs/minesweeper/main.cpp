@@ -127,7 +127,7 @@ void FirstInit()
 void ReInitBoard()
 {
     // Set Size
-    int tSize = fieldButtonSize * fieldSize + (fieldSize - 1) * fieldButtonSpace;
+    int tSize = fieldButtonSize * fieldSize + (fieldSize + 1) * fieldButtonSpace;
     window->Dimensions.width = tSize;
     window->Dimensions.height = tSize + 40;
     setWindow(window);
@@ -154,8 +154,8 @@ void ReInitBoard()
             ButtonComponent* tempBtn = (ButtonComponent*)guiInstance->GetComponentFromId(fieldStartId + y * fieldSize + x);
             fields->Add(tempBtn);
 
-            tempBtn->position.x = x * tPosMult;
-            tempBtn->position.y = y * tPosMult + 40;
+            tempBtn->position.x = x * tPosMult + fieldButtonSpace;
+            tempBtn->position.y = y * tPosMult + 40 + fieldButtonSpace;
             _Free(tempBtn->textComp->text);
             tempBtn->textComp->text = StrCopy("?");
             tempBtn->size.FixedX = fieldButtonSize;
@@ -166,6 +166,7 @@ void ReInitBoard()
             
             tempBtn->MouseClickedFunc = OnFieldClicked;
         }
+        guiInstance->Render(true);
     }
 }
 
