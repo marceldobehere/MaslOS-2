@@ -552,9 +552,18 @@ uint64_t DrawFrame()
                         MakeWinActive(activeWindow, NULL);
                     }
                 }
+                else if (keyMsg->Type == KeyMessagePacketType::KEY_PRESSED && 
+                    (keyMsg->Scancode == Key_LeftAlt || keyMsg->Scancode == Key_F4) && // LEFT ALT or F4
+                    (envGetKeyState(Key_LeftAlt) && envGetKeyState(Key_F4))) // LEFT ALT and F4
+                {
+                    if (activeWindow != NULL)
+                    {
+                        closeProcess(activeWindow->PID);
+                    }
+                }
                 else if (activeWindow != NULL)
                 {
-                    if (activeWindow != NULL && activeWindow->CaptureMouse)
+                    if (activeWindow != NULL && activeWindow->CaptureMouse && keyMsg->Scancode != 0x38)
                         DrawMouse = false;
 
                     GenericMessagePacket* msgNew = new GenericMessagePacket(MessagePacketType::KEY_EVENT, msg->Data, sizeof(KeyMessagePacket));

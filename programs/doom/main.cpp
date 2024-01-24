@@ -20,7 +20,7 @@ extern "C"
 #define DOOM_HEIGHT 200
 bool doomRunning = false;
 bool doomInit = false;
-uint64_t lastTime = 0;
+uint64_t startTime = 0;
 List<void*>* openMallocs = NULL;
 
 
@@ -79,11 +79,11 @@ bool DoFrame(bool force)
     }
 
     uint64_t time = envGetTimeMs();
-    if (!force && (time < lastTime + 5))
+    if (!force && (time < startTime + 5))
     {
         return false;
     }
-    lastTime = time;
+    startTime = time;
 
     HandleUpdates();
 
@@ -532,7 +532,7 @@ void DoDoomInit()
     //SetMousePosition(tempDoomMousePos);
 
     
-    lastTime = envGetTimeMs();
+    startTime = envGetTimeMs();
     doom_set_resolution(DOOM_WIDTH, DOOM_HEIGHT);
 
     doom_init(0, NULL, 0);
