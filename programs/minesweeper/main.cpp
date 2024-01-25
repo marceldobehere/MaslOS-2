@@ -360,7 +360,7 @@ int main(int argc, const char** argv)
     return 0;
 }
 
-void ActuallyRevealField(int x, int y, char chr);
+void DrawField(int x, int y, char chr);
 
 void Restart()
 {
@@ -401,7 +401,7 @@ void Restart()
             _Free(tempBtn->textComp->text);
             tempBtn->textComp->text = StrCopy(" ");
             
-            ActuallyRevealField(x, y, '?');
+            DrawField(x, y, '?');
         }
 
     // Set Reset Text
@@ -428,7 +428,7 @@ void GameOver()
             ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
             if (mineField[y][x])
             {
-                ActuallyRevealField(x, y, 'B');
+                DrawField(x, y, 'B');
                 tempBtn->bgColDef = Colors.bred;
                 guiInstance->Render(true);
             }
@@ -438,7 +438,7 @@ void GameOver()
     canRestart = true;
 }
 
-void GameWon()
+void GameEnd()
 {
     canRestart = false;
     inGame = false;
@@ -457,7 +457,7 @@ void GameWon()
     canRestart = true;
 }
 
-void ActuallyRevealField(int x, int y, char chr)
+void DrawField(int x, int y, char chr)
 {
     ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
     _Free(tempBtn->textComp->text);
@@ -503,7 +503,7 @@ void PlaceFlag(int x, int y)
     {
         flagField[y][x] = false;
         flagsPlaced--;
-        ActuallyRevealField(x, y, '?');
+        DrawField(x, y, '?');
     }
     else
     {
@@ -511,13 +511,13 @@ void PlaceFlag(int x, int y)
         {
             flagField[y][x] = true;
             flagsPlaced++;
-            ActuallyRevealField(x, y, 'F');            
+            DrawField(x, y, 'F');            
         }
  
     }
 }
 
-void ExposeField(int x, int y, bool first)
+void ClickField(int x, int y, bool first)
 {
     if (!inGame)
         return;
@@ -533,7 +533,7 @@ void ExposeField(int x, int y, bool first)
             for (int _y = yMin; _y <= yMax; _y++)
                 for (int _x = xMin; _x <= xMax; _x++)
                     if ((_x != x || _y != y) && inGame)
-                        ExposeField(_x, _y, false);            
+                        ClickField(_x, _y, false);            
         }
         return;
     }
@@ -542,7 +542,7 @@ void ExposeField(int x, int y, bool first)
         return;
     
     char chr = GetCharAt(x,y);
-    ActuallyRevealField(x, y, chr);
+    DrawField(x, y, chr);
 
     if (chr == 'B')
     {
@@ -553,7 +553,7 @@ void ExposeField(int x, int y, bool first)
     exposedNormalLeft--;
     if (exposedNormalLeft < 1)
     {
-        GameWon();
+        GameEnd();
         return;
     }
 
@@ -566,7 +566,7 @@ void ExposeField(int x, int y, bool first)
         for (int _y = yMin; _y <= yMax; _y++)
             for (int _x = xMin; _x <= xMax; _x++)
                 if (_x != x || _y != y)
-                    ExposeField(_x, _y, false);
+                    ClickField(_x, _y, false);
     }
 }
 
@@ -612,7 +612,7 @@ void OnFieldClicked(void* bruh, MouseClickEventInfo click)
     {
         if (!minesPlaced)
             PlaceMinesToAvoidPiece(x, y);
-        ExposeField(x, y, true);
+        ClickField(x, y, true);
     }
         
     if (click.RightClickPressed)

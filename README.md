@@ -39,7 +39,7 @@ And it mostly works on real hardware.
    + Minesweeper 
      - Can be launched in 3 modes (easy, medium, hard)
      - Example: `run minesweeper.elf medium`
-   - GUI Connect four (soon)
+   - Connect Four
    - MicroEdit (has some issues)
    - 3D Cube Renderer (has some issues)
    - CalcRocc (has some issues)
