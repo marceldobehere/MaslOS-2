@@ -342,6 +342,12 @@ void HandleCommand(const char* inputStr)
         outTxt->Println(" - ls");
         outTxt->Println(" - cd <path>");
         outTxt->Println(" - run <file>");
+        outTxt->Println(" - get <name>");
+        outTxt->Println(" - set <name> <value>");
+        outTxt->Println();
+        outTxt->Println("You can find more information in the wiki:");
+        outTxt->Println("https://github.com/marceldobehere/MaslOS-2/wiki");
+        outTxt->Println();
     }
     else if (StrEquals(cmd, "exit"))
     {
