@@ -363,12 +363,12 @@ void HandleCommand(const char* inputStr)
         else
         {
             const char* key = args[1];
-            if (StrEquals(key, "TSB MS"))
+            if (StrEquals(key, "tsb ms"))
             {
                 outTxt->Print("Time since boot (MS): ");
                 outTxt->Println(to_string(envGetTimeMs()));
             }
-            if (StrEquals(key, "mouse sens") || StrEquals(key, "mouse sensitivity"))
+            else if (StrEquals(key, "mouse sens") || StrEquals(key, "mouse sensitivity"))
             {
                 outTxt->Print("Mouse Sensitivity: ");
                 outTxt->Print(to_string(envGetMouseSens()));
