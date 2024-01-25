@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     window->Title = StrCopy("Start Menu");
 
     int sW = 200;
-    int sH = 340;
+    int sH = 360;
 
     // Set the width and height to sWxsH
     window->Dimensions.width = sW;
@@ -244,6 +244,19 @@ int main(int argc, char** argv)
             
             gui->screen->children->Add(btn);
         }
+
+        {
+            GuiComponentStuff::ButtonComponent* btn = new GuiComponentStuff::ButtonComponent("Minesweeper", 
+            Colors.bgreen, Colors.yellow, Colors.black, 
+            Colors.black, Colors.black, Colors.white,
+            GuiComponentStuff::ComponentSize(96, 20),
+            GuiComponentStuff::Position(0, 300), gui->screen
+            );
+            btn->mouseClickedCallBack = StartMenuButtonClick;
+            btn->id = 1015;
+            
+            gui->screen->children->Add(btn);
+        }
     }
 
 
@@ -349,7 +362,10 @@ void StartMenuButtonClick(GuiComponentStuff::BaseComponent* comp, GuiComponentSt
             startProcess("bruh:programs/doom/doom.elf", 0, NULL, "");
         }
 
-
+        if (comp->id == 1015)
+        {
+            startProcess("bruh:programs/minesweeper/minesweeper.elf", 0, NULL, "");
+        }
 
         // //Window* oldActive = activeWindow;
         // Window* mainWindow = (Window*)_Malloc(sizeof(Window), "App Window");
