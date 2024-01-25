@@ -37,6 +37,7 @@ bool** mineField = NULL;
 bool** exposedField = NULL;
 bool** flagField = NULL;
 int exposedNormalLeft = 0;
+bool minesPlaced = false;
 
 uint32_t bombColor = Colors.black;
 uint32_t flagColor =  Colors.brown;
@@ -384,24 +385,15 @@ void Restart()
     for (int y = 0; y < fieldSize; y++)
         for (int x = 0; x < fieldSize; x++)
             mineField[y][x] = false;
+    minesPlaced = false;
 
-    if (mineCount > fieldSize * fieldSize)
-        mineCount = fieldSize * fieldSize;
-
+    if (mineCount > fieldSize * fieldSize - 1)
+        mineCount = fieldSize * fieldSize - 1;
+    
     exposedNormalLeft = fieldSize * fieldSize - mineCount;
 
-    // Place Mines
-    for (int i = 0; i < mineCount; i++)
-    {
-        int x = RND::RandomInt() % fieldSize;
-        int y = RND::RandomInt() % fieldSize;
-        if (mineField[y][x])
-            i--;
-        else
-            mineField[y][x] = true;
-    }
 
-    // Set Field Chars (For Debug RN)
+    // Set Field Chars
     for (int y = 0; y < fieldSize; y++)
         for (int x = 0; x < fieldSize; x++)
         {
@@ -578,6 +570,27 @@ void ExposeField(int x, int y, bool first)
     }
 }
 
+void PlaceMinesToAvoidPiece(int x, int y)
+{
+    if (minesPlaced)
+        return;
+    minesPlaced = true;
+
+    // Place Mines
+    for (int i = 0; i < mineCount;)
+    {
+        int _x = RND::RandomInt() % fieldSize;
+        int _y = RND::RandomInt() % fieldSize;
+        if (_x == x && _y == y)
+            continue;
+        if (mineField[_y][_x])
+            continue;
+
+        mineField[_y][_x] = true;
+        i++;
+    }
+}
+
 void OnRestartClicked(void* bruh, BaseComponent* btn, MouseClickEventInfo click)
 {
     if (!canRestart)
@@ -596,8 +609,12 @@ void OnFieldClicked(void* bruh, MouseClickEventInfo click)
     int y = indx / fieldSize;
 
     if (click.LeftClickPressed)
+    {
+        if (!minesPlaced)
+            PlaceMinesToAvoidPiece(x, y);
         ExposeField(x, y, true);
-    
+    }
+        
     if (click.RightClickPressed)
         PlaceFlag(x, y);
 }
