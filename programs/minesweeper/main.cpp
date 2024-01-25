@@ -32,6 +32,74 @@ enum GameModeEnum {
 };
 GameModeEnum gameMode;
 
+bool** mineField = NULL;
+bool** exposedField = NULL;
+bool** flagField = NULL;
+int exposedNormalLeft = 0;
+
+uint32_t bombColor = Colors.black;
+uint32_t flagColor =  Colors.brown;
+uint32_t blankColor = Colors.white;
+uint32_t numColors[8] = {
+    Colors.bblue, // 1 Mine
+    Colors.bblue, // 2 Mines
+    Colors.green, // 3 Mines
+    Colors.orange, // 4 Mines
+    Colors.orange, // 5 Mines
+    Colors.orange, // 6 Mines
+    Colors.red, // 7 Mines
+    Colors.red, // 8 Mines
+};
+
+void Fail(const char* msg)
+{
+    serialPrintLn("ERROR:");
+    serialPrintLn(msg);
+    programCrash();
+}
+
+PSF1_FONT* customFont = NULL;
+void LoadCustomFont(const char* path)
+{
+    void* buffer;
+    uint64_t byteCount = 0;
+    if (!fsReadFile(path, &buffer, &byteCount))
+        Fail("LOADING FONT FAILED!");
+
+    PSF1_FONT* font = new PSF1_FONT();
+
+    font->psf1_Header = (PSF1_HEADER*)buffer;
+    if (font->psf1_Header->magic[0] != 0x36 || font->psf1_Header->magic[1] != 0x04)
+        Fail("FONT MAGIC FAILED!");    
+
+    font->glyphBuffer = (void*)((uint64_t)buffer + sizeof(PSF1_HEADER));
+    customFont = font;
+}
+
+char GetCharAt(int x, int y)
+{
+    if (x < 0 || y < 0 || x >= fieldSize || y >= fieldSize)
+        return '?';
+
+    if (mineField[y][x])
+        return 'B';
+
+    // count mines
+    int mCount = 0;
+    int xMin = max(0, x - 1);
+    int yMin = max(0, y - 1);
+    int xMax = min(fieldSize - 1, x + 1);
+    int yMax = min(fieldSize - 1, y + 1);
+    for (int y = yMin; y <= yMax; y++)
+        for (int x = xMin; x <= xMax; x++)
+            if (mineField[y][x])
+                mCount++;
+    if (mCount == 0)
+        return ' ';
+    
+    return '0' + mCount;
+}
+
 void MatchFieldSize()
 {
     if (fieldSize < 1)
@@ -126,6 +194,7 @@ void FirstInit()
 
 void ReInitBoard()
 {
+    inGame = false;
     // Set Size
     int tSize = fieldButtonSize * fieldSize + (fieldSize + 1) * fieldButtonSpace;
     window->Dimensions.width = tSize;
@@ -137,12 +206,49 @@ void ReInitBoard()
         fields->ElementAt(i)->Destroy(true, NULL);
     fields->Clear();
 
-    inGame = true;
+    // Free Mine Fields
+    if (mineField != NULL)
+    {
+        for (int i = 0; i < fieldSize; i++)
+            _Free(mineField[i]);
+        _Free(mineField);
+    }
+    // Create Mine Fields
+    mineField = (bool**)_Malloc(fieldSize * sizeof(bool*));
+    for (int i = 0; i < fieldSize; i++)
+        mineField[i] = (bool*)_Malloc(fieldSize * sizeof(bool));
+
+    // Free Exposed Fields
+    if (exposedField != NULL)
+    {
+        for (int i = 0; i < fieldSize; i++)
+            _Free(exposedField[i]);
+        _Free(exposedField);
+    }
+    // Create Exposed Fields
+    exposedField = (bool**)_Malloc(fieldSize * sizeof(bool*));
+    for (int i = 0; i < fieldSize; i++)
+        exposedField[i] = (bool*)_Malloc(fieldSize * sizeof(bool));
+
+    // Free Flag Fields
+    if (flagField != NULL)
+    {
+        for (int i = 0; i < fieldSize; i++)
+            _Free(flagField[i]);
+        _Free(flagField);
+    }
+    // Create Flag Fields
+    flagField = (bool**)_Malloc(fieldSize * sizeof(bool*));
+    for (int i = 0; i < fieldSize; i++)
+        flagField[i] = (bool*)_Malloc(fieldSize * sizeof(bool));
+    
+    
     flagsPlaced = 0;
     startTime = envGetTimeMs();
     timePassed = 0;
 
     UpdateSizes();
+    guiInstance->Render(true);
 
     // Create Fields
     for (int y = 0; y < fieldSize; y++)
@@ -157,17 +263,21 @@ void ReInitBoard()
             tempBtn->position.x = x * tPosMult + fieldButtonSpace;
             tempBtn->position.y = y * tPosMult + 40 + fieldButtonSpace;
             _Free(tempBtn->textComp->text);
-            tempBtn->textComp->text = StrCopy("?");
+            tempBtn->textComp->text = StrCopy(" ");
             tempBtn->size.FixedX = fieldButtonSize;
             tempBtn->size.FixedY = fieldButtonSize;
-            tempBtn->bgColDef = Colors.white;
-            tempBtn->bgColHover = Colors.bgray;
-            tempBtn->bgColClick = Colors.gray;
+            tempBtn->bgColDef = 0xffD0D0D0;
+            tempBtn->bgColHover = Colors.gray;
+            tempBtn->bgColClick = Colors.dgray;
+            tempBtn->textComp->renderer->font = customFont;
             
             tempBtn->MouseClickedFunc = OnFieldClicked;
         }
         guiInstance->Render(true);
     }
+
+    _Free(restartBtn->textComp->text);
+    restartBtn->textComp->text = StrCopy("Restart");
 }
 
 void UpdateSizes()
@@ -211,12 +321,26 @@ void UpdateSizes()
 
 int main(int argc, const char** argv)
 {
+    LoadCustomFont("bruh:programs/minesweeper/assets/zap-vga16.psf");
+    
     initWindowManagerStuff();
     window = requestWindow();
     if (window == NULL)
         return 0;
 
-    SetSizeAndBombCount(GameModeEnum::EASY);
+    GameModeEnum mode = GameModeEnum::EASY;
+
+    if (argc > 0)
+    {
+        if (StrEquals(argv[0], "easy") || StrEquals(argv[0], "EASY"))
+            mode = GameModeEnum::EASY;
+        else if (StrEquals(argv[0], "medium") || StrEquals(argv[0], "MEDIUM"))
+            mode = GameModeEnum::MEDIUM;
+        else if (StrEquals(argv[0], "hard") || StrEquals(argv[0], "HARD"))
+            mode = GameModeEnum::HARD;
+    }
+
+    SetSizeAndBombCount(mode);
     FirstInit();
     Restart();
 
@@ -232,21 +356,170 @@ int main(int argc, const char** argv)
     return 0;
 }
 
+void ActuallyRevealField(int x, int y, char chr);
+
 void Restart()
 {
-    // _Free(restartBtn->textComp->text);
-    // restartBtn->textComp->text = StrCopy("Restart");
-    // turn = 0;
-    // inGame = true;
+    inGame = false;
+    flagsPlaced = 0;
+    startTime = envGetTimeMs();
+    timePassed = 0;
     
-    // for (int i = 0; i < 9; i++)
-    // {
-    //     clicked[i] = -1;
-    //     ButtonComponent* tempBtn = (ButtonComponent*)buttons->ElementAt(i);
-    //     tempBtn->bgColDef = Colors.white;
-    //     tempBtn->bgColHover = Colors.gray;
-    //     tempBtn->bgColClick = Colors.dgray;
-    // }
+    serialPrintLn("> Doing Restart!");
+
+    // Reset Exposed Fields
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+            exposedField[y][x] = false;
+
+    // Reset Flag Fields
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+            flagField[y][x] = false;
+
+    // Reset Mines
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+            mineField[y][x] = false;
+
+    if (mineCount > fieldSize * fieldSize)
+        mineCount = fieldSize * fieldSize;
+
+    exposedNormalLeft = fieldSize * fieldSize - mineCount;
+
+    // Place Mines
+    for (int i = 0; i < mineCount; i++)
+    {
+        int x = RND::RandomInt() % fieldSize;
+        int y = RND::RandomInt() % fieldSize;
+        if (mineField[y][x])
+            i--;
+        else
+            mineField[y][x] = true;
+    }
+
+    // Set Field Chars (For Debug RN)
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+        {
+            ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
+            _Free(tempBtn->textComp->text);
+            tempBtn->textComp->text = StrCopy(" ");
+            
+            ActuallyRevealField(x, y, '?');
+        }
+
+    // Set Reset Text
+    _Free(restartBtn->textComp->text);
+    restartBtn->textComp->text = StrCopy("Restart");
+
+    inGame = true;
+}
+
+void GameOver()
+{
+    inGame = false;
+    _Free(restartBtn->textComp->text);
+    restartBtn->textComp->text = StrCopy("Game Over!");
+}
+
+void GameWon()
+{
+    inGame = false;
+    _Free(restartBtn->textComp->text);
+    restartBtn->textComp->text = StrCopy("You Won!");
+}
+
+void ActuallyRevealField(int x, int y, char chr)
+{
+    ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
+    _Free(tempBtn->textComp->text);
+    char bruh[2] {chr, 0};
+    if (bruh[0] == '?')
+        bruh[0] = ' ';
+    tempBtn->textComp->text = StrCopy(bruh);
+    
+    if (chr == ' ')
+        tempBtn->textColDef = blankColor;
+    else if (chr == 'B')
+        tempBtn->textColDef = bombColor;
+    else if (chr == '?')
+        tempBtn->textColDef = Colors.black;
+    else if (chr == 'F')
+        tempBtn->textColDef = flagColor;
+    else
+        tempBtn->textColDef = numColors[chr - '1'];
+
+    if (chr == '?' || chr == 'F')
+    {
+        tempBtn->bgColDef = 0xffD0D0D0;
+        tempBtn->bgColHover = Colors.gray;
+        tempBtn->bgColClick = Colors.dgray;
+    }
+    else
+    {
+        tempBtn->bgColDef = Colors.white;
+        tempBtn->bgColHover = Colors.gray;
+        tempBtn->bgColClick = Colors.dgray;
+    }
+
+    tempBtn->textColHover = tempBtn->textColDef;
+    tempBtn->textColClick = tempBtn->textColDef;
+}
+
+void PlaceFlag(int x, int y)
+{
+    if (!inGame || exposedField[y][x])
+        return;
+
+    if (flagField[y][x])
+    {
+        flagField[y][x] = false;
+        flagsPlaced--;
+        ActuallyRevealField(x, y, '?');
+    }
+    else
+    {
+        flagField[y][x] = true;
+        flagsPlaced++;
+        ActuallyRevealField(x, y, 'F');
+    }
+}
+
+void ExposeField(int x, int y)
+{
+    if (!inGame || exposedField[y][x])
+        return;
+
+    if (flagField[y][x])
+        return;
+    
+    char chr = GetCharAt(x,y);
+    ActuallyRevealField(x, y, chr);
+
+    if (chr == 'B')
+    {
+        GameOver();
+        return;
+    }
+    exposedField[y][x] = true;
+    exposedNormalLeft--;
+    if (exposedNormalLeft < 1)
+    {
+        GameWon();
+        return;
+    }
+
+    if (chr == ' ')
+    {
+        int xMin = max(0, x - 1);
+        int yMin = max(0, y - 1);
+        int xMax = min(fieldSize - 1, x + 1);
+        int yMax = min(fieldSize - 1, y + 1);
+        for (int y = yMin; y <= yMax; y++)
+            for (int x = xMin; x <= xMax; x++)
+                ExposeField(x, y);
+    }
 }
 
 // void WinCheck()
@@ -317,20 +590,17 @@ void OnFieldClicked(void* bruh, MouseClickEventInfo click)
     serialPrint("> FIELD CLICKED: ");
     serialPrintLn(to_string(indx));
 
-    // int index = buttons->GetIndexOf(tempBtn);
-    // if (index == -1)
-    //     return;
+    int x = indx % fieldSize;
+    int y = indx / fieldSize;
 
-    // if (clicked[index] != -1)
-    //     return;
-    
-    // tempBtn->bgColClick = cols[turn];
-    // tempBtn->bgColHover = cols[turn];
-    // tempBtn->bgColDef = cols[turn];
-
-    // clicked[index] = turn; 
-
-    // WinCheck();
-
-    // turn = (turn + 1) % 2;
+    if (click.LeftClickPressed)
+    {
+        serialPrintLn("> LEFT CLICK");
+        ExposeField(x, y);
+    }
+    if (click.RightClickPressed)
+    {
+        serialPrintLn("> RIGHT CLICK");
+        PlaceFlag(x, y);
+    }
 }

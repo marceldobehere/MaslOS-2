@@ -8,6 +8,7 @@
 #include <libm/rnd/rnd.h>
 #include <libm/stubs.h>
 #include <libm/keyboard.h>
+#include <libm/memStuff.h>
 
 #include <libm/gui/guiInstance.h>
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>

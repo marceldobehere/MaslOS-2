@@ -36,7 +36,9 @@ And it mostly works on real hardware.
    - Notepad
    - Paint (mostly working)
    - Doom
-   - Minesweeper (not functional yet)
+   + Minesweeper 
+     - Can be launched in 3 modes (easy, medium, hard)
+     - Example: `run minesweeper.elf medium`
    - GUI Connect four (soon)
    - MicroEdit (has some issues)
    - 3D Cube Renderer (has some issues)
