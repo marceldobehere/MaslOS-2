@@ -54,6 +54,9 @@ void launchTestElfKernel();
 MouseState* envGetMouseState();
 bool envGetKeyState(int scancode);
 
+int envGetMouseSens(); // 100 -> 100%
+int envSetMouseSens(int sens); // 100 -> 100%
+
 #include "msgPackets/msgPacket.h"
 
 int msgGetCount();

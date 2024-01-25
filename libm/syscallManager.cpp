@@ -143,6 +143,22 @@ bool envGetKeyState(int scancode)
     return state;
 }
 
+int envGetMouseSens()
+{
+    int syscall = SYSCALL_ENV_GET_MOUSE_SENS;
+    int mouseSens;
+    asm("int $0x31" : "=a"(mouseSens) : "a"(syscall));
+    return mouseSens;
+}
+
+int envSetMouseSens(int sens)
+{
+    int syscall = SYSCALL_ENV_SET_MOUSE_SENS;
+    int mouseSens;
+    asm("int $0x31" : "=a"(mouseSens) : "a"(syscall), "b"(sens));
+    return mouseSens;
+}
+
 #ifdef _KERNEL_SRC
 #include "../kernel/paging/PageTableManager.h"
 #include "../kernel/scheduler/scheduler.h"

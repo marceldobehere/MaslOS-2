@@ -1960,6 +1960,20 @@ void Syscall_handler(interrupt_frame* frame)
         int scancode = frame->rbx;
         frame->rax = Keyboard::IsKeyPressed(scancode);
     }
+    else if (syscall == SYSCALL_ENV_GET_MOUSE_SENS)
+    {
+        frame->rax = osData.mouseSensitivity;
+    }
+    else if (syscall == SYSCALL_ENV_SET_MOUSE_SENS)
+    {
+        int mouseSens = frame->rbx;
+        if (mouseSens < 10)
+            mouseSens = 10;
+        if (mouseSens > 1000)
+            mouseSens = 1000;
+        osData.mouseSensitivity = mouseSens;
+        frame->rax = osData.mouseSensitivity;
+    }
     else if (syscall == SYSCALL_MSG_GET_COUNT)
     {
         Queue<GenericMessagePacket*>* queue = Scheduler::CurrentRunningTask->messages;
