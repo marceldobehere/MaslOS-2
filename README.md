@@ -122,13 +122,27 @@ Run the `cDisk.sh` file to generate an empty disk so QEMU can boot correctly.
 
 Run the `JUST RUN OS.sh` file to run it!
 
+You can also use the `JUST RUN OS_KVM.sh` file to run it faster if you are natively on linux.
+
 ### How to run (Windows)
+
+#### QEMU
 
 Install QEMU if you haven't.
 
 Add QEMU To your PATH variable. [If you need help, click here!](https://linuxhint.com/qemu-windows/)
 
 Then download/clone the repo and run the `run.cmd` file
+
+#### Other
+
+You can also boot the ISO in other software like Virtualbox and it tends to run way faster there.
+
+### Hardware
+
+You can flash the ISO to a usb drive using tools like Rufus and if you are lucky, your device should boot MaslOS2 fine.
+
+NOTE: As MaslOS2 uses PS/2 for mouse and keyboard input, it could happen that you cannot use it without actual PS/2 devices if your bios does not emulate them.
 
 ## Contributing
 I am still working on quite a few things that need to be done for MaslOS2 to be in a good state.
