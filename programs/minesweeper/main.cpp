@@ -525,10 +525,26 @@ void PlaceFlag(int x, int y)
     }
 }
 
-void ExposeField(int x, int y)
+void ExposeField(int x, int y, bool first)
 {
-    if (!inGame || exposedField[y][x])
+    if (!inGame)
         return;
+
+    if (exposedField[y][x])
+    {
+        if (first)
+        {
+            int xMin = max(0, x - 1);
+            int yMin = max(0, y - 1);
+            int xMax = min(fieldSize - 1, x + 1);
+            int yMax = min(fieldSize - 1, y + 1);
+            for (int _y = yMin; _y <= yMax; _y++)
+                for (int _x = xMin; _x <= xMax; _x++)
+                    if ((_x != x || _y != y) && inGame)
+                        ExposeField(_x, _y, false);            
+        }
+        return;
+    }
 
     if (flagField[y][x])
         return;
@@ -555,9 +571,10 @@ void ExposeField(int x, int y)
         int yMin = max(0, y - 1);
         int xMax = min(fieldSize - 1, x + 1);
         int yMax = min(fieldSize - 1, y + 1);
-        for (int y = yMin; y <= yMax; y++)
-            for (int x = xMin; x <= xMax; x++)
-                ExposeField(x, y);
+        for (int _y = yMin; _y <= yMax; _y++)
+            for (int _x = xMin; _x <= xMax; _x++)
+                if (_x != x || _y != y)
+                    ExposeField(_x, _y, false);
     }
 }
 
@@ -579,7 +596,7 @@ void OnFieldClicked(void* bruh, MouseClickEventInfo click)
     int y = indx / fieldSize;
 
     if (click.LeftClickPressed)
-        ExposeField(x, y);
+        ExposeField(x, y, true);
     
     if (click.RightClickPressed)
         PlaceFlag(x, y);
