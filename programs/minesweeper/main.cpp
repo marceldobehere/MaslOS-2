@@ -508,9 +508,13 @@ void PlaceFlag(int x, int y)
     }
     else
     {
-        flagField[y][x] = true;
-        flagsPlaced++;
-        ActuallyRevealField(x, y, 'F');
+        if (flagsPlaced < mineCount)
+        {
+            flagField[y][x] = true;
+            flagsPlaced++;
+            ActuallyRevealField(x, y, 'F');            
+        }
+ 
     }
 }
 
@@ -549,60 +553,6 @@ void ExposeField(int x, int y)
                 ExposeField(x, y);
     }
 }
-
-// void WinCheck()
-// {
-//     if (!inGame)
-//         return;
-    
-//     int playerWon = -1;
-
-//     // Horizontal and Vertical
-//     if (playerWon == -1)
-//         for (int i = 0; i < 3; i++)
-//         {
-//             if (clicked[i * 3] != -1 && clicked[i * 3] == clicked[i * 3 + 1] && clicked[i * 3 + 1] == clicked[i * 3 + 2])
-//                 playerWon = clicked[i * 3];
-//             if (clicked[i] != -1 && clicked[i] == clicked[i + 3] && clicked[i + 3] == clicked[i + 6])
-//                 playerWon = clicked[i];
-//         }
-
-//     // Diagonal
-//     if (playerWon == -1)
-//     {
-//         if (clicked[0] != -1 && clicked[0] == clicked[4] && clicked[4] == clicked[8])
-//             playerWon = clicked[0];
-//         if (clicked[2] != -1 && clicked[2] == clicked[4] && clicked[4] == clicked[6])
-//             playerWon = clicked[2];
-//     }
-
-//     // Draw 
-//     if (playerWon == -1)
-//     {
-//         bool draw = true;
-//         for (int i = 0; i < 9; i++)
-//             if (clicked[i] == -1)
-//                 draw = false;
-//         if (draw)
-//             playerWon = 2;
-//     }
-
-//     if (playerWon == -1)
-//         return;
-
-//     inGame = false;
-//     _Free(restartBtn->textComp->text);
-//     if (playerWon == 0 || playerWon == 1)
-//     {
-//         restartBtn->textComp->text = StrCopy("Player ");
-//         restartBtn->textComp->text = StrCombineAndFree(restartBtn->textComp->text, texts[playerWon]);
-//         restartBtn->textComp->text = StrCombineAndFree(restartBtn->textComp->text, " won!");
-//     }
-//     else
-//     {
-//         restartBtn->textComp->text = StrCopy("Draw!");
-//     }
-// }
 
 void OnRestartClicked(void* bruh, BaseComponent* btn, MouseClickEventInfo click)
 {
