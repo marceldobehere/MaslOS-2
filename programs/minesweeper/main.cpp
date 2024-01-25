@@ -8,6 +8,7 @@ ButtonComponent* restartBtn = NULL;
 bool inGame = false;
 int mineCount = 0;
 int fieldSize = 0;
+bool canRestart = true;
 
 const uint64_t flagTxtId = 0x1000200;
 const uint64_t timeTxtId = 0x1000201;
@@ -188,6 +189,8 @@ void FirstInit()
     guiInstance->CreateComponentWithId(fieldBgId, ComponentType::RECT);
     fieldBg = (RectangleComponent*)guiInstance->GetComponentFromId(fieldBgId);
     fieldBg->fillColor = Colors.dgray;
+
+    canRestart = true;
 
     ReInitBoard();
 }
@@ -418,6 +421,7 @@ void Restart()
 
 void GameOver()
 {
+    canRestart = false;
     inGame = false;
     _Free(restartBtn->textComp->text);
     restartBtn->textComp->text = StrCopy("Game Over!");
@@ -439,10 +443,12 @@ void GameOver()
             tempBtn->bgColClick = tempBtn->bgColDef;
             tempBtn->bgColHover = tempBtn->bgColDef;
         }
+    canRestart = true;
 }
 
 void GameWon()
 {
+    canRestart = false;
     inGame = false;
     _Free(restartBtn->textComp->text);
     restartBtn->textComp->text = StrCopy("You Won!");
@@ -456,6 +462,7 @@ void GameWon()
             tempBtn->bgColClick = tempBtn->bgColDef;
             tempBtn->bgColHover = tempBtn->bgColDef;
         }
+    canRestart = true;
 }
 
 void ActuallyRevealField(int x, int y, char chr)
@@ -556,6 +563,8 @@ void ExposeField(int x, int y)
 
 void OnRestartClicked(void* bruh, BaseComponent* btn, MouseClickEventInfo click)
 {
+    if (!canRestart)
+        return;
     Restart();
 }
 
