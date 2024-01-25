@@ -365,7 +365,7 @@ void Restart()
     startTime = envGetTimeMs();
     timePassed = 0;
     
-    serialPrintLn("> Doing Restart!");
+    //serialPrintLn("> Doing Restart!");
 
     // Reset Exposed Fields
     for (int y = 0; y < fieldSize; y++)
@@ -421,6 +421,24 @@ void GameOver()
     inGame = false;
     _Free(restartBtn->textComp->text);
     restartBtn->textComp->text = StrCopy("Game Over!");
+    UpdateSizes();
+    guiInstance->Render(true);
+    programWait(1000);
+    
+    // Reveal mines
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+        {
+            ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
+            if (mineField[y][x])
+            {
+                ActuallyRevealField(x, y, 'B');
+                tempBtn->bgColDef = Colors.bred;
+                guiInstance->Render(true);
+            }
+            tempBtn->bgColClick = tempBtn->bgColDef;
+            tempBtn->bgColHover = tempBtn->bgColDef;
+        }
 }
 
 void GameWon()
@@ -428,6 +446,16 @@ void GameWon()
     inGame = false;
     _Free(restartBtn->textComp->text);
     restartBtn->textComp->text = StrCopy("You Won!");
+    UpdateSizes();
+    guiInstance->Render(true);
+
+    for (int y = 0; y < fieldSize; y++)
+        for (int x = 0; x < fieldSize; x++)
+        {
+            ButtonComponent* tempBtn = (ButtonComponent*)fields->ElementAt(y * fieldSize + x);
+            tempBtn->bgColClick = tempBtn->bgColDef;
+            tempBtn->bgColHover = tempBtn->bgColDef;
+        }
 }
 
 void ActuallyRevealField(int x, int y, char chr)
@@ -587,20 +615,13 @@ void OnFieldClicked(void* bruh, MouseClickEventInfo click)
         return;
     ButtonComponent* btn = (ButtonComponent*)bruh;
     int indx = btn->id - fieldStartId;
-    serialPrint("> FIELD CLICKED: ");
-    serialPrintLn(to_string(indx));
 
     int x = indx % fieldSize;
     int y = indx / fieldSize;
 
     if (click.LeftClickPressed)
-    {
-        serialPrintLn("> LEFT CLICK");
         ExposeField(x, y);
-    }
+    
     if (click.RightClickPressed)
-    {
-        serialPrintLn("> RIGHT CLICK");
         PlaceFlag(x, y);
-    }
 }
