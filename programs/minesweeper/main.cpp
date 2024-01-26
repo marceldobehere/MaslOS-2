@@ -581,7 +581,8 @@ void PlaceMinesToAvoidPiece(int x, int y)
     {
         int _x = RND::RandomInt() % fieldSize;
         int _y = RND::RandomInt() % fieldSize;
-        if (_x == x && _y == y)
+        if ((_x >= x - 1)  && (_x <= x + 1) && 
+            (_y >= y - 1)  && (_y <= y + 1))
             continue;
         if (mineField[_y][_x])
             continue;
