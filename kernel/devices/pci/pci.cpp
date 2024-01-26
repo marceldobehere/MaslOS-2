@@ -2,7 +2,7 @@
 #include "../../kernelStuff/IO/IO.h"
 #include <stddef.h>
 
-// //#include "../../paging/PageTableManager.h"
+#include "../../paging/PageTableManager.h"
 #include "../../osData/osData.h"
 #include "../ahci/ahci.h"
 #include <libm/cstr.h>
@@ -33,16 +33,17 @@ namespace PCI
     {
         AddToStack();
         uint64_t offset = bus << 20;
-
         uint64_t busAddress = baseAddress + offset;
+        RemoveFromStack();
 
+        AddToStack();
         if (busAddress == 0)
         {
             RemoveFromStack();
             return;
         }
 
-        //GlobalPageTableManager.MapMemory((void*)busAddress, (void*)busAddress);
+        GlobalPageTableManager.MapMemory((void*)busAddress, (void*)busAddress);
         
         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)busAddress;
 
@@ -69,7 +70,7 @@ namespace PCI
             return;
         }
 
-        //GlobalPageTableManager.MapMemory((void*)deviceAddress, (void*)deviceAddress);
+        GlobalPageTableManager.MapMemory((void*)deviceAddress, (void*)deviceAddress);
         
         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)deviceAddress;
 
@@ -96,7 +97,7 @@ namespace PCI
             return;
         }
 
-        //GlobalPageTableManager.MapMemory((void*)functionAddress, (void*)functionAddress);
+        GlobalPageTableManager.MapMemory((void*)functionAddress, (void*)functionAddress);
         
         PCIDeviceHeader* pciDeviceHeader  = (PCIDeviceHeader*)functionAddress;
 
