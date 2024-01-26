@@ -162,6 +162,7 @@ If you need any help / have any questions or are curious about MaslOS2, feel fre
 
 ## Screenshots
 ![Showing off some apps](/images/demo.png)
+![MaslOS2 on display at my schools day of open doors](/images/20240126_181449.jpg)
 ![Minesweeper](/images/minesweeper.PNG)
 ![The start menu](/images/wm%207.png)
 ![Doom](/images/doom-test.png)
