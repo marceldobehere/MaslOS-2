@@ -237,8 +237,16 @@ namespace Heap
     void* HeapManager::_Xmalloc(int64_t size, const char* text, const char* func, const char* file, int line)
     {
         AddToStack();
+        #ifdef _KERNEL_SRC
+        if (HeapLock)
+        {
+            RemoveFromStack();
+            return NULL;
+        }
+        #else
         while (HeapLock)
             programYield();
+        #endif
         HeapLock = true;
         
         if (size <= 0)
@@ -356,8 +364,16 @@ namespace Heap
     void HeapManager::_Xfree(void* address, const char* func, const char* file, int line)
     {
         AddToStack();  
+        #ifdef _KERNEL_SRC
+        if (HeapLock)
+        {
+            RemoveFromStack();
+            return;
+        }
+        #else
         while (HeapLock)
             programYield();
+        #endif
         HeapLock = true;
         
         if (address < (void*)1000)
@@ -490,8 +506,13 @@ namespace Heap
         if (address  < (void*)1000)
             return false;
 
+        #ifdef _KERNEL_SRC
+        if (HeapLock)
+            return false;
+        #else
         while (HeapLock)
             programYield();
+        #endif
         HeapLock = true;
 
         AddToStack();
@@ -533,8 +554,16 @@ namespace Heap
     void* HeapManager::_Xrealloc(void* address, int64_t size, const char* func, const char* file, int line) 
     {
         AddToStack();
+        #ifdef _KERNEL_SRC
+        if (HeapLock)
+        {
+            RemoveFromStack();
+            return NULL;
+        }
+        #else
         while (HeapLock)
             programYield();
+        #endif
         HeapLock = true;
 
         _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
