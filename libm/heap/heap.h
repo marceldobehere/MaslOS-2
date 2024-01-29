@@ -58,6 +58,7 @@ namespace Heap
     };
 
     extern HeapManager* GlobalHeapManager;
+    extern bool HeapLock;
 }
 
 

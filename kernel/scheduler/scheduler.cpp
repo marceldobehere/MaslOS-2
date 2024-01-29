@@ -393,6 +393,8 @@ namespace Scheduler
         task->addrOfVirtPages = RequestNextFreePageRegion();
         task->elfPath = StrCopy(elfPath);
         task->startedAtPath = StrCopy(startedAtPath);
+        task->isThread = false;
+        task->mainPid = task->pid;
         Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
 
         {
@@ -461,7 +463,116 @@ namespace Scheduler
             frame->rflags = 0x202;
         }
 
-        Serial::Writelnf("> Started Task with addr %X", task);
+        Serial::Writelnf("> Started Thread with addr %X and PID %X", task, task->pid);
+
+        SchedulerEnabled = tempEnabled;
+        return task;
+    }
+
+    osTask* CreateThreadFromTask(osTask* parentTask, void* entry)
+    {
+        bool tempEnabled = SchedulerEnabled;
+        SchedulerEnabled = false;
+
+        AddToStack();
+        osTask* task = new osTask();
+        RemoveFromStack();
+
+        uint8_t* kernelStack = (uint8_t*)GlobalAllocator->RequestPages(KERNEL_STACK_PAGE_SIZE);
+        GlobalPageTableManager.MapMemories(kernelStack + MEM_AREA_TASK_KERNEL_STACK_OFFSET, kernelStack, KERNEL_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        kernelStack += MEM_AREA_TASK_KERNEL_STACK_OFFSET;
+
+        uint8_t* userStack = (uint8_t*)GlobalAllocator->RequestPages(USER_STACK_PAGE_SIZE);
+        if (!parentTask->isKernelModule)
+            GlobalPageTableManager.MapMemories(userStack + MEM_AREA_TASK_USER_STACK_OFFSET, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite | PT_Flag_UserSuper);
+        else
+            GlobalPageTableManager.MapMemories(userStack + MEM_AREA_TASK_USER_STACK_OFFSET, userStack, USER_STACK_PAGE_SIZE, PT_Flag_Present | PT_Flag_ReadWrite);
+        userStack += MEM_AREA_TASK_USER_STACK_OFFSET;
+
+
+        _memset(kernelStack, 0, KERNEL_STACK_PAGE_SIZE * 0x1000);
+        _memset(userStack, 0, USER_STACK_PAGE_SIZE * 0x1000);
+        
+        task->kernelStack = kernelStack;
+        task->userStack = userStack;
+
+        
+        task->taskTimeoutDone = 0;
+        AddToStack();
+        task->requestedPages = parentTask->requestedPages;
+        task->messages = new Queue<GenericMessagePacket*>(4);
+        RemoveFromStack();
+        task->doExit = false;
+        task->active = true;
+        task->priority = 0;
+        task->priorityStep = 0;
+        task->isKernelModule = parentTask->isKernelModule;
+        task->justYielded = false;
+        task->removeMe = false;
+        task->elfFile = parentTask->elfFile;
+        task->pid = RND::RandomInt();
+        task->parentPid = 0;
+        task->addrOfVirtPages = parentTask->addrOfVirtPages;
+        task->elfPath = StrCopy(parentTask->elfPath);
+        task->startedAtPath = StrCopy(parentTask->startedAtPath);
+        task->isThread = true;
+        task->mainPid = parentTask->pid;
+        Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
+
+        {
+            task->argC = parentTask->argC;
+            task->argV = (const char**)_Malloc(sizeof(const char*) * parentTask->argC);
+            for (int i = 0; i < parentTask->argC; i++)
+                task->argV[i] = StrCopy(parentTask->argV[i]);
+        }
+
+        task->pageTableContext = parentTask->pageTableContext;
+
+        uint8_t* kernelStackEnd = kernelStack + KERNEL_STACK_PAGE_SIZE * 0x1000;
+        uint8_t* userStackEnd = userStack + USER_STACK_PAGE_SIZE * 0x1000;
+
+        kernelStackEnd -= sizeof(interrupt_frame);
+        interrupt_frame* frame = (interrupt_frame*)kernelStackEnd;
+        _memset(frame, 0, sizeof(interrupt_frame));
+        task->frame = frame;
+
+        userStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
+        kernelStackEnd -= 100*sizeof(uint64_t) + sizeof(interrupt_frame);
+
+
+        if (!parentTask->isKernelModule)
+        {
+            frame->rip = (uint64_t)entry;
+            frame->cr3 = (uint64_t)parentTask->frame->cr3;
+            frame->cr0 = 0x80000000;
+            
+            //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
+            frame->rsp = (uint64_t)userStackEnd;
+            frame->rbp = (uint64_t)userStackEnd;
+            //frame->rax = (uint64_t)0;
+            frame->cs = 0x28 | 0x03;
+            frame->ss = 0x20 | 0x03;
+
+            frame->rflags = 0x202;
+        }
+        else
+        {
+            frame->rip = (uint64_t)entry;
+            frame->cr3 = (uint64_t)parentTask->frame->cr3;
+            frame->cr0 = 0x80000000;
+            //frame->cr0 = (uint64_t)GlobalPageTableManager.PML4 | 0x80000000;
+            frame->rsp = (uint64_t)userStackEnd;
+            frame->rbp = (uint64_t)userStackEnd;
+            //frame->rax = (uint64_t)module.entryPoint;
+            frame->cs = 0x8;
+            frame->ss = 0x10;
+
+            frame->rflags = 0x202;
+        }
+
+
+
+        Serial::Writelnf("> Started Thread with addr %X and PID %X (based on PID %X)", task, task->pid, task->mainPid);
 
         SchedulerEnabled = tempEnabled;
         return task;
@@ -495,6 +606,24 @@ namespace Scheduler
         AddToStack();
         task->active = false;
         RemoveFromStack();
+
+        if (!task->isThread)
+        {
+            // Find all children and delete
+            AddToStack();
+            for (int i = 0; i < osTasks.obj->GetCount(); i++)
+            {
+                osTask* tsk = osTasks.obj->ElementAt(i);
+                if (tsk->isThread && tsk->mainPid == task->pid)
+                {
+                    AddToStack();
+                    RemoveTask(tsk);
+                    RemoveFromStack();
+                    i--;
+                }
+            }
+            RemoveFromStack();
+        }
 
         AddToStack();
         osTasks.Lock();
@@ -530,7 +659,7 @@ namespace Scheduler
 
         // free task
         AddToStack();
-        if (task->requestedPages != NULL)
+        if (task->requestedPages != NULL && !task->isThread)
         {
             AddToStack();
             for (int i = 0; i < task->requestedPages->GetCount(); i++)
@@ -568,7 +697,7 @@ namespace Scheduler
         RemoveFromStack();
 
         AddToStack();
-        if (task->pageTableContext != NULL)
+        if (task->pageTableContext != NULL && !task->isThread)
         {
             //Serial::Writelnf("> Freeing page table");
             GlobalPageTableManager.FreePageTable((PageTable*)task->pageTableContext);
@@ -609,12 +738,14 @@ namespace Scheduler
         }
         RemoveFromStack();
 
-        {
+        AddToStack();
+        if (!task->isThread)
             Elf::FreeElf(task->elfFile);
-        }
+        RemoveFromStack();
 
         AddToStack();
-        FreePageRegion(task->addrOfVirtPages);
+        if (!task->isThread)
+            FreePageRegion(task->addrOfVirtPages);
         RemoveFromStack();
 
         AddToStack();

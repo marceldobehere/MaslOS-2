@@ -12,6 +12,7 @@ namespace Heap
     const uint64_t HeapMagicNum = 0xABCD12DEAD9654AA;//0;// 0xFFFFFFFFFFFFFFFF;//0xABCD12DEAD9654AA;
     
     HeapManager* GlobalHeapManager;
+    bool HeapLock = 0;
     
     void _HeapSegHdr::CombineForward(HeapManager* manager)
     {
@@ -236,6 +237,9 @@ namespace Heap
     void* HeapManager::_Xmalloc(int64_t size, const char* text, const char* func, const char* file, int line)
     {
         AddToStack();
+        while (HeapLock)
+            programYield();
+        HeapLock = true;
         
         if (size <= 0)
             size = 0x10;
@@ -267,6 +271,7 @@ namespace Heap
                 return NULL;
                 #else
                 Panic("Trying to access invalid HeapSegment Header!", true);
+                HeapLock = false;
                 #endif
                 RemoveFromStack();
                 return NULL;
@@ -293,6 +298,7 @@ namespace Heap
                     current->time = PIT::TimeSinceBootMS();
                     _usedHeapCount++;
                     _usedHeapAmount += size;
+                    HeapLock = false;
                     RemoveFromStack();
                     return (void*)((uint64_t)current + sizeof(_HeapSegHdr));
                 }
@@ -307,6 +313,7 @@ namespace Heap
                     current->time = PIT::TimeSinceBootMS();
                     _usedHeapCount++;
                     _usedHeapAmount += size;
+                    HeapLock = false;
                     RemoveFromStack();
                     return (void*)((uint64_t)current + sizeof(_HeapSegHdr));
                 }
@@ -320,6 +327,7 @@ namespace Heap
         if (ExpandHeap(size))
         {
             AddToStack();
+            HeapLock = false;
             void* res = _Xmalloc(size, text);//_Malloc(size, text);
             RemoveFromStack();
             RemoveFromStack();
@@ -333,6 +341,7 @@ namespace Heap
         #else
         Panic("MALLOC FAILED!!!", true);
         #endif
+        HeapLock = false;
 
         RemoveFromStack();
         return NULL;
@@ -347,8 +356,13 @@ namespace Heap
     void HeapManager::_Xfree(void* address, const char* func, const char* file, int line)
     {
         AddToStack();  
+        while (HeapLock)
+            programYield();
+        HeapLock = true;
+        
         if (address < (void*)1000)
         {
+            HeapLock = false;
             #ifdef _KERNEL_SRC
             return;
             #else
@@ -367,11 +381,13 @@ namespace Heap
                 segment->CombineForward(this);
                 segment->CombineBackward(this);
                 _usedHeapCount--;
+                HeapLock = false;
                 RemoveFromStack();
                 return;
             }
             else
             {
+                HeapLock = false;
                 #ifdef _KERNEL_SRC
                 return;
                 #else
@@ -474,6 +490,10 @@ namespace Heap
         if (address  < (void*)1000)
             return false;
 
+        while (HeapLock)
+            programYield();
+        HeapLock = true;
+
         AddToStack();
 
         _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
@@ -488,41 +508,66 @@ namespace Heap
                 segment->CombineForward(this);
                 segment->CombineBackward(this);
                 _usedHeapCount--;
-                
+                HeapLock = false;
                 RemoveFromStack();
                 return true;
             }
             else
             {
                 RemoveFromStack();
+                HeapLock = false;
                 return false;
             }
         }
         else
         {
             RemoveFromStack();
+            HeapLock = false;
             return false;
         }
         RemoveFromStack();
+        HeapLock = false;
         return true;
     }
 
-    void* HeapManager::_Xrealloc(void* address, int64_t size, const char* func, const char* file, int line) {
+    void* HeapManager::_Xrealloc(void* address, int64_t size, const char* func, const char* file, int line) 
+    {
+        AddToStack();
+        while (HeapLock)
+            programYield();
+        HeapLock = true;
+
         _HeapSegHdr* segment = ((_HeapSegHdr*)address) - 1;
 
-        if (size == 0) {
+        if (size == 0) 
+        {
+            HeapLock = false;
             _Xfree(address, func, file, line);
+            RemoveFromStack();
             return NULL;
-        } else if (!address) {
+        } 
+        else if (!address) 
+        {
+            HeapLock = false;
+            RemoveFromStack();
             return _Xmalloc(size, func, file, line);
-        } else if (size <= segment->length) {
+        }
+        else if (size <= segment->length) 
+        {
+            HeapLock = false;
+            RemoveFromStack();
             return address;
-        } else {
+        } 
+        else 
+        {
+            HeapLock = false;
             void* new_ptr = _Xmalloc(size, func, file, line);
-            if (new_ptr) {
+            if (new_ptr) 
+            {
                 _memcpy(address, new_ptr, segment->length);
                 _Xfree(address, func, file, line);
             }
+            RemoveFromStack();
             return new_ptr;
         }
     }

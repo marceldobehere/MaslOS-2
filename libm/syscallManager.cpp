@@ -622,3 +622,17 @@ uint64_t startFile(const char* path, const char* workingDirectory)
     asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(path), "c"(workingDirectory));
     return pid;
 }
+
+uint64_t startThread(void* func)
+{
+    int syscall = SYSCALL_START_THREAD;
+    uint64_t pid;
+    asm("int $0x31" : "=a"(pid) : "a"(syscall), "b"(func));
+    return pid;
+}
+
+void waitUntilThreadClosed(uint64_t pid)
+{
+    while (pidExists(pid))
+        programYield();
+}

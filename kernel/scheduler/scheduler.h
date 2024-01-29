@@ -28,6 +28,7 @@ namespace Scheduler
     interrupt_frame* SchedulerInterrupt(interrupt_frame* frame);
 
     osTask* CreateTaskFromElf(Elf::LoadedElfFile module, int argc, const char** argv, bool isUserMode, const char* elfPath, const char* startedAtPath);
+    osTask* CreateThreadFromTask(osTask* task, void* entry);
 
     void* RequestNextFreePageRegion();
     void FreePageRegion(void* addr);

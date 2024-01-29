@@ -112,3 +112,6 @@ bool fsReadFile(const char* path, void** buffer, uint64_t* byteCount);
 bool closeProcess(uint64_t pid);
 uint64_t startProcess(const char* path, int argc, const char** argv, const char* workingDirectory);
 uint64_t startFile(const char* path, const char* workingDirectory);
+
+uint64_t startThread(void* func);
+void waitUntilThreadClosed(uint64_t pid);

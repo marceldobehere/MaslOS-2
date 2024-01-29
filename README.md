@@ -18,6 +18,7 @@ And it mostly works on real hardware.
    - User Space 
    - Inter Process Communication
    - Stdio using IPC
+   - Multithreading (still a bit experimental?)
  + GUI
    - MaslOS GUI Framework port
    - Mouse/Keyboard interaction 

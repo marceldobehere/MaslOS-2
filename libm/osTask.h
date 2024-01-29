@@ -35,6 +35,8 @@ struct osTask
 
 	uint64_t pid;
 	uint64_t parentPid;
+	bool isThread;
+	uint64_t mainPid;
 
 	const char* elfPath;
 	const char* startedAtPath;

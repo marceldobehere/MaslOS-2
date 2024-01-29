@@ -1671,7 +1671,7 @@ void Syscall_handler(interrupt_frame* frame)
         }
 
         frame->rax = (uint64_t)resAddr;
-        Serial::Writelnf("> Requested next %d pages to %X", pageCount, frame->rax);
+        Serial::Writelnf("> Requested next %d pages to %X (Task %X)", pageCount, frame->rax, task->pid);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
@@ -2171,6 +2171,13 @@ void Syscall_handler(interrupt_frame* frame)
                 _Free(tempArgV);
             }
         }
+    }
+    else if (syscall == SYSCALL_START_THREAD)
+    {
+        void* func = (void*)frame->rbx;
+        osTask* nTask = Scheduler::CreateThreadFromTask(Scheduler::CurrentRunningTask, func);
+        Scheduler::AddTask(nTask);
+        frame->rax = nTask->pid;
     }
     else
     {
