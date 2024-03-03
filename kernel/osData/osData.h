@@ -12,6 +12,9 @@
 
 // #include "../devices/ac97/ac97.h"
 
+#include <libm/audio/internal/audio.h>
+#include "../devices/ac97/ac97.h"
+
 // #include "../serialManager/serialManager.h"
 
 // #include "../display/generic/genericDisplay.h"
@@ -56,19 +59,19 @@ struct OSData
     List<DiskInterface::GenericDiskInterface*> diskInterfaces;
 //     //List<Audio::BasicAudioDestination*> audioDestinations;
 
-//     List<Audio::AudioInputDevice*> audioInputDevices;
-//     List<Audio::AudioOutputDevice*> audioOutputDevices;
+    List<Audio::AudioInputDevice*> audioInputDevices;
+    List<Audio::AudioOutputDevice*> audioOutputDevices;
 
-//     Audio::AudioInputDevice* defaultAudioInputDevice = NULL;
-//     Audio::AudioOutputDevice* defaultAudioOutputDevice = NULL;
+    Audio::AudioInputDevice* defaultAudioInputDevice = NULL;
+    Audio::AudioOutputDevice* defaultAudioOutputDevice = NULL;
 
     int mouseSensitivity = 100;
 
 //     uint8_t port64Val;
 
 //     uint32_t wantedFps = 60;
-//     AC97::AC97Driver* ac97Driver = NULL;
-//     Audio::AudioOutputDevice* pcSpeakerDev;
+    AC97::AC97Driver* ac97Driver = NULL;
+    Audio::AudioOutputDevice* pcSpeakerDev;
 //     SerialManager::Manager* serialManager = NULL;
 
 //     GenericDisplay* fallbackOriginalDisplay = NULL;

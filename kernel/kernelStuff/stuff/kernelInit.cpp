@@ -20,6 +20,8 @@
 #include "../../diskStuff/Disk_Interfaces/ram/ramDiskInterface.h"
 #include "../../diskStuff/Partition_Interfaces/mraps/mrapsPartitionInterface.h"
 #include "../../diskStuff/Filesystem_Interfaces/mrafs/mrafsFileSystemInterface.h"
+#include <libm/cstr.h>
+#include "../../audio/audioDevStuff.h"
 
 
 BasicRenderer tempRenderer = BasicRenderer(NULL, NULL);
@@ -155,7 +157,21 @@ void InitKernel(BootInfo* bootInfo)
         RemoveFromStack();
 
         AddToStack();
+        PrintMsg("> Creating List for Disk Interfaces");
         osData.diskInterfaces = List<DiskInterface::GenericDiskInterface*>(4);
+        RemoveFromStack();
+
+        AddToStack();
+        PrintMsg("> Creating List for Audio Destinations");
+        //osData.audioDestinations = List<Audio::BasicAudioDestination*>();
+        osData.audioInputDevices = List<Audio::AudioInputDevice*>();
+        osData.audioOutputDevices = List<Audio::AudioOutputDevice*>();
+
+        osData.pcSpeakerDev = new Audio::AudioOutputDevice("PC Speaker", new Audio::AudioBuffer(8, 29829, 1, 1500));
+        osData.defaultAudioOutputDevice = osData.pcSpeakerDev;
+        AudioDeviceStuff::pcSpk = osData.pcSpeakerDev;
+        AudioDeviceStuff::pcSpk->destination->buffer->ClearBuffer();
+        AudioDeviceStuff::pcSpk->destination->buffer->sampleCount = AudioDeviceStuff::pcSpk->destination->buffer->totalSampleCount;
         RemoveFromStack();
 
         AddToStack();
@@ -272,7 +288,7 @@ void DoGdtStuff()
     //GlobalRenderer->Clear(Colors.green);
     GlobalPageTableManager.MapMemory(gdt_block, gdt_block);
     //GlobalRenderer->Clear(Colors.blue);
-    Serial::Writelnf("GDT: %X", (uint64_t)gdt_block);
+    PrintMsg(" > GDT: {}", ConvertHexToString((uint64_t)gdt_block));
     
     //while (true);
 
@@ -382,17 +398,20 @@ void PrepareMemory(BootInfo* bootInfo)
     PrintMsgEndLayer("Info");
 
     //while (true);
+    //PrintMsg("");
 
-    Serial::Writeln("");
-    Serial::Writelnf("psf1_font: %X", &GlobalRenderer->psf1_font);
-    Serial::Writelnf("fb: %X", &GlobalRenderer->framebuffer);
-    Serial::Writelnf("fb->buff: %X", &GlobalRenderer->framebuffer->BaseAddress);
-    Serial::Writelnf("psf1_font->glyph: %X", &GlobalRenderer->psf1_font->glyphBuffer);
-    Serial::Writelnf("psf1_font->psf1_Header: %X", &GlobalRenderer->psf1_font->psf1_Header);
+    PrintMsgStartLayer("Important Addr");
+    PrintMsg("psf1_font: {}", ConvertHexToString((uint64_t)&GlobalRenderer->psf1_font));
+    PrintMsg("fb: {}", ConvertHexToString((uint64_t)&GlobalRenderer->framebuffer));
+    PrintMsg("fb->buff: {}", ConvertHexToString((uint64_t)&GlobalRenderer->framebuffer->BaseAddress));
+    PrintMsg("psf1_font->glyph: {}", ConvertHexToString((uint64_t)&GlobalRenderer->psf1_font->glyphBuffer));
+    PrintMsg("psf1_font->psf1_Header: {}", ConvertHexToString((uint64_t)&GlobalRenderer->psf1_font->psf1_Header));
+    PrintMsgEndLayer("Important Addr");
 
     //while (true);
 
     // Map the efi memory things
+    PrintMsgStartLayer("EFI Entries");
     {
         for (int i = 0; i < bootInfo->memEntryCount; i++)
         {
@@ -403,11 +422,18 @@ void PrepareMemory(BootInfo* bootInfo)
             uint64_t entryStartVirt = entry->base | 0xffff800000000000; // ffff80007f5f4003
             uint64_t entrySize = entry->length;
             uint64_t entryPageCount = (entrySize + 0xFFF) / 0x1000;
-            Serial::Writelnf("Entry %d: %X -> %X (%d pages)", i, entryStartVirt, entryStartReal, entryPageCount);
+            
+            //Serial::Writelnf("Entry %d: %X -> %X (%d pages)", i, entryStartVirt, entryStartReal, entryPageCount);
+            PrintMsgSL("> Entry {}:", to_string(i));
+            PrintMsgSL("{} -> ", ConvertHexToString(entryStartVirt));
+            PrintMsgSL("{} ", ConvertHexToString(entryStartReal));
+            PrintMsg("({} pages)", to_string(entryPageCount));
+            
             GlobalPageTableManager.MapMemories((void*)entryStartReal, (void*)entryStartReal, entryPageCount);
             GlobalPageTableManager.MapMemories((void*)entryStartVirt, (void*)entryStartReal, entryPageCount);
         }
     }
+    PrintMsgEndLayer("EFI Entries");
 
     // Map Kernel
     {

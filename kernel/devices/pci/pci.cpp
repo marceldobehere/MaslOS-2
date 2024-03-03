@@ -6,7 +6,7 @@
 #include "../../osData/osData.h"
 #include "../ahci/ahci.h"
 #include <libm/cstr.h>
-//#include "../ac97/ac97.h"
+#include "../ac97/ac97.h"
 #include "../serial/serial.h"
 
 
@@ -184,19 +184,19 @@ namespace PCI
 
         if (pciDeviceHeader->Class == 0x04 && pciDeviceHeader->SubClass == 0x01 && pciDeviceHeader->Prog_IF == 0x00)
         {
-            // new AC97::AC97Driver(pciDeviceHeader);
+            new AC97::AC97Driver(pciDeviceHeader);
         }
         else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A3E)
         {
-            // new AC97::AC97Driver(pciDeviceHeader);
+            new AC97::AC97Driver(pciDeviceHeader);
         }
         else if (pciDeviceHeader->Vendor_ID == 0x8086 && pciDeviceHeader->Device_ID == 0x3A6E)
         {
-            // new AC97::AC97Driver(pciDeviceHeader);
+            new AC97::AC97Driver(pciDeviceHeader);
         }
         else if (pciDeviceHeader->Vendor_ID == 0x1022 && pciDeviceHeader->Device_ID == 0x15E3)
         {
-            // new AC97::AC97Driver(pciDeviceHeader);
+            new AC97::AC97Driver(pciDeviceHeader);
         }
         else if (pciDeviceHeader->Class == 0x01 && pciDeviceHeader->SubClass == 0x06 && pciDeviceHeader->Prog_IF == 0x01)
         {

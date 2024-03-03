@@ -352,6 +352,8 @@ void DrawStats()
     }
 }
 
+#include "../audio/audioDevStuff.h"
+
 int _pitCount = 0;
 
 void TempPitRoutine(interrupt_frame* frame)
@@ -364,7 +366,7 @@ void TempPitRoutine(interrupt_frame* frame)
 
     
 
-    // AudioDeviceStuff::play(PIT::FreqAdder);
+    AudioDeviceStuff::play(PIT::FreqAdder);
     // if (osData.serialManager != NULL)
     //     osData.serialManager->DoStuff();
 

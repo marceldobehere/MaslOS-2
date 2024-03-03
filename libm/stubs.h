@@ -29,6 +29,15 @@ inline void Panic(const char* message, bool stop = false)
     programCrash();
 }
 
+inline void Panic(const char* message, const char* var, bool stop = false)
+{
+    serialPrintLn("PROGRAM PANIC AAAA");
+    serialPrintLn(message);
+    serialPrint("VAR: ");
+    serialPrintLn(var);
+    programCrash();
+}
+
 namespace Serial
 {
     inline void Writelnf(const char* format, ...)
@@ -61,6 +70,15 @@ inline void Panic(const char* message, bool stop = false)
 {
     serialPrintLn("PROGRAM PANIC AAAA");
     serialPrintLn(message);
+    programCrash();
+}
+
+inline void Panic(const char* message, const char* var, bool stop = false)
+{
+    serialPrintLn("PROGRAM PANIC AAAA");
+    serialPrintLn(message);
+    serialPrint("VAR: ");
+    serialPrintLn(var);
     programCrash();
 }
 

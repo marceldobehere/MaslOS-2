@@ -51,7 +51,12 @@ And it mostly works on real hardware.
      - Generic Information Dialog (soon)
      - Generic Text Input Dialog (soon)
      - Generic Information YES/NO Dialog (soon)
-   - Other Apps ported from MaslOS and some extra ones (not yet)
+   - Other Apps ported from MaslOS and some extra ones (not yet) 
+ + Audio
+   + Drivers
+     - PC-Speaker
+     - AC97
+   - Audio System (WIP, currently kernel-only)
  + Other
    - SMP (not added yet)
    - idk more stuff
