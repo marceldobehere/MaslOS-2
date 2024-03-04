@@ -146,6 +146,27 @@ void Println()
     PrintedSpace = false;
 }
 
+
+void _PrintfMsgColSL(const char* msg, va_list arg, uint32_t col)
+{
+    if (!PrintedSpace)
+        PrintSpaces();
+    Serial::_Writef(msg, arg);
+
+    if (!PrintAll || !osData.verboseBoot)
+        return;
+    GlobalRenderer->Printf(msg, arg, col);
+    while (GlobalRenderer->CursorPosition.y > GlobalRenderer->framebuffer->Height - 64)
+        ScrollUp(16);
+}
+
+void _PrintfMsgSL(const char* msg, va_list arg)
+{
+    _PrintfMsgColSL(msg, arg, GlobalRenderer->color);
+}
+
+
+
 void PrintMsgCol(const char* msg, const char* var, uint32_t col)
 {
     PrintMsgColSL(msg, var, col);
@@ -183,6 +204,23 @@ void PrintMsgCol(const char* msg, uint32_t col)
     PrintMsgCol(msg, "", col);
 }
 
+void PrintfMsg(const char* msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    _PrintfMsgSL(msg, arg);
+    Println();
+    va_end(arg);
+}
+
+void PrintfMsgCol(const char* msg, uint32_t col, ...)
+{
+    va_list arg;
+    va_start(arg, col);
+    _PrintfMsgColSL(msg, arg, col);
+    Println();
+    va_end(arg);
+}
 
 
 
@@ -200,6 +238,22 @@ void PrintMsgSL(const char* msg, const char* var)
 void PrintMsgColSL(const char* msg, uint32_t col)
 {
     PrintMsgColSL(msg, "", col);
+}
+
+void PrintfMsgSL(const char* msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    _PrintfMsgSL(msg, arg);
+    va_end(arg);
+}
+
+void PrintfMsgColSL(const char* msg, uint32_t col, ...)
+{
+    va_list arg;
+    va_start(arg, col);
+    _PrintfMsgColSL(msg, arg, col);
+    va_end(arg);
 }
 
 #include "../osData/osData.h"

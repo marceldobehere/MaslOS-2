@@ -361,7 +361,7 @@ namespace AHCI
     AHCIDriver::AHCIDriver (PCI::PCIDeviceHeader* pciBaseAddress)
     {
         this->PCIBaseAddress = pciBaseAddress;
-        Serial::Writelnf("> AHCIDriver has been created! %X", (uint64_t)pciBaseAddress);
+        PrintfMsg("> AHCIDriver has been created! (PCI: %X)", (uint64_t)pciBaseAddress);
 
         ABAR = (HBAMemory*)(uint64_t)((PCI::PCIHeader0*)(uint64_t)pciBaseAddress)->BAR5;
         GlobalPageTableManager.MapMemory(ABAR, ABAR);
@@ -369,7 +369,7 @@ namespace AHCI
 
         ProbePorts();
 
-        Serial::Writelnf("Checking %d Ports:", PortCount);
+        PrintfMsg("Checking %d Ports:", PortCount);
 
         for (int i = 0; i < PortCount; i++)
         {

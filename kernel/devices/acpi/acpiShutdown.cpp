@@ -297,7 +297,7 @@ int acpiEnable(void)
 int InitAcpiShutdownThing(void *RSDT)
 {
     PrintMsgStartLayer("Info");
-    PrintMsgCol("RSDT: {}", ConvertHexToString((uint64_t)RSDT), Colors.yellow);
+    PrintfMsgCol("RSDT: %X", Colors.yellow, (uint64_t)RSDT);
     unsigned int *ptr = (unsigned int *)RSDT; // acpiGetRSDPtr();
 
     if (RSDT == NULL)
@@ -308,7 +308,7 @@ int InitAcpiShutdownThing(void *RSDT)
     }
 
     FADT* FACP = (FADT*)ACPI::FindTable((ACPI::SDTHeader*)RSDT, "FACP", 4);
-    PrintMsgCol("FACP: {}", ConvertHexToString((uint64_t)FACP), Colors.yellow);
+    PrintfMsgCol("FACP: %X", Colors.yellow, (uint64_t)FACP);
 
     if (FACP == NULL)
     {
@@ -322,7 +322,7 @@ int InitAcpiShutdownThing(void *RSDT)
     //FACP->X_Dsdt
 
     {
-        PrintMsgCol("DSDT: {}", ConvertHexToString((uint64_t)FACP->Dsdt), Colors.yellow);
+        PrintfMsgCol("DSDT: %X", Colors.yellow, (uint64_t)FACP->Dsdt);
 
         // search the \_S5 package in the DSDT
         char *S5Addr = (char *)(uint64_t)FACP->Dsdt + 36; // skip header

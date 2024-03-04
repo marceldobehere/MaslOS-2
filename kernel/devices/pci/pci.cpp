@@ -105,45 +105,45 @@ namespace PCI
         if (pciDeviceHeader ->Device_ID == 0xFFFF) {RemoveFromStack(); return;}
 
         //BasicRenderer* renderer = osData.debugTerminalWindow->renderer;
-        Serial::Write(" - ");
+        PrintMsgSL(" > ");
 
         {
             const char* vendorName = GetVendorName(pciDeviceHeader->Vendor_ID);
             if (vendorName != unknownString)
-                Serial::Write(vendorName);
+                PrintMsgSL(vendorName);
             else
             {
-                Serial::Write("<");
-                Serial::Write(ConvertHexToString(pciDeviceHeader->Vendor_ID));
-                Serial::Write(">");
+                PrintMsgSL("<");
+                PrintMsgSL(ConvertHexToString(pciDeviceHeader->Vendor_ID));
+                PrintMsgSL(">");
             }
-            Serial::Write(" / ");
+            PrintMsgSL(" / ");
         }
 
         {
             const char* deviceName = GetDeviceName(pciDeviceHeader->Vendor_ID, pciDeviceHeader->Device_ID);
             if (deviceName != unknownString)
-                Serial::Write(deviceName);
+                PrintMsgSL(deviceName);
             else
             {
-                Serial::Write("<");
-                Serial::Write(ConvertHexToString(pciDeviceHeader->Device_ID));
-                Serial::Write(">");
+                PrintMsgSL("<");
+                PrintMsgSL(ConvertHexToString(pciDeviceHeader->Device_ID));
+                PrintMsgSL(">");
             }
-            Serial::Write(" / ");
+            PrintMsgSL(" / ");
         }
 
         {
             const char* className = GetClassName(pciDeviceHeader->Class);
             if (className != unknownString)
-                Serial::Write(className);
+                PrintMsgSL(className);
             else
             {
-                Serial::Write("<");
-                Serial::Write(ConvertHexToString(pciDeviceHeader->Class));
-                Serial::Write(">");
+                PrintMsgSL("<");
+                PrintMsgSL(ConvertHexToString(pciDeviceHeader->Class));
+                PrintMsgSL(">");
             }
-            Serial::Write(" / ");
+            PrintMsgSL(" / ");
         }
 
         {
@@ -152,26 +152,26 @@ namespace PCI
                 Serial::Write(subclassName);
             else
             {
-                Serial::Write("<");
-                Serial::Write(ConvertHexToString(pciDeviceHeader->SubClass));
-                Serial::Write(">");
+                PrintMsgSL("<");
+                PrintMsgSL(ConvertHexToString(pciDeviceHeader->SubClass));
+                PrintMsgSL(">");
             }
-            Serial::Write(" / ");
+            PrintMsgSL(" / ");
         }
 
         {
             const char* progIFName = GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->SubClass, pciDeviceHeader->Prog_IF);
             if (progIFName != unknownString)
-                Serial::Write(progIFName);
+                PrintMsgSL(progIFName);
             else
             {
-                Serial::Write("<");
-                Serial::Write(ConvertHexToString(pciDeviceHeader->Prog_IF));
-                Serial::Write(">");
+                PrintMsgSL("<");
+                PrintMsgSL(ConvertHexToString(pciDeviceHeader->Prog_IF));
+                PrintMsgSL(">");
             }
             //renderer->Print(" / ");
         }
-        Serial::Writelnf("");
+        PrintMsg("");
 
         // osData.debugTerminalWindow->renderer->Println("> BARS:", Colors.yellow);
         // for (int i = 0; i < 6; i++)
