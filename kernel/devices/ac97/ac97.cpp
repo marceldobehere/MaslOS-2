@@ -210,6 +210,7 @@ namespace AC97
         PCI::enable_bus_mastering(address);
         PrintMsg("> Enabled PCI Bus Mastering");
         Println();
+        
 
         
         PrintfMsgCol("> AC97 REV: %d", Colors.bgreen, ((PCI::PCIDeviceHeader*)PCIBaseAddress)->Revision_ID);
@@ -220,43 +221,19 @@ namespace AC97
             io_wait(1000);
         }
 
+
         bool driverOkay = true;
         if (((PCI::PCIHeader0*)PCIBaseAddress)->BAR1 == 0)
         {
             PrintMsg("> AC97 Driver only uses BAR0 and is not supported");
             PrintMsgEndLayer("AC97Driver");
             return;
-        }
-
-        if (osData.ac97Driver != NULL)
-        {
-            PrintMsg("> AC97 Driver already exists");
-            PrintMsgEndLayer("AC97Driver");
-            return;
-        }
-
-
-
-        
-
-        io_wait(500);
-
-
-
-        //PrintMsgCol("> PCI Address: {}", ConvertHexToString(address), Colors.yellow);
-        //Println();
-        //IRQHandler(PCI::read_byte(address, PCI_INTERRUPT_LINE)),
-        irqId = PCI::io_read_byte(address, PCI_INTERRUPT_LINE);
-        PrintfMsg("> AC97 IRQ: %d", irqId);
-        {
-            IRQHandlerCallbackFuncs[irqId] = (void*)&AC97Driver::HandleIRQ;
-            IRQHandlerCallbackHelpers[irqId] = (void*)this;
-        }
-        
+        }        
 
         // m_address = address;
         //m_mixer_address = PCI::io_read_word(address, PCI_BAR0) & ~1;
         m_mixer_type = PCI::pci_get_bar((PCI::PCIHeader0*)address, 0);
+
         //PrintMsgCol("> Mixer Address: {}", ConvertHexToString(m_mixer_address), Colors.yellow);
         //PrintMsgCol("> Mixer Address (2): {}", ConvertHexToString(((PCI::PCIHeader0*)address)->BAR0), Colors.yellow);
         if (m_mixer_type.type == PCI::PCI_BAR_TYPE_ENUM::MMIO64)
@@ -269,6 +246,35 @@ namespace AC97
             PrintMsgCol("> BUS TYPE USING BAR1", Colors.orange);
             m_bus_type = PCI::pci_get_bar((PCI::PCIHeader0*)address, 1);
         }
+
+        // Soft Reset
+        PrintfMsgCol("> AC97 SOFT RESET", Colors.orange);
+        PCI::write_byte(address, m_bus_type, BusRegisters::GLOBAL_CONTROL, GlobalControl::COLD_RESET);
+        io_wait(1000);
+        PCI::write_byte(address, m_bus_type, BusRegisters::GLOBAL_CONTROL, 0);
+        io_wait(1000);
+
+        if (osData.ac97Driver != NULL)
+        {
+            PrintMsg("> AC97 Driver already exists");
+            PrintMsgEndLayer("AC97Driver");
+            return;
+        }
+
+
+        //PrintMsgCol("> PCI Address: {}", ConvertHexToString(address), Colors.yellow);
+        //Println();
+        //IRQHandler(PCI::read_byte(address, PCI_INTERRUPT_LINE)),
+        irqId = PCI::io_read_byte(address, PCI_INTERRUPT_LINE);
+        PrintfMsg("> AC97 IRQ: %d", irqId);
+        {
+            IRQHandlerCallbackFuncs[irqId] = (void*)&AC97Driver::HandleIRQ;
+            IRQHandlerCallbackHelpers[irqId] = (void*)this;
+        }
+
+
+
+
         //PrintMsgCol("> Mixer Address (3): {}", ConvertHexToString(m_mixer_address), Colors.yellow);
         
         //PrintMsgCol("> Bus Address: {}", ConvertHexToString(m_bus_address), Colors.yellow);
