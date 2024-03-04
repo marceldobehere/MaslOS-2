@@ -188,12 +188,19 @@ namespace AC97
 
         PrintMsg("> AC97 Driver Init");
 
-        PrintMsg("> Disabled PCI IO SPACE");
-        PCI::disable_io_space((uint64_t)PCIBaseAddress);
-        io_wait(5000);
-        PrintMsg("> Disabled PCI MEM SPACE");
-        PCI::disable_mem_space((uint64_t)PCIBaseAddress);
-        io_wait(5000);
+        // PrintMsg("> Disabled PCI IO SPACE");
+        // PCI::disable_io_space((uint64_t)PCIBaseAddress);
+        // io_wait(5000);
+        // PrintMsg("> Disabled PCI MEM SPACE");
+        // PCI::disable_mem_space((uint64_t)PCIBaseAddress);
+        // io_wait(5000);
+
+        PrintMsg("> Enabled PCI IO SPACE");
+        PCI::enable_io_space(address);
+        io_wait(500);
+        PrintMsg("> Enabled PCI MEM SPACE");
+        PCI::enable_mem_space(address);
+        io_wait(500);
 
         //Enable bus mastering and interrupts
         io_wait(500);
@@ -203,6 +210,7 @@ namespace AC97
         PCI::enable_bus_mastering(address);
         PrintMsg("> Enabled PCI Bus Mastering");
         Println();
+
         
         PrintMsgCol("> AC97 REV: {}", to_string(((PCI::PCIDeviceHeader*)PCIBaseAddress)->Revision_ID), Colors.bgreen);
 
@@ -229,12 +237,6 @@ namespace AC97
         }
 
 
-        PrintMsg("> Enabled PCI IO SPACE");
-        PCI::enable_io_space(address);
-        io_wait(500);
-        PrintMsg("> Enabled PCI MEM SPACE");
-        PCI::enable_mem_space(address);
-        io_wait(500);
 
         
 
