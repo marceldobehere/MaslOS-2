@@ -7,6 +7,7 @@
 #include <stdint.h> 
 #include "../kernelStuff/kernelFiles/ImageStruct.h"
 #include "testoDebug.h"
+#include "../kernelStuff/stuff/stdArg.h"
 
 class BasicRenderer
 {
@@ -37,11 +38,17 @@ class BasicRenderer
         void Println(const char* chrs);
         void Print(const char* chrs, const char* var);
         void Println(const char* chrs, const char* var);
+        void _Printf(const char* msg, va_list arg);
+        void Printf(const char* msg, ...);
+        void Printfln(const char* msg, ...);
 
         void Print(const char* chrs, uint32_t col);
         void Println(const char* chrs, uint32_t col);
         void Print(const char* chrs, const char* var, uint32_t col);
         void Println(const char* chrs, const char* var, uint32_t col);
+        void _Printf(const char* msg, va_list arg, uint32_t col);
+        void Printf(const char* msg, uint32_t col, ...);
+        void Printfln(const char* msg, uint32_t col, ...);
 
         void Clear(uint32_t col);
         void Clear(int64_t x1, int64_t y1, int64_t x2, int64_t y2, uint32_t col);

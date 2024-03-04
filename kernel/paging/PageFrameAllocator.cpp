@@ -222,9 +222,9 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
     EFI_BITMAP_SIZE = bitmapSize;
 
     PrintMsgStartLayer("Info");
-    PrintMsgCol("Largest Mem Size: {} Bytes.", to_string(largestFreeMemSegSize), Colors.yellow);
-    PrintMsgCol("Larget Mem Loc: 0x{}", ConvertHexToString(memStart), Colors.yellow);
-    PrintMsgCol("Bitmap Size:      {} Bytes.", to_string(bitmapSize + sizeof(Bitmap)), Colors.yellow);
+    PrintfMsgCol("Largest Mem Size: %d Bytes.", Colors.yellow, largestFreeMemSegSize);
+    PrintfMsgCol("Larget Mem Loc:   0x%X", Colors.yellow, memStart);
+    PrintfMsgCol("Bitmap Size:      %d Bytes.", Colors.yellow, bitmapSize + sizeof(Bitmap));
     PrintMsgEndLayer("Info");
 
     PrintMsg("> Initing Bitmap");
@@ -235,19 +235,19 @@ void PageFrameAllocator::ReadEFIMemoryMap(void* start, uint64_t size)
     if (resPageCount > 0x1000)
         resPageCount = 0x1000;
     
-    PrintMsg("> Reserving first {} Pages", to_string(resPageCount));
+    PrintfMsg("> Reserving first %d Pages", resPageCount);
     ReservePages((void*)memStartAddr, resPageCount);
     
-    PrintMsg("> Reserving Pages for the Bitmap buffer starting at 0x{}", ConvertHexToString((uint64_t)PageBitMap.Buffer));
+    PrintfMsg("> Reserving Pages for the Bitmap buffer starting at 0x%X", (uint64_t)PageBitMap.Buffer);
     ReservePages((void*)memStartAddr, bitmapSize / 0x1000 + 1);
 
 
     PrintMsgStartLayer("Info");
-    PrintMsgCol("Bitmap ADDR:      {}", ConvertHexToString((uint64_t)PageBitMap.Buffer), Colors.yellow);
+    PrintfMsgCol("Bitmap ADDR:      %X", (uint64_t)PageBitMap.Buffer, Colors.yellow);
     //reservedMemory = data;
-    PrintMsgCol("FREE MEM: {}", to_string(freeMemory), Colors.yellow);
-    PrintMsgCol("USED MEM: {}", to_string(usedMemory), Colors.yellow);
-    PrintMsgCol("RES MEM:  {}", to_string(reservedMemory), Colors.yellow);
+    PrintfMsgCol("FREE MEM: %d", Colors.yellow, freeMemory);
+    PrintfMsgCol("USED MEM: %d", Colors.yellow, usedMemory);
+    PrintfMsgCol("RES MEM:  %d", Colors.yellow, reservedMemory);
     //GlobalRenderer->Println();
     PrintMsgEndLayer("Info");
 

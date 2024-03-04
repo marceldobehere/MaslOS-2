@@ -204,12 +204,11 @@ namespace AC97
         PrintMsg("> Enabled PCI Bus Mastering");
         Println();
         
-        PrintMsgCol("> AC97 REV: {}", to_string(((PCI::PCIDeviceHeader*)PCIBaseAddress)->Revision_ID), Colors.bgreen);
+        PrintfMsgCol("> AC97 REV: %d", Colors.bgreen, ((PCI::PCIDeviceHeader*)PCIBaseAddress)->Revision_ID);
 
         for (int i = 0; i < 6; i++)
         {
-            PrintMsgCol("> BAR {}: ", to_string(i), Colors.orange);
-            PrintMsgColSL("{}", ConvertHexToString(*(((uint32_t*)&((PCI::PCIHeader0*)PCIBaseAddress)->BAR0) + i)), Colors.orange);
+            PrintfMsgCol("> BAR %d: %X", Colors.orange, i, (*(((uint32_t*)&((PCI::PCIHeader0*)PCIBaseAddress)->BAR0) + i)));
             io_wait(1000);
         }
 
@@ -246,9 +245,9 @@ namespace AC97
         //Println();
         //IRQHandler(PCI::read_byte(address, PCI_INTERRUPT_LINE)),
         irqId = PCI::io_read_byte(address, PCI_INTERRUPT_LINE);
-        PrintMsg("> AC97 IRQ: {}", to_string(irqId));
+        PrintfMsg("> AC97 IRQ: %d", irqId);
         {
-            IRQHandlerCallbackFuncs[irqId] = (void*)&HandleIRQ;
+            IRQHandlerCallbackFuncs[irqId] = (void*)&AC97Driver::HandleIRQ;
             IRQHandlerCallbackHelpers[irqId] = (void*)this;
         }
         
@@ -273,20 +272,20 @@ namespace AC97
         //PrintMsgCol("> Bus Address: {}", ConvertHexToString(m_bus_address), Colors.yellow);
         //PrintMsgCol("> Bus Address (2): {}", ConvertHexToString(((PCI::PCIHeader0*)address)->BAR1), Colors.yellow);
         m_output_channel = /*m_bus_address +*/ BusRegisters::NABM_PCM_OUT;
-        PrintMsgCol("> Output Channel: {}", ConvertHexToString(m_output_channel), Colors.yellow);
+        PrintfMsgCol("> Output Channel: %X", Colors.yellow, m_output_channel);
         Println();
 
         PrintMsgStartLayer("AC97 Info");
 
         PrintMsgCol("> TYPES: NONE, M64, M32, IO ", Colors.bgreen);
 
-        PrintMsgCol("> AC97 MIXER TYPE: {}", to_string(m_mixer_type.type), Colors.bgreen);
-        PrintMsgCol("> AC97 MIXER IO BASE: {}", ConvertHexToString(m_mixer_type.io_address), Colors.bgreen);
-        PrintMsgCol("> AC97 MIXER MEM BASE: {}", ConvertHexToString(m_mixer_type.mem_address), Colors.bgreen);
+        PrintfMsgCol("> AC97 MIXER TYPE: %d", Colors.bgreen, m_mixer_type.type);
+        PrintfMsgCol("> AC97 MIXER IO BASE: %X", Colors.bgreen, m_mixer_type.io_address);
+        PrintfMsgCol("> AC97 MIXER MEM BASE: %X", Colors.bgreen, m_mixer_type.mem_address);
 
-        PrintMsgCol("> AC97 BUS TYPE: {}", to_string(m_bus_type.type), Colors.bgreen);
-        PrintMsgCol("> AC97 BUS IO BASE: {}", ConvertHexToString(m_bus_type.io_address), Colors.bgreen);
-        PrintMsgCol("> AC97 BUS MEM BASE: {}", ConvertHexToString(m_bus_type.mem_address), Colors.bgreen);
+        PrintfMsgCol("> AC97 BUS TYPE: %d", Colors.bgreen, m_bus_type.type);
+        PrintfMsgCol("> AC97 BUS IO BASE: %X", Colors.bgreen, m_bus_type.io_address);
+        PrintfMsgCol("> AC97 BUS MEM BASE: %X", Colors.bgreen, m_bus_type.mem_address);
 
         PrintMsgEndLayer("AC97 Info");
 
@@ -299,12 +298,12 @@ namespace AC97
         m_output_buffer_region = (uint8_t*)GlobalAllocator->RequestPages(AC97_OUTPUT_BUFFER_PAGES);
         GlobalPageTableManager.MapMemories((void*)m_output_buffer_region, (void*)m_output_buffer_region, AC97_OUTPUT_BUFFER_PAGES);
         _memset(m_output_buffer_region, 0, 0x1000 * AC97_OUTPUT_BUFFER_PAGES);
-        PrintMsgCol("> Output Buffer Region: {}", ConvertHexToString((uint64_t)m_output_buffer_region), Colors.yellow);
+        PrintfMsgCol("> Output Buffer Region: %X",  Colors.yellow, (uint64_t)m_output_buffer_region);
         //Panic("BRUH {}", ConvertHexToString((uint64_t)m_output_buffer_region), true);
         m_output_buffer_descriptor_region = (uint8_t*)GlobalAllocator->RequestPages(1);//(uint8_t*)_Malloc(sizeof(BufferDescriptor) * AC97_NUM_BUFFER_DESCRIPTORS);
         GlobalPageTableManager.MapMemories((void*)m_output_buffer_descriptor_region, (void*)m_output_buffer_descriptor_region, 1);
         _memset(m_output_buffer_descriptor_region, 0, sizeof(BufferDescriptor) * AC97_NUM_BUFFER_DESCRIPTORS);
-        PrintMsgCol("> Output Buffer Descriptor Region: {}", ConvertHexToString((uint64_t)m_output_buffer_descriptor_region), Colors.yellow);
+        PrintfMsgCol("> Output Buffer Descriptor Region: %X",  Colors.yellow, (uint64_t)m_output_buffer_descriptor_region);
         Println();
         writeBufferCount = 0;
 
@@ -335,7 +334,7 @@ namespace AC97
 
         const int wantedSampleRate = 48000;
 
-        PrintMsg("> Setting Sample Rate to {}", to_string(wantedSampleRate));
+        PrintfMsg("> Setting Sample Rate to %d", wantedSampleRate);
         int tries = 10;
         while (tries-- > 0)
         {
@@ -344,7 +343,7 @@ namespace AC97
                 break;
             PIT::Sleep(10);
         }
-        PrintMsg("> Card Sample Rate: {}", to_string((int)m_sample_rate));
+        PrintfMsg("> Card Sample Rate: %d", (int)m_sample_rate);
 
         if (m_sample_rate != wantedSampleRate)
             PrintMsg("> Sample rate is borked!");//Panic("AC97: Failed to set sample rate! GOT: {}", to_string((int)m_sample_rate), true);

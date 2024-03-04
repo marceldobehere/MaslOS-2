@@ -375,3 +375,145 @@ BasicRenderer::BasicRenderer(Framebuffer* framebuffer, PSF1_FONT* psf1_font)
     this->framebuffer = framebuffer;
     this->psf1_font = psf1_font;
 }
+
+#include <libm/cstr.h>
+#include <libm/cstrTools.h>
+
+// %s -> string
+// %c -> char
+// %d/i -> int (32 bit)
+// %D/I -> int (64 bit)
+// %x -> hex (32 bit)
+// %X -> hex (64 bit)
+// %b -> byte
+// %B -> bool
+// %f -> float
+// %F -> double
+// %% -> %
+
+void BasicRenderer::_Printf(const char* str, va_list arg, uint32_t col)
+{
+    uint64_t tempcol = color;
+    color = col;
+
+    int len = StrLen(str);
+
+    for (int i = 0; i < len; i++)
+    {
+        if (str[i] == '%' && i + 1 < len)
+        {
+            i++;
+            if (str[i] == 's')
+            {
+                char* argStr = va_arg(arg, char*);
+                if (argStr != NULL)
+                    Print(argStr);
+                else
+                    Print("(null)");
+            }
+            else if (str[i] == 'c')
+            {
+                char argChar = va_arg(arg, int);
+                Print(argChar);
+            }
+            else if (str[i] == 'd' || str[i + 1] == 'i')
+            {
+                int argInt = va_arg(arg, int);
+                Print(to_string(argInt));
+            }
+            else if (str[i] == 'D' || str[i + 1] == 'I')
+            {
+                uint64_t argInt = va_arg(arg, uint64_t);
+                Print(to_string(argInt));
+            }
+            else if (str[i] == 'x')
+            {
+                uint32_t argInt = va_arg(arg, uint32_t);
+                Print(ConvertHexToString(argInt));
+            }
+            else if (str[i] == 'X')
+            {
+                uint64_t argInt = va_arg(arg, uint64_t);
+                Print(ConvertHexToString(argInt));
+            }
+            else if (str[i] == 'b')
+            {
+                uint8_t argInt = (uint8_t)va_arg(arg, int);
+                Print(to_string(argInt));
+            }
+            else if (str[i] == 'B')
+            {
+                bool argInt = (bool)va_arg(arg, int);
+                Print(to_string(argInt));
+            }
+            else if (str[i] == 'f')
+            {
+                // compiler be trolling me
+                // float argFloat = va_arg(arg, float);
+                // Write(to_string(argFloat));
+                
+
+                double argDouble = va_arg(arg, double);
+                Print(to_string(argDouble));
+            }
+            else if (str[i] == 'F')
+            {
+                double argDouble = va_arg(arg, double);
+                Print(to_string(argDouble));
+            }
+            else if (str[i] == '%')
+            {
+                Print('%');
+            }
+            else
+            {
+                Print(str[i]);
+            }
+        }
+        else
+        {
+            Print(str[i]);
+        }
+    }
+
+    color = tempcol;    
+}
+
+void BasicRenderer::_Printf(const char* msg, va_list arg)
+{
+    _Printf(msg, arg, color);
+}
+
+void BasicRenderer::Printf(const char* msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    _Printf(msg, arg);
+    va_end(arg);
+}
+
+void BasicRenderer::Printfln(const char* msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    _Printf(msg, arg);
+    Println();
+    va_end(arg);
+}
+
+void BasicRenderer::Printf(const char* msg, uint32_t col, ...)
+{
+    va_list arg;
+    va_start(arg, col);
+    _Printf(msg, arg, col);
+    va_end(arg);
+}
+
+void BasicRenderer::Printfln(const char* msg, uint32_t col, ...)
+{
+    va_list arg;
+    va_start(arg, col);
+    _Printf(msg, arg, col);
+    Println();
+    va_end(arg);
+}
