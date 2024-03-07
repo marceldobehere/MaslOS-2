@@ -95,7 +95,7 @@ namespace Keyboard
 
         if (finalKey == 0)
         {
-            Serial::Write("> Unhandled Key:");
+            Serial::TWrite("> Unhandled Key:");
             for (int i = 0; i < SubScancodeStep; i++)
             {
                 Serial::Write(ConvertHexToString(SubScancodes[i]));

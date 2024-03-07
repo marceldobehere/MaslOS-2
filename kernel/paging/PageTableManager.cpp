@@ -422,7 +422,7 @@ void CopyPageTable(PageTable* srcPML4Address, PageTable* destPML4Address)
 
 void PageTableManager::PrintPageTable()
 {
-    Serial::Writelnf("PML4: %X", PML4);
+    Serial::TWritelnf("PML4: %X", PML4);
     uint64_t virtualAddress;
 
     for (uint64_t i = 0; i < 512; i++)

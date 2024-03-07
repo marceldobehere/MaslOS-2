@@ -93,7 +93,7 @@ void boot(void* _bootInfo)
     Scheduler::SchedulerEnabled = false;
 
     {
-        Serial::Writelnf("> Setting up Nothing Doer Task");
+        Serial::TWritelnf("> Setting up Nothing Doer Task");
         Elf::LoadedElfFile elf;
         elf.entryPoint = (void*)nothing_task_entry;
         osTask* task = Scheduler::CreateTaskFromElf(elf, 0, NULL, false, "", "");

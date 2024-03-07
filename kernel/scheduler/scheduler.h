@@ -8,6 +8,8 @@
 #define KERNEL_STACK_PAGE_SIZE 16
 #define USER_STACK_PAGE_SIZE 16
 
+#define LOG_SCHED_STUFF false
+
 namespace Scheduler
 {
     extern Lockable<List<osTask*>*> osTasks;

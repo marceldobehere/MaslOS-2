@@ -195,7 +195,7 @@ void InitKernel(BootInfo* bootInfo)
         RemoveFromStack();
 
         AddToStack();
-        Serial::Writelnf("> PART: %X", partInterface);
+        PrintfMsg("> PART: %X", partInterface);
         FilesystemInterface::GenericFilesystemInterface* fsInterface = (FilesystemInterface::GenericFilesystemInterface*)new FilesystemInterface::MrafsFilesystemInterface(partInterface, partInterface->partitionList[2]);
         RemoveFromStack();
 

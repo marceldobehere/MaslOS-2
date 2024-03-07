@@ -42,7 +42,7 @@ namespace Scheduler
 
         osTasks.Lock();
 
-        Serial::Writelnf("SCHEDULER> INITIALIZING SCHEDULER");
+        Serial::TWritelnf("SCHEDULER> INITIALIZING SCHEDULER");
 
         osTasks.Unlock();
 
@@ -60,7 +60,7 @@ namespace Scheduler
         {
             CurrentRunningTask = NULL;
             CurrentTaskIndex = 0;
-            Serial::Writelnf("SCHEDULER> LOCKED");
+            Serial::TWritelnf("SCHEDULER> LOCKED");
             osTasks.Unlock();
             //return currFrame;
         }
@@ -69,13 +69,14 @@ namespace Scheduler
         
         int64_t time = PIT::TimeSinceBootMS();
 
-        //Serial::Writelnf("SCHEDULER> INTERRUPT %d", osTasks.obj->GetCount());
+        //Serial::TWritelnf("SCHEDULER> INTERRUPT %d", osTasks.obj->GetCount());
 
         osTasks.Lock();
 
+        // Restart Desktop
         if (DesktopTask == NULL && DesktopElfFile != NULL)
         {
-            Serial::Writelnf("SCHEDULER> CREATING DESKTOP TASK");
+            Serial::TWritelnf("SCHEDULER> CREATING DESKTOP TASK");
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)DesktopElfFile);
             DesktopTask = CreateTaskFromElf(elf, 0, NULL, false, "bruh:modules/desktop/desktop.elf", "");
             
@@ -92,9 +93,10 @@ namespace Scheduler
             osTasks.Lock();
         }
 
+        // Restart Start Menu
         if (StartMenuTask == NULL && StartMenuElfFile != NULL && DesktopTask != NULL)
         {
-            Serial::Writelnf("SCHEDULER> CREATING START MENU TASK");
+            Serial::TWritelnf("SCHEDULER> CREATING START MENU TASK");
             Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)StartMenuElfFile);
             StartMenuTask = CreateTaskFromElf(elf, 0, NULL, false, "bruh:modules/startMenu/startMenu.elf", "");
             
@@ -103,6 +105,7 @@ namespace Scheduler
             osTasks.Lock();
         }
 
+        // Save current task data
         {
             osTask* currentTask = NULL;
             if (CurrentRunningTask != NULL && (int64_t)osTasks.obj->GetCount() > 0 && CurrentTaskIndex <  (int64_t)osTasks.obj->GetCount())
@@ -113,7 +116,7 @@ namespace Scheduler
                 
                 if (currentTask->removeMe || currentTask->doExit)
                 {
-                    Serial::Writelnf("SCHEDULER> TASK WANTS TO EXIT");
+                    Serial::TWritelnf("SCHEDULER> TASK WANTS TO EXIT");
                     //osTasks.obj->RemoveAt(CurrentTaskIndex);
                     CurrentRunningTask = NULL;
                     currentTask = NULL;
@@ -128,6 +131,7 @@ namespace Scheduler
             }
         }
 
+        // Check for tasks that are waiting for a message
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
             osTask* task = osTasks.obj->ElementAt(i);
@@ -145,6 +149,7 @@ namespace Scheduler
             }
         }
 
+        // Remove tasks that are marked for removal
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
             osTask* bruhTask = osTasks.obj->ElementAt(i);
@@ -154,7 +159,7 @@ namespace Scheduler
 
             if (bruhTask->removeMe || bruhTask->doExit)
             {
-                Serial::Writelnf("SCHEDULER> AUTO REMOVING STOPPED TASK AT %d", i);
+                Serial::TWritelnf("SCHEDULER> AUTO REMOVING STOPPED TASK AT %d (%X)", i, bruhTask->pid);
 
                 osTasks.Unlock();
                 RemoveTask(bruhTask);
@@ -163,6 +168,7 @@ namespace Scheduler
             }
         }
 
+        // Try to find the next task to run (with priority > 0)
         bool cycleDone = false;
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
@@ -206,6 +212,7 @@ namespace Scheduler
         }
             
 
+        // Find the next task to run (with priority == 0)
         cycleDone = false;
         while (true)
         {
@@ -243,7 +250,8 @@ namespace Scheduler
 
             if (currentTask->justYielded)
             {
-                //Serial::Writelnf("SCHEDULER> UNYIELDING TASK");
+                if (LOG_SCHED_STUFF)
+                    Serial::TWritelnf("SCHEDULER> UNYIELDING TASK %X", currentTask->pid);
                 currentTask->justYielded = false;
                 cycleDone = false;
                 continue;
@@ -262,13 +270,14 @@ namespace Scheduler
         if (cycleDone)
         {
             if (CurrentRunningTask != NothingDoerTask)
-                ;//Serial::Writelnf("SCHEDULER> NO TASKS TO RUN");
+                if (LOG_SCHED_STUFF)
+                    Serial::TWritelnf("SCHEDULER> NO TASKS TO RUN");
             nowTask = NothingDoerTask;
 
             if (nowTask == NULL)
             {
                 osTasks.Unlock();
-                Serial::Writelnf("SCHEDULER> NO NOTHING DOER TASK!");
+                Serial::TWritelnf("SCHEDULER> NO NOTHING DOER TASK!");
                 return currFrame;
             }
         }
@@ -294,7 +303,7 @@ namespace Scheduler
         outFrame = *nowTask->frame;
         if (outFrame.cr3 != (uint64_t)nowTask->pageTableContext)
         {
-            Serial::Writelnf("> CR3 MISMATCH! %X != %X", outFrame.cr3, (uint64_t)nowTask->pageTableContext);
+            Serial::TWritelnf("> CR3 MISMATCH! %X != %X", outFrame.cr3, (uint64_t)nowTask->pageTableContext);
             Panic("WAAAAAAAAAAA", true);
         }
         else
@@ -305,8 +314,11 @@ namespace Scheduler
         {
             CurrentRunningTask = nowTask;
             if (nowTask != NothingDoerTask)
-                ;//Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d / %d", CurrentTaskIndex, osTasks.obj->GetCount());
+                if (LOG_SCHED_STUFF)
+                    Serial::TWritelnf("SCHEDULER> SWITCHING TO TASK %X", nowTask->pid);
+            //Serial::Writelnf("SCHEDULER> SWITCHING TO TASK %d / %d", CurrentTaskIndex, osTasks.obj->GetCount());
             //Serial::Writelnf("SCHEDULER> RIP %X", frame->rip);
+            //Serial::TWritelnf("SCHEDULER> SWITCHING TO TASK %X", nowTask->pid);
         }
 
         //Serial::Writelnf("> CS 2: %D", frame->cs);
@@ -395,7 +407,7 @@ namespace Scheduler
         task->startedAtPath = StrCopy(startedAtPath);
         task->isThread = false;
         task->mainPid = task->pid;
-        Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
+        Serial::TWritelnf("SCHEDULER> Creating Task with PID: %X", task->pid);
 
         {
             task->argC = argC;
@@ -406,7 +418,7 @@ namespace Scheduler
 
         task->pageTableContext = GlobalPageTableManager.CreatePageTableContext();
         PageTableManager tempManager = PageTableManager((PageTable*)task->pageTableContext);
-        Serial::Writelnf("SCHEDULER> Creating Page Table Context at %X (%X)", task->pageTableContext, tempManager.PML4);
+        Serial::TWritelnf("SCHEDULER> Creating Page Table Context at %X (%X)", task->pageTableContext, tempManager.PML4);
         
 
 
@@ -463,7 +475,7 @@ namespace Scheduler
             frame->rflags = 0x202;
         }
 
-        Serial::Writelnf("> Started Thread with addr %X and PID %X", task, task->pid);
+        Serial::TWritelnf("> Started Thread with addr %X and PID %X", task, task->pid);
 
         SchedulerEnabled = tempEnabled;
         return task;
@@ -517,7 +529,7 @@ namespace Scheduler
         task->startedAtPath = StrCopy(parentTask->startedAtPath);
         task->isThread = true;
         task->mainPid = parentTask->pid;
-        Serial::Writelnf("SCHEDULER> Creating Task with PID: %D", task->pid);
+        Serial::TWritelnf("SCHEDULER> Creating Task with PID: %X", task->pid);
 
         {
             task->argC = parentTask->argC;
@@ -572,7 +584,7 @@ namespace Scheduler
 
 
 
-        Serial::Writelnf("> Started Thread with addr %X and PID %X (based on PID %X)", task, task->pid, task->mainPid);
+        Serial::TWritelnf("> Started Thread with addr %X and PID %X (based on PID %X)", task, task->pid, task->mainPid);
 
         SchedulerEnabled = tempEnabled;
         return task;

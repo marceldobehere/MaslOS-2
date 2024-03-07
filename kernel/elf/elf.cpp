@@ -68,24 +68,24 @@ namespace Elf
 
         if (data == NULL)
         {
-            Serial::Writelnf("ELF> DATA IS NULL!");
+            Serial::TWritelnf("ELF> DATA IS NULL!");
             return borkedElfFile;
         }
         if(header->e_ident.i != MAGIC) 
         {
-            Serial::Writelnf("ELF> NUMBER IS %x and not %x", header->e_ident.i, MAGIC);
-            Serial::Writelnf("ELF> (NUMBER IS %x)", header->e_ident.i);
-            Serial::Writelnf("ELF> NOT AN ELF!");
+            Serial::TWritelnf("ELF> NUMBER IS %x and not %x", header->e_ident.i, MAGIC);
+            Serial::TWritelnf("ELF> (NUMBER IS %x)", header->e_ident.i);
+            Serial::TWritelnf("ELF> NOT AN ELF!");
             return borkedElfFile; // not an elf
         }
         if(header->e_ident.c[EI_CLASS] != ELFCLASS64) 
         {
-            Serial::Writelnf("ELF> NOT 64 BIT!");
+            Serial::TWritelnf("ELF> NOT 64 BIT!");
             return borkedElfFile; // not 64 bit
         }
         if(header->e_type != ET_DYN) 
         {
-            Serial::Writelnf("ELF> NOT PIC!");
+            Serial::TWritelnf("ELF> NOT PIC!");
             return borkedElfFile; // not pic
         }
         

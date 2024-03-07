@@ -193,7 +193,7 @@ void* requestNextPages(int count)
             newAddr += 0x1000;
         }
 
-        Serial::Writelnf("K> Requested next %d pages to %X", pageCount, newAddr);
+        Serial::TWritelnf("K> Requested next %d pages to %X", pageCount, newAddr);
         return resAddr;
     #else
         int syscall = SYSCALL_REQUEST_NEXT_PAGES;

@@ -18,7 +18,7 @@ void PrintMStackTrace(MStack stack[], int64_t size, BasicRenderer* renderer, uin
             count++;
     }
     renderer->Println("STACK TRACE: ({} Elements)\n", to_string(count), col);
-    Serial::Writeln("STACK TRACE: ({} Elements)\n", to_string(count), true);
+    Serial::TWritelnf("STACK TRACE: (%d Elements)\n", count);
     if (size != 1000)
     {
         if (size > 50)

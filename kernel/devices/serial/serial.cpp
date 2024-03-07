@@ -4,6 +4,7 @@
 #include "../../kernelStuff/IO/IO.h"
 #include <libm/cstrTools.h>
 #include <libm/cstr.h>
+#include "../pit/pit.h"
 
 
 namespace Serial
@@ -339,6 +340,68 @@ namespace Serial
 
     void Writelnf(const char* str, ...)
     {
+        va_list arg;
+        va_start(arg, str);
+        _Writef(str, arg);
+        va_end(arg);
+        Writeln();
+    }
+
+    void PrintVal(int val, int CharCount)
+    {
+        const char* str = to_string(val);
+        int len = StrLen(str);
+        for (int i = 0; i < CharCount - len; i++)
+            Write('0');
+        Write(str);
+    }
+
+    void WriteTime()
+    {
+        if (!PIT::Inited)
+        {
+            Write("[??:??.???] ");
+            return;
+        }
+
+        int s = PIT::TimeSinceBootMS() / 1000;
+        int minutes = s / 60;
+        int seconds = s % 60;
+        int ms = PIT::TimeSinceBootMS() % 1000;
+
+        Write("[");
+        PrintVal(minutes, 2);
+        Write(":");
+        PrintVal(seconds, 2);
+        Write(".");
+        PrintVal(ms, 3);
+        Write("] ");
+    }
+
+    void TWrite(const char* str)
+    {
+        WriteTime();
+        Write(str);
+    }
+
+    void TWriteln(const char* str)
+    {
+        WriteTime();
+        Writeln(str);
+    }
+
+    void TWritef(const char* str, ...)
+    {
+        WriteTime();
+        va_list arg;
+        va_start(arg, str);
+        _Writef(str, arg);
+        va_end(arg);
+    }
+
+    void TWritelnf(const char* str, ...)
+    {
+        WriteTime();
         va_list arg;
         va_start(arg, str);
         _Writef(str, arg);

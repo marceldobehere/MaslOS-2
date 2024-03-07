@@ -328,9 +328,9 @@ void DrawStats()
     #define PRINT_MEM_STATS_TO_SERIAL false
 
     if (mallocCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-        Serial::Writelnf("MEM> Malloced %d times", mallocCount);
+        Serial::TWritelnf("MEM> Malloced %d times", mallocCount);
     if (freeCount > 0 && PRINT_MEM_STATS_TO_SERIAL)
-        Serial::Writelnf("MEM> Freed %d times", freeCount);
+        Serial::TWritelnf("MEM> Freed %d times", freeCount);
 
     freeCount = 0;
     mallocCount = 0;
@@ -340,15 +340,15 @@ void DrawStats()
     if (usedHeapCount != _usedHeapCount && PRINT_MEM_STATS_TO_SERIAL)
     {
         _usedHeapCount = usedHeapCount;
-        Serial::Writelnf("MEM> Used Heap Count: %d", usedHeapCount);
-        Serial::Writelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
+        Serial::TWritelnf("MEM> Used Heap Count: %d", usedHeapCount);
+        Serial::TWritelnf("MEM> Used Heap Amount: %d", usedHeapAmount);
     }
 
     if (GlobalAllocator->GetUsedRAM() / 0x1000 != _usedPages && PRINT_MEM_STATS_TO_SERIAL)
     {
         _usedPages = GlobalAllocator->GetUsedRAM() / 0x1000;
 
-        Serial::Writelnf("MEM> Used Pages: %d", _usedPages);
+        Serial::TWritelnf("MEM> Used Pages: %d", _usedPages);
     }
 }
 
@@ -747,7 +747,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
     if (InterruptGoingOn)
     {
-        Serial::Writelnf("WAAAA> INT %d IS INTERRUPTING INT %d!", frame->interrupt_number, lastInt);
+        Serial::TWritelnf("WAAAA> INT %d IS INTERRUPTING INT %d!", frame->interrupt_number, lastInt);
         //Panic("INT IN INT", true);
 
         for (int i = 0; i < 20; i++)
@@ -775,11 +775,11 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
         //Serial::Writeln("> SYS DONE");
     }
     else if (frame->interrupt_number == 254)
-        Serial::Writelnf("> Generic Interrupt");
+        Serial::TWritelnf("> Generic Interrupt");
     else
     {
         currentInterruptCount++;
-        Serial::Writelnf("> Interrupt/Exception: %d (Count %d) -> Closing Task...", frame->interrupt_number, currentInterruptCount);
+        Serial::TWritelnf("> Interrupt/Exception: %d (Count %d) -> Closing Task...", frame->interrupt_number, currentInterruptCount);
         Serial::Writeln();
 
         GlobalRenderer->Clear(Colors.black);
@@ -802,7 +802,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
         if (osData.inBootProcess)
         {
-            Serial::Writelnf("INT> CRASH IN BOOT IS FATAL -> HALT");
+            Serial::TWritelnf("INT> CRASH IN BOOT IS FATAL -> HALT");
             while (true);
         }
 
@@ -983,7 +983,7 @@ extern "C" void intr_common_handler_c(interrupt_frame* frame)
 
 extern "C" void CloseCurrentTask()
 {
-    Serial::Writelnf("> PROGRAM REACHED END");
+    Serial::TWritelnf("> PROGRAM REACHED END");
     if (Scheduler::CurrentRunningTask != NULL)
     {
         Scheduler::CurrentRunningTask->removeMe = true;
@@ -1547,7 +1547,7 @@ void FS_Syscall_handler(int syscall, interrupt_frame* frame)
     }
     else
     {
-        Serial::Writelnf("Unknown FS syscall: %d", syscall);
+        Serial::TWritelnf("Unknown FS syscall: %d", syscall);
     }
 
 
@@ -1566,7 +1566,7 @@ void Syscall_handler(interrupt_frame* frame)
     if (syscall == SYSCALL_GET_ARGC)
     {
         frame->rax = Scheduler::CurrentRunningTask->argC;
-        Serial::Writelnf("> Get argc %d", frame->rax);
+        Serial::TWritelnf("> Get argc %d", frame->rax);
     }
     else if (syscall == SYSCALL_GET_ARGV)
     {
@@ -1595,7 +1595,7 @@ void Syscall_handler(interrupt_frame* frame)
             }
 
         frame->rax = (uint64_t)argV;
-        Serial::Writelnf("> Get argv %X, %X, (%X - %X), %X", argV, taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd, Scheduler::CurrentRunningTask);
+        Serial::TWritelnf("> Get argv %X, %X, (%X - %X), %X", argV, taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd, Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GET_ENV)
     {
@@ -1605,7 +1605,7 @@ void Syscall_handler(interrupt_frame* frame)
         {
             Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
 
-            Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
+            Serial::TWritelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
 
             ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
             if (IsAddressValidForTask(env))
@@ -1631,13 +1631,13 @@ void Syscall_handler(interrupt_frame* frame)
             }
 
             frame->rax = (uint64_t)env;
-            Serial::Writelnf("> Get env (user prog) %X", frame->rax);
+            Serial::TWritelnf("> Get env (user prog) %X", frame->rax);
         }
         else
         {
             Heap::HeapManager* taskHeap = (Heap::HeapManager*)Scheduler::CurrentRunningTask->addrOfVirtPages;
 
-            Serial::Writelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
+            Serial::TWritelnf("> TASK HEAP: %X, (%X - %X)", taskHeap, taskHeap->_heapStart, taskHeap->_heapEnd);
 
             ENV_DATA* env = (ENV_DATA*)taskHeap->_Xmalloc(sizeof(ENV_DATA), "Malloc for env");
             if (IsAddressValidForTask(env))
@@ -1647,7 +1647,7 @@ void Syscall_handler(interrupt_frame* frame)
             }
 
             frame->rax = (uint64_t)env;
-            Serial::Writelnf("> Get env (kernel module) %X", frame->rax);
+            Serial::TWritelnf("> Get env (kernel module) %X", frame->rax);
         }
     }
     else if (syscall == SYSCALL_REQUEST_NEXT_PAGES)
@@ -1673,7 +1673,7 @@ void Syscall_handler(interrupt_frame* frame)
         }
 
         frame->rax = (uint64_t)resAddr;
-        Serial::Writelnf("> Requested next %d pages to %X (Task %X)", pageCount, frame->rax, task->pid);
+        Serial::TWritelnf("> Requested next %d pages to %X (Task %X)", pageCount, frame->rax, task->pid);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT)
     {
@@ -1683,7 +1683,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             Serial::Write(str);
         else
-            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
+            Serial::TWritelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_SERIAL_PRINTLN)
     {
@@ -1693,7 +1693,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             Serial::Writeln(str);
         else
-            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
+            Serial::TWritelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_SERIAL_PRINT_CHAR)
     {
@@ -1721,7 +1721,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Print(str);
         else
-            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
+            Serial::TWritelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINTLN)
     {
@@ -1733,7 +1733,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (IsAddressValidForTask(str, Scheduler::CurrentRunningTask))
             GlobalRenderer->Println(str);
         else
-            Serial::Writelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
+            Serial::TWritelnf("> Invalid address (%X) for task %X", (uint64_t)str, (uint64_t)Scheduler::CurrentRunningTask);
         //Serial::Writelnf("< Global Println %X", str);
     }
     else if (syscall == SYSCALL_GLOBAL_PRINT_CHAR)
@@ -1743,12 +1743,12 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_GLOBAL_CLS)
     {
-        Serial::Writelnf("> Clearing Screen");
+        Serial::TWritelnf("> Clearing Screen");
         GlobalRenderer->Clear(Colors.black);
     }
     else if (syscall == SYSCALL_EXIT)
     {
-        Serial::Writelnf("> EXITING PROGRAM %d", frame->rbx);
+        Serial::TWritelnf("> EXITING PROGRAM %d", frame->rbx);
         Scheduler::CurrentRunningTask->removeMe = true;
         Scheduler::CurrentRunningTask = NULL;
 
@@ -1759,7 +1759,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_CRASH)
     {
-        Serial::Writelnf("> EXITING PROGRAM bc it CRASHED");
+        Serial::TWritelnf("> EXITING PROGRAM bc it CRASHED");
         Scheduler::CurrentRunningTask->removeMe = true;
         Scheduler::CurrentRunningTask = NULL;
 
@@ -1768,7 +1768,8 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_YIELD)
     {
         if (Scheduler::CurrentRunningTask != Scheduler::NothingDoerTask)
-            ;//Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask);
+            if (LOG_SCHED_STUFF)
+                Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask->pid);
         Scheduler::CurrentRunningTask->justYielded = true;
 
         Scheduler::SchedulerInterrupt(frame);
@@ -1783,8 +1784,11 @@ void Syscall_handler(interrupt_frame* frame)
     else if (syscall == SYSCALL_WAIT_MSG)
     {
         Scheduler::CurrentRunningTask->waitTillMessage = true;
-        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 200;
+        Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 500;
         Scheduler::CurrentRunningTask->justYielded = true;
+
+        if (LOG_SCHED_STUFF)
+            Serial::TWritelnf("> MSG YIELDING TASK %X", Scheduler::CurrentRunningTask->pid);
 
         Scheduler::SchedulerInterrupt(frame);
     }
@@ -1800,7 +1804,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (prio != 0 && prio < BEST_USERMODE_PRIO && !Scheduler::CurrentRunningTask->isKernelModule)
             prio = BEST_USERMODE_PRIO;
     
-        Serial::Writelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
+        Serial::TWritelnf("> SETTING PRIORITY TO %d (wanted %d)", prio, frame->rbx);
         Scheduler::CurrentRunningTask->priority = prio;
         frame->rax = prio;
     }
@@ -1906,7 +1910,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_USER)
     {
-        Serial::Writelnf("> Launching User Test Elf");
+        Serial::TWritelnf("> Launching User Test Elf");
         Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::TestElfFile);
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
@@ -1920,7 +1924,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else if (syscall == SYSCALL_LAUNCH_TEST_ELF_KERNEL)
     {
-        Serial::Writelnf("> Launching Kernel Test Elf");
+        Serial::TWritelnf("> Launching Kernel Test Elf");
         Elf::LoadedElfFile elf = Elf::LoadElf((uint8_t*)Scheduler::TestElfFile);
         if (!elf.works)
             Panic("FILE NO WORK :(", true);
@@ -2116,11 +2120,11 @@ void Syscall_handler(interrupt_frame* frame)
                         frame->rax = task->pid;
                     }
                     else
-                        Serial::Writelnf("> Elf file %s is invalid", path);
+                        Serial::TWritelnf("> Elf file %s is invalid", path);
                     _Free(resBuffer);
                 }
                 else
-                    Serial::Writelnf("> File %s does not exist", path);
+                    Serial::TWritelnf("> File %s does not exist", path);
                 {
 
                 }
@@ -2163,11 +2167,11 @@ void Syscall_handler(interrupt_frame* frame)
                         frame->rax = task->pid;
                     }
                     else
-                        Serial::Writelnf("> Elf file %s is invalid", path);
+                        Serial::TWritelnf("> Elf file %s is invalid", path);
                     _Free(resBuffer);
                 }
                 else
-                    Serial::Writelnf("> File %s does not exist", path);
+                    Serial::TWritelnf("> File %s does not exist", path);
 
                 _Free(tempArgV[0]);
                 _Free(tempArgV);
@@ -2183,7 +2187,7 @@ void Syscall_handler(interrupt_frame* frame)
     }
     else
     {
-        Serial::Writelnf("> Unknown Syscall: %d", syscall);
+        Serial::TWritelnf("> Unknown Syscall: %d", syscall);
     }
     //Scheduler::SchedulerInterrupt(frame);
 

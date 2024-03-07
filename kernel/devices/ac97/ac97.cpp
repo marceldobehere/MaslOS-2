@@ -394,7 +394,7 @@ namespace AC97
         BufferStatus status = {.value = status_byte};
 
         if(status.fifo_error)
-            Serial::Writeln("> AC97 GOT A FIFO ERROR!");//Panic("AC97 GOT FIFO ERROR!");//KLog::err("AC97", "Encountered FIFO error!");
+            Serial::TWriteln("> AC97 GOT A FIFO ERROR!");//Panic("AC97 GOT FIFO ERROR!");//KLog::err("AC97", "Encountered FIFO error!");
 
 
 

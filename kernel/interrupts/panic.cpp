@@ -342,7 +342,7 @@ void Panic(const char* panicMessage, const char* var, bool lock)
         Serial::Writeln();
         Serial::Writeln();
         Serial::Writeln();
-        Serial::Writeln("KERNEL PANIC AAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        Serial::TWriteln("KERNEL PANIC AAAAAAAAAAAAAAAAAAAAAAAAAAA");
         for (int i = 0; i < kernelPanicCount; i++)
             GlobalRenderer->Println();
         GlobalRenderer->Print(panicMessage, var, Colors.white);

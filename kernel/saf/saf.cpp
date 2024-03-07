@@ -46,12 +46,12 @@ namespace SAF
 
         saf_node_hdr_t* file = initrd_find(path, mount->driver_specific_data, (saf_node_hdr_t*) mount->driver_specific_data);
         if (file == NULL) {
-            Serial::Writelnf("file %s not found", path);
+            Serial::TWritelnf("File %s not found", path);
             return NULL;
         }
 
         if (file->flags == FLAG_ISFOLDER) {
-            Serial::Writelnf("file %s is a folder", path);
+            Serial::TWritelnf("File %s is a folder", path);
             return NULL;
         }
 

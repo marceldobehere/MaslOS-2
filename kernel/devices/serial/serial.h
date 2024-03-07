@@ -32,6 +32,11 @@ namespace Serial
     void Writelnf(const char* str, ...);    
     void _Writef(const char* str, va_list args);
 
+    void TWrite(const char* str);
+    void TWriteln(const char* str);  
+    void TWritef(const char* str, ...);
+    void TWritelnf(const char* str, ...);    
+
     void Soutb(uint16_t port, uint8_t value);
     uint8_t Sinb(uint16_t port);
 }

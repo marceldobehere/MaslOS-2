@@ -177,6 +177,7 @@ task_entry:
 [global nothing_task_entry]
 nothing_task_entry:
 	nothing_loop:
-	mov rax, 132
-	int 31h
+	;mov rax, 132
+	;int 31h
+	hlt
 	jmp nothing_loop
