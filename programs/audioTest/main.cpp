@@ -20,10 +20,53 @@
 
 #include <libm/audio/internal/audio.h>
 
+int globalAudioDestSampleRate = 44100;
+int globalAudioDestSampleCount = globalAudioDestSampleRate / 4;
+Audio::BasicAudioDestination* globalAudioDest = NULL;
+
+void initAudioStuff()
+{
+    globalAudioDest = new Audio::BasicAudioDestination(
+        Audio::AudioBuffer::Create16BitStereoBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount)
+    );
+
+    // TODO: Send the Audio Destination (Data) to the kernel
+    // ...
+}
+
+bool globalAudioDestNeedsAudio = true;
+void DoAudioCheck()
+{
+    if (globalAudioDest == NULL)
+        return;
+
+    // TODO: Make the kernel send a message to the program when it needs audio and then catch it here
+    // ...
+
+    if (!globalAudioDestNeedsAudio)
+        return;
+
+    if (globalAudioDest->RequestBuffers() < 1)
+        return;
+
+    // Get the data
+    void* bufferData = globalAudioDest->buffer->data;
+    uint64_t sampleCount = globalAudioDest->buffer->sampleCount;
+    uint64_t sampleRate = globalAudioDest->buffer->sampleRate;
+    int bitsPerSample = globalAudioDest->buffer->bitsPerSample;
+
+    // TODO: Send the audio data to the kernel
+    // ...
+
+    // Clear the buffer
+    globalAudioDest->buffer->ClearBuffer();
+    globalAudioDest->buffer->sampleCount = globalAudioDest->buffer->totalSampleCount;
+    globalAudioDestNeedsAudio = false;
+}
+
 int main(int argc, char** argv)
 {
-    // Global Audio Destination
-    Audio::BasicAudioDestination* globalAudioDest = NULL;
+    initAudioStuff();
 
     if (globalAudioDest == NULL)
         return 0;
@@ -58,7 +101,10 @@ int main(int argc, char** argv)
     // Wait forever
     bool exit = false;
     while (!exit)
+    {
+        DoAudioCheck();
         programWaitMsg();
+    }
 
     return 0;
 }
