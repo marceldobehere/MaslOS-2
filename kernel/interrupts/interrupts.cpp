@@ -2185,6 +2185,47 @@ void Syscall_handler(interrupt_frame* frame)
         Scheduler::AddTask(nTask);
         frame->rax = nTask->pid;
     }
+    else if (syscall == SYSCALL_AUDIO_SETUP_BUFFER)
+    {
+        Serial::TWriteln("> SYSCALL AUDIO SETUP");
+        // osTask* task = Scheduler::CurrentRunningTask;
+        // if (task != NULL)
+        //     Serial::TWritelnf("> SYSCALL setup audio for task %X", task->pid);
+        // else
+        //     Serial::TWritelnf("> SYSCALL setup audio for task %X", 0);
+        
+        // if (task->audioOutput != NULL)
+        // {
+        //     task->audioOutput->Free();
+        //     task->audioOutput = NULL;
+        // }
+
+        // //     asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(sampleRate), "c"(sampleCount), "d"(bitsPerSample), "S"(channelCount));
+        // int sampleRate = frame->rbx;
+        // uint64_t sampleCount = frame->rcx;
+        // int bitsPerSample = frame->rdx;
+        // int channelCount = frame->rsi;
+
+        // if (sampleRate < 1000 || sampleRate > 1000000 || 
+        //     sampleCount < 1 || sampleCount > 1000000 || 
+        //     bitsPerSample < 8 || bitsPerSample > 32 ||
+        //     channelCount < 1 || channelCount > 2)
+        // {
+        //     Serial::TWritelnf("> Setup audio buffer for task %X failed! (Sample Rate: %d Hz, Sample Count: %d, Channel Count: %d, Bits per sample: %d)", task->pid, sampleRate, sampleCount, channelCount, bitsPerSample);
+        //     frame->rax = false;
+        // }
+        // else
+        // {
+        //     task->audioOutput = new Audio::BasicAudioSource(
+        //         new Audio::AudioBuffer(bitsPerSample, sampleRate, channelCount, sampleCount)
+        //     );
+
+        //     task->audioOutput->ConnectTo(osData.defaultAudioOutputDevice->destination);
+        //     Serial::TWritelnf("> Setup audio buffer for task %X succeded! (Sample Rate: %d Hz, Sample Count: %d, Channel Count: %d, Bits per sample: %d)", task->pid, sampleRate, sampleCount, channelCount, bitsPerSample);
+
+        //     frame->rax = true;
+        // }
+    }
     else
     {
         Serial::TWritelnf("> Unknown Syscall: %d", syscall);

@@ -23,6 +23,7 @@
 #include <libm/list/list_basics.h>
 #include <libm/queue/queue_basic_msg.h>
 #include <libm/elf/elfDefines.h>
+#include <libm/audio/internal/audio.h>
 
 struct osTask
 {
@@ -61,26 +62,6 @@ struct osTask
 	int argC;
 
 	bool waitTillMessage = false;
-	//int requestedPages;
 
-	//bool active;
-
-	//vmm_context_t* context;
-
-	//void* stack;
-	//void* user_stack;
-
-	//int pid;
-
-	//char** argv;
-	//char** envp;
-
-	//char pwd[128];
-
-	//resource_t* resources;
-	//int num_resources;
-
-	//int wait_time;
-
-	//bool pin;
+	Audio::BasicAudioSource* audioOutput = NULL;
 };

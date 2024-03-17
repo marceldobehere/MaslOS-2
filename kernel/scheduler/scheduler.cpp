@@ -407,6 +407,7 @@ namespace Scheduler
         task->startedAtPath = StrCopy(startedAtPath);
         task->isThread = false;
         task->mainPid = task->pid;
+        task->audioOutput = NULL;
         Serial::TWritelnf("SCHEDULER> Creating Task with PID: %X", task->pid);
 
         {
@@ -529,6 +530,7 @@ namespace Scheduler
         task->startedAtPath = StrCopy(parentTask->startedAtPath);
         task->isThread = true;
         task->mainPid = parentTask->pid;
+        task->audioOutput = NULL;
         Serial::TWritelnf("SCHEDULER> Creating Task with PID: %X", task->pid);
 
         {
@@ -653,6 +655,14 @@ namespace Scheduler
             osTasks.obj->RemoveAt(index);
             //Serial::Writelnf("> Removed task at index %d", index);
             RemoveFromStack();
+        }
+
+        if (task->audioOutput != NULL)
+        {
+            AddToStack();
+            task->audioOutput->Free();
+            RemoveFromStack();
+            task->audioOutput = NULL;
         }
 
         if (task->argV != NULL)

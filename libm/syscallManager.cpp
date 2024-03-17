@@ -636,3 +636,27 @@ void waitUntilThreadClosed(uint64_t pid)
     while (pidExists(pid))
         programYield();
 }
+
+bool audioSetupBuffer(int sampleRate, int sampleCount, int bitsPerSample, int channelCount)
+{
+    int syscall = SYSCALL_AUDIO_SETUP_BUFFER;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(sampleRate), "c"(sampleCount), "d"(bitsPerSample), "S"(channelCount));
+    return success;
+}
+
+bool audioSendData(void* data, uint64_t byteCount)
+{
+    int syscall = SYSCALL_AUDIO_SEND_DATA;
+    bool success;
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(data), "c"(byteCount));
+    return success;
+}
+
+bool audioDataNeeded()
+{
+    int syscall = SYSCALL_AUDIO_DATA_NEEDED;
+    bool needed;
+    asm("int $0x31" : "=a"(needed) : "a"(syscall));
+    return needed;
+}

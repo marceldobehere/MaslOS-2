@@ -31,7 +31,7 @@ void initAudioStuff()
     );
 
     // TODO: Send the Audio Destination (Data) to the kernel
-    // ...
+    //audioSetupBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount, 16, 2);
 }
 
 bool globalAudioDestNeedsAudio = true;
@@ -56,7 +56,7 @@ void DoAudioCheck()
     int bitsPerSample = globalAudioDest->buffer->bitsPerSample;
 
     // TODO: Send the audio data to the kernel
-    // ...
+    audioSendData(bufferData, (sampleCount * bitsPerSample) / 8);
 
     // Clear the buffer
     globalAudioDest->buffer->ClearBuffer();
@@ -67,6 +67,8 @@ void DoAudioCheck()
 int main(int argc, char** argv)
 {
     initAudioStuff();
+    while (true)
+        ;
 
     if (globalAudioDest == NULL)
         return 0;
