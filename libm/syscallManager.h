@@ -117,6 +117,6 @@ uint64_t startThread(void* func);
 void waitUntilThreadClosed(uint64_t pid);
 
 
-bool audioSetupBuffer(int sampleRate, uint64_t sampleCount, int bitsPerSample, int channelCount);
+bool audioSetupBuffer(int sampleRate, int sampleCount, int bitsPerSample, int channelCount);
 bool audioSendData(void* data, uint64_t byteCount);
 bool audioDataNeeded();

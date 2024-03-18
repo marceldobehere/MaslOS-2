@@ -20,18 +20,21 @@
 
 #include <libm/audio/internal/audio.h>
 
-int globalAudioDestSampleRate = 44100;
-int globalAudioDestSampleCount = globalAudioDestSampleRate / 4;
+int globalAudioDestSampleRate;
+int globalAudioDestSampleCount;
 Audio::BasicAudioDestination* globalAudioDest = NULL;
 
 void initAudioStuff()
 {
+    globalAudioDestSampleRate = 44100;
+    globalAudioDestSampleCount = globalAudioDestSampleRate / 4;
+
     globalAudioDest = new Audio::BasicAudioDestination(
         Audio::AudioBuffer::Create16BitStereoBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount)
     );
 
     // TODO: Send the Audio Destination (Data) to the kernel
-    //audioSetupBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount, 16, 2);
+    audioSetupBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount, 16, 2);
 }
 
 bool globalAudioDestNeedsAudio = true;
@@ -51,12 +54,12 @@ void DoAudioCheck()
 
     // Get the data
     void* bufferData = globalAudioDest->buffer->data;
-    uint64_t sampleCount = globalAudioDest->buffer->sampleCount;
-    uint64_t sampleRate = globalAudioDest->buffer->sampleRate;
+    int sampleCount = globalAudioDest->buffer->sampleCount;
+    int sampleRate = globalAudioDest->buffer->sampleRate;
     int bitsPerSample = globalAudioDest->buffer->bitsPerSample;
 
     // TODO: Send the audio data to the kernel
-    audioSendData(bufferData, (sampleCount * bitsPerSample) / 8);
+    audioSendData(bufferData, globalAudioDest->buffer->byteCount);
 
     // Clear the buffer
     globalAudioDest->buffer->ClearBuffer();
@@ -67,8 +70,6 @@ void DoAudioCheck()
 int main(int argc, char** argv)
 {
     initAudioStuff();
-    while (true)
-        ;
 
     if (globalAudioDest == NULL)
         return 0;
@@ -104,9 +105,12 @@ int main(int argc, char** argv)
     bool exit = false;
     while (!exit)
     {
+        globalAudioDestNeedsAudio = audioDataNeeded();
         DoAudioCheck();
-        programWaitMsg();
+        exit = !audioSource->readyToSend;
+        //programWaitMsg();
     }
+    programWait(400);
 
     return 0;
 }
