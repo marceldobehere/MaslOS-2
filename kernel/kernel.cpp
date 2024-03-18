@@ -231,46 +231,46 @@ void boot(void* _bootInfo)
     // GlobalRenderer->Clear(Colors.black);
 
 
-    // Music Test
-    if (true)
-    {
-        Audio::BasicAudioSource* audioSource = NULL;
-        if (osData.defaultAudioOutputDevice != NULL)
-        {
-            int sampleRate = 44100;
-            int sampleCount = sampleRate * 1;
-            if (audioSource == NULL)
-            {
-                //Println(window, "> Creating Audiosource");
-                audioSource = new Audio::BasicAudioSource(
-                    Audio::AudioBuffer::Create16BitMonoBuffer(sampleRate, sampleCount)
-                );
-                //Println(window, "> Linking Audiosource to Default Output Device \"{}\"", osData.defaultAudioOutputDevice->deviceName);
-                audioSource->ConnectTo(osData.defaultAudioOutputDevice->destination);
-            }
-            Audio::BasicAudioSource* src = audioSource;
+    // // Music Test
+    // if (true)
+    // {
+    //     Audio::BasicAudioSource* audioSource = NULL;
+    //     if (osData.defaultAudioOutputDevice != NULL)
+    //     {
+    //         int sampleRate = 44100;
+    //         int sampleCount = sampleRate * 1;
+    //         if (audioSource == NULL)
+    //         {
+    //             //Println(window, "> Creating Audiosource");
+    //             audioSource = new Audio::BasicAudioSource(
+    //                 Audio::AudioBuffer::Create16BitMonoBuffer(sampleRate, sampleCount)
+    //             );
+    //             //Println(window, "> Linking Audiosource to Default Output Device \"{}\"", osData.defaultAudioOutputDevice->deviceName);
+    //             audioSource->ConnectTo(osData.defaultAudioOutputDevice->destination);
+    //         }
+    //         Audio::BasicAudioSource* src = audioSource;
 
-            if (!src->readyToSend)
-            {
-                //Println(window, "> Filling Data");
-                uint16_t* arr = (uint16_t*)src->buffer->data;
-                int dif = 20;
-                for (int i = 0; i < dif; i++)
-                {
-                    Audio::FillArray(arr, (i * sampleCount)/dif, sampleCount/dif, ((1000*(i+1)) / dif), sampleRate);
-                }
-                src->buffer->sampleCount = sampleCount;
-                src->samplesSent = 0;
-                src->readyToSend = true;
-                //Println(window, "> Ready To send");
-            }
-            else
-            {
-                //Print(window, "> Still sending Data. ({}", to_string(src->samplesSent));
-                //Println(window, " of {} samples)", to_string(src->buffer->sampleCount));
-            }
-        }
-    }
+    //         if (!src->readyToSend)
+    //         {
+    //             //Println(window, "> Filling Data");
+    //             uint16_t* arr = (uint16_t*)src->buffer->data;
+    //             int dif = 20;
+    //             for (int i = 0; i < dif; i++)
+    //             {
+    //                 Audio::FillArray(arr, (i * sampleCount)/dif, sampleCount/dif, ((1000*(i+1)) / dif), sampleRate);
+    //             }
+    //             src->buffer->sampleCount = sampleCount;
+    //             src->samplesSent = 0;
+    //             src->readyToSend = true;
+    //             //Println(window, "> Ready To send");
+    //         }
+    //         else
+    //         {
+    //             //Print(window, "> Still sending Data. ({}", to_string(src->samplesSent));
+    //             //Println(window, " of {} samples)", to_string(src->buffer->sampleCount));
+    //         }
+    //     }
+    // }
 
 
 
