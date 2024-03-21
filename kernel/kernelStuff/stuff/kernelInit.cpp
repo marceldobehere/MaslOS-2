@@ -169,7 +169,7 @@ void InitKernel(BootInfo* bootInfo)
         osData.audioInputDevices = List<Audio::AudioInputDevice*>();
         osData.audioOutputDevices = List<Audio::AudioOutputDevice*>();
 
-        int pcSpeakerFreq = PIT::BaseFrequency / PIT::MusicDiv;
+        int pcSpeakerFreq = PIT::BaseFrequency / AudioDeviceStuff::rawAudioDiv;
         int pcSpeakerSampleCount = pcSpeakerFreq / 10;
 
         osData.pcSpeakerDev = new Audio::AudioOutputDevice("PC Speaker", new Audio::AudioBuffer(8, pcSpeakerFreq, 1, pcSpeakerSampleCount));
@@ -177,6 +177,7 @@ void InitKernel(BootInfo* bootInfo)
         AudioDeviceStuff::pcSpk = osData.pcSpeakerDev;
         AudioDeviceStuff::pcSpk->destination->buffer->ClearBuffer();
         AudioDeviceStuff::pcSpk->destination->buffer->sampleCount = AudioDeviceStuff::pcSpk->destination->buffer->totalSampleCount;
+        AudioDeviceStuff::init();
         RemoveFromStack();
 
         AddToStack();

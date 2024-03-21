@@ -4,10 +4,13 @@
 #include "../rnd/rnd.h"
 #include "../osData/osData.h"
 #include "../devices/pit/pit.h"
+#include "../memory/heap.h"
+#include <libm/memStuff.h>
 
 namespace AudioDeviceStuff
 {
     Audio::AudioOutputDevice* pcSpk = NULL;
+    bool* pcSpkData = NULL;
     int currentRawAudioIndex = 0;
     int rawAudioDiv = 40;//60;
     bool needMoreData = true;
@@ -19,6 +22,11 @@ namespace AudioDeviceStuff
         currentRawAudioIndex = 0;
         needMoreData = true;
         currentState = false;
+        if (pcSpk != NULL && pcSpkData == NULL)
+        {
+            pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->sampleCount);   
+            _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
+        }
     }
 
 
@@ -62,22 +70,42 @@ namespace AudioDeviceStuff
 
         if (needMoreData && pcSpk != NULL)
         {
+            if (pcSpk != NULL && pcSpkData == NULL)
+            {
+                pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->sampleCount);   
+                _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
+            }
+
             currentRawAudioIndex = 0;
             int c = pcSpk->destination->RequestBuffers();
             if (c > 0)
             {
                 needMoreData = false;
 
-                // TODO: Fix up the buffer
+                // TODO: TEST THE PC SPEAKER
                 // Create a bool buffer with the data already converted and
                 // if there are non-zero values shorten them by the volume
                 uint8_t* data = (uint8_t*)pcSpk->destination->buffer->data;
                 c = pcSpk->destination->buffer->sampleCount;
+                int vol = pcSpk->destination->buffer->volume;
+
+                _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
                 for (int i1 = 0; i1 < c; i1++)
                 {
-                    //if (data[i1])
-            //                     uint8_t val = ((uint8_t*)pcSpk->destination->buffer->data)[indx];
-            // bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) >= 127;
+                    if ((((int)data[i1])*vol) < 12700)
+                        continue;
+
+                    // Find the length of the beep and the average volume
+                    int tC = 0;
+                    long tS = 0;
+                    for (int i2 = i1; i2 < c && (((int)data[i2])*vol) >= 12700; i2++)
+                        tC++, tS += (((int)data[i2])*vol) / 100;
+
+                    // Shorten the beep depending on the volume
+                    int tV = tS / tC;
+                    int aC = tC * tV / 255;
+                    for (int i2 = i1; i2 < i1 + tC; i2++)
+                        pcSpkData[i2] = true;
                 }
             }
         }
@@ -105,8 +133,9 @@ namespace AudioDeviceStuff
         {
             int indx = currentRawAudioIndex;
 
-            uint8_t val = ((uint8_t*)pcSpk->destination->buffer->data)[indx];
-            bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) >= 127;
+            //uint8_t val = ((uint8_t*)pcSpk->destination->buffer->data)[indx];
+            //bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) >= 127;
+            bool beep = pcSpkData[indx];
 			if (beep != currentState)
 			{
 				currentState = beep;
