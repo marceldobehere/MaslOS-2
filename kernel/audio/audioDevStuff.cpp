@@ -67,6 +67,18 @@ namespace AudioDeviceStuff
             if (c > 0)
             {
                 needMoreData = false;
+
+                // TODO: Fix up the buffer
+                // Create a bool buffer with the data already converted and
+                // if there are non-zero values shorten them by the volume
+                uint8_t* data = (uint8_t*)pcSpk->destination->buffer->data;
+                c = pcSpk->destination->buffer->sampleCount;
+                for (int i1 = 0; i1 < c; i1++)
+                {
+                    //if (data[i1])
+            //                     uint8_t val = ((uint8_t*)pcSpk->destination->buffer->data)[indx];
+            // bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) >= 127;
+                }
             }
         }
 
@@ -79,7 +91,7 @@ namespace AudioDeviceStuff
             if (currentState)
 			{
 				currentState = false;
-				TestSetSpeakerPosition(currentState);
+				SetSpeakerPosition(false);
 			}
             return;
         }
@@ -94,11 +106,11 @@ namespace AudioDeviceStuff
             int indx = currentRawAudioIndex;
 
             uint8_t val = ((uint8_t*)pcSpk->destination->buffer->data)[indx];
-            bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) > 127;
+            bool beep = ((((int)val)*pcSpk->destination->buffer->volume)/100) >= 127;
 			if (beep != currentState)
 			{
 				currentState = beep;
-				TestSetSpeakerPosition(currentState);
+				SetSpeakerPosition(currentState);
 			}
 
             currentRawAudioIndex++;

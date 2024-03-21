@@ -73,6 +73,8 @@ void PIC_EndSlave();
 void TestSetSpeakerPosition(bool in);
 void DoSafe();
 
+#define SetSpeakerPosition( in ) outb(0x61, (inb(0x61) & 0xFC) | (in ? 3 : 0));
+
 
 
 extern "C" void intr_common_handler_c(interrupt_frame* regs);
