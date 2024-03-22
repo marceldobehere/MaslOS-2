@@ -355,6 +355,7 @@ void DrawStats()
 #include "../audio/audioDevStuff.h"
 
 int _pitCount = 0;
+int _pitCount2 = 0;
 
 void TempPitRoutine(interrupt_frame* frame)
 {
@@ -370,20 +371,26 @@ void TempPitRoutine(interrupt_frame* frame)
     // if (osData.serialManager != NULL)
     //     osData.serialManager->DoStuff();
 
+    int silly = 1;
+    if (PIT::Divisor != 0)
+        silly = PIT::NonMusicDiv / PIT::Divisor;
+    if (silly < 1)
+        silly = 1;
 
-    if (_pitCount++ >= 80 && true)   
+    if (++_pitCount >= 80 * silly && true)   
     {
         _pitCount = 0;
         DrawStats();
-
-        // TestSetSpeakerPosition(speakA);
-        // speakA = !speakA;
     }
 
 
     RemoveFromStack();
 
-    Scheduler::SchedulerInterrupt(frame);
+    if (++_pitCount2 >= silly)
+    {
+        _pitCount2 = 0;
+        Scheduler::SchedulerInterrupt(frame);
+    }
 
     // if (Scheduler::CurrentRunningTask != NULL)
     //     MapMemoryOfCurrentTask(Scheduler::CurrentRunningTask);
@@ -2229,6 +2236,7 @@ void Syscall_handler(interrupt_frame* frame)
         {
             void* data = (void*)frame->rbx;
             uint64_t byteCount = frame->rcx;
+            int sampleCount = frame->rdx;
             Audio::BasicAudioSource* source = task->audioOutput;
             Serial::TWritelnf("> SYSCALL send audio data for task %X, %d bytes", task->pid, byteCount);
 
@@ -2239,9 +2247,14 @@ void Syscall_handler(interrupt_frame* frame)
                     // Clear the buffer
                     // source->buffer->ClearBuffer();
                     
+                    if (sampleCount < 0)
+                        sampleCount = 0;
+                    if (sampleCount > source->buffer->totalSampleCount)
+                        sampleCount = source->buffer->totalSampleCount;
+
                     // Copy the data
                     _memcpy(data, source->buffer->data, byteCount);
-                    source->buffer->sampleCount = source->buffer->totalSampleCount;
+                    source->buffer->sampleCount = sampleCount;
                     source->samplesSent = 0;
                     source->readyToSend = true;
 

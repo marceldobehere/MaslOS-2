@@ -170,7 +170,7 @@ void InitKernel(BootInfo* bootInfo)
         osData.audioOutputDevices = List<Audio::AudioOutputDevice*>();
 
         int pcSpeakerFreq = PIT::BaseFrequency / AudioDeviceStuff::rawAudioDiv;
-        int pcSpeakerSampleCount = pcSpeakerFreq / 10;
+        int pcSpeakerSampleCount = (pcSpeakerFreq + 9) / 10;
 
         osData.pcSpeakerDev = new Audio::AudioOutputDevice("PC Speaker", new Audio::AudioBuffer(8, pcSpeakerFreq, 1, pcSpeakerSampleCount));
         osData.defaultAudioOutputDevice = osData.pcSpeakerDev;

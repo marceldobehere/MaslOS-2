@@ -12,7 +12,6 @@ namespace PIT
 
     uint16_t Divisor = 65535;
 
-    uint16_t MusicDiv = 40;
     uint16_t NonMusicDiv = 5000;//65535;//2000; // 596.591 Hz
 
     bool Inited = false;

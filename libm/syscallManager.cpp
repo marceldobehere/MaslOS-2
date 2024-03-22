@@ -645,11 +645,11 @@ bool audioSetupBuffer(int sampleRate, int sampleCount, int bitsPerSample, int ch
     return success;
 }
 
-bool audioSendData(void* data, uint64_t byteCount)
+bool audioSendData(void* data, uint64_t byteCount, int sampleCount)
 {
     int syscall = SYSCALL_AUDIO_SEND_DATA;
     bool success;
-    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(data), "c"(byteCount));
+    asm("int $0x31" : "=a"(success) : "a"(syscall), "b"(data), "c"(byteCount), "d"(sampleCount));
     return success;
 }
 

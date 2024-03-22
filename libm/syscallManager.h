@@ -118,5 +118,5 @@ void waitUntilThreadClosed(uint64_t pid);
 
 
 bool audioSetupBuffer(int sampleRate, int sampleCount, int bitsPerSample, int channelCount);
-bool audioSendData(void* data, uint64_t byteCount);
+bool audioSendData(void* data, uint64_t byteCount, int sampleCount);
 bool audioDataNeeded();

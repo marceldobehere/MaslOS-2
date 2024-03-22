@@ -362,7 +362,7 @@ namespace AC97
         QuickCheck = false;
         lastCheckTime = PIT::TimeSinceBootMS();
 
-        DEF_SAMPLE_COUNT = m_sample_rate / 47;
+        DEF_SAMPLE_COUNT = m_sample_rate / 40;
         
         audioDestination = new Audio::BasicAudioDestination(
             //Audio::AudioBuffer::Create16Bit48KHzStereoBuffer(DEF_SAMPLE_COUNT)

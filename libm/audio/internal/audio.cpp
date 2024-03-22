@@ -127,30 +127,43 @@ namespace Audio
         _Free(this->data);
         _Free(this);
     }
-    int AudioBuffer::MixBuffer(AudioBuffer* other, int sampleOffset)
+    
+    void AudioBuffer::MixBuffer(AudioBuffer* other, int sampleOffset, int* samplesWritten, int* samplesRead)
     {
         // Try to mix the other buffer into the current one
         // Tries to convert correct Samplerate and everything
-        // Will return amount of samples read from the other buffer
+        // Will return amount of samples written to this buffer
 
         long sC1 = sampleCount;
         long sC2 = other->sampleCount - sampleOffset;
         if (sC2 <= 0)
-            return 0;
+        {
+            *samplesWritten = 0;
+            *samplesRead = 0;
+            return;
+        }
         
         long sR1 = sampleRate;
         long sR2 = other->sampleRate;
         if (sR1 == 0 || sR2 == 0)
-            return 0;
+        {
+            *samplesWritten = 0;
+            *samplesRead = 0;
+            return;
+        }
 
         //float sR3 = sR1 / (float)sR2; // x Samples of other to 1 sample of this
-        long asC2 = ((sC2 * sR1) / sR2); // amount of samples of other to mix into this
+        long asC2 = ((sC2 * sR1 + (sR2 - 1)) / sR2); // amount of samples of other to mix into this
         //Panic("YO {}", to_string(sC2 * sR1), true);
         long commonSC = min(sC1, asC2); // amount of samples to mix
         if (commonSC <= 0)
-            return sC2;
+        {
+            *samplesWritten = 0;
+            *samplesRead = sC2;
+            return;
+        }
         
-        long osC2 = ((commonSC * sR2 + (sR1 / 2)) / sR1); // amount of samples of this to mix into other
+        long osC2 = ((commonSC * sR2 + (sR1 - 1)) / sR1); // amount of samples of this to mix into other
 
 
         int cC1 = channelCount;
@@ -207,7 +220,9 @@ namespace Audio
 
         //Panic("YO {}", to_string(commonSC), true);
 
-        return osC2;
+        *samplesWritten = commonSC;
+        *samplesRead = osC2;
+        return;
     }
 
 
@@ -247,8 +262,9 @@ namespace Audio
         if (!from->readyToSend)
             return 0;
         
-        int c = this->buffer->MixBuffer(from->buffer, from->samplesSent);
-        from->samplesSent += c;
+        int fromSent, thisRec;
+        this->buffer->MixBuffer(from->buffer, from->samplesSent, &thisRec, &fromSent);
+        from->samplesSent += fromSent;
         
         if (from->samplesSent >= from->buffer->sampleCount)
         {
@@ -270,7 +286,7 @@ namespace Audio
 
 
 
-        return c;
+        return thisRec;
     }
 
     int BasicAudioDestination::RequestBuffers()
@@ -281,7 +297,7 @@ namespace Audio
         for (int i = 0; i < sources->GetCount(); i++)
         {
             BasicAudioSource* src = sources->ElementAt(i);
-            c += RequestBuffer(src);
+            c = max(c, RequestBuffer(src));
         }
         return c;
     }

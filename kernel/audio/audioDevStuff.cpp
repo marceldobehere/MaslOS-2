@@ -6,6 +6,7 @@
 #include "../devices/pit/pit.h"
 #include "../memory/heap.h"
 #include <libm/memStuff.h>
+#include "../devices/serial/serial.h"
 
 namespace AudioDeviceStuff
 {
@@ -22,10 +23,11 @@ namespace AudioDeviceStuff
         currentRawAudioIndex = 0;
         needMoreData = true;
         currentState = false;
+
         if (pcSpk != NULL && pcSpkData == NULL)
         {
-            pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->sampleCount);   
-            _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
+            pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->totalSampleCount);   
+            _memset(pcSpkData, 0, pcSpk->destination->buffer->totalSampleCount);
         }
     }
 
@@ -72,42 +74,53 @@ namespace AudioDeviceStuff
         {
             if (pcSpk != NULL && pcSpkData == NULL)
             {
-                pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->sampleCount);   
-                _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
+                pcSpkData = (bool*)_Malloc(pcSpk->destination->buffer->totalSampleCount);   
+                _memset(pcSpkData, 0, pcSpk->destination->buffer->totalSampleCount);
             }
 
             currentRawAudioIndex = 0;
+            pcSpk->destination->buffer->sampleCount = pcSpk->destination->buffer->totalSampleCount;
             int c = pcSpk->destination->RequestBuffers();
+            pcSpk->destination->buffer->sampleCount = c;
             if (c > 0)
             {
+                //Audio::BasicAudioSource* testSrc = pcSpk->destination->sources->ElementAt(0);
+                //Serial::TWritelnf("AUDIO> REQUEST BUFFER SUCCESS! (%d / %d) (%d / %d)", c, pcSpk->destination->buffer->totalSampleCount, testSrc->samplesSent, testSrc->buffer->totalSampleCount);
                 needMoreData = false;
 
                 // TODO: TEST THE PC SPEAKER
                 // Create a bool buffer with the data already converted and
                 // if there are non-zero values shorten them by the volume
                 uint8_t* data = (uint8_t*)pcSpk->destination->buffer->data;
-                c = pcSpk->destination->buffer->sampleCount;
+                c = pcSpk->destination->buffer->totalSampleCount;
                 int vol = pcSpk->destination->buffer->volume;
 
-                _memset(pcSpkData, 0, pcSpk->destination->buffer->sampleCount);
-                for (int i1 = 0; i1 < c; i1++)
-                {
-                    if ((((int)data[i1])*vol) < 12700)
-                        continue;
+                //_memset(pcSpkData, 0, pcSpk->destination->buffer->totalSampleCount);
+                for (int i = 0; i < c; i++)
+                    pcSpkData[i] = (((int)data[i])*vol) >= 12700;
+                
+                // for (int i1 = 0; i1 < c; i1++)
+                // {
+                //     if ((((int)data[i1])*vol) < 12700)
+                //         continue;
 
-                    // Find the length of the beep and the average volume
-                    int tC = 0;
-                    long tS = 0;
-                    for (int i2 = i1; i2 < c && (((int)data[i2])*vol) >= 12700; i2++)
-                        tC++, tS += (((int)data[i2])*vol) / 100;
+                //     // Find the length of the beep and the average volume
+                //     int tC = 0;
+                //     long tS = 0;
+                //     for (int i2 = i1; i2 < c && (((int)data[i2])*vol) >= 12700; i2++)
+                //         tC++, tS += (((int)data[i2])*vol) / 100;
 
-                    // Shorten the beep depending on the volume
-                    int tV = tS / tC;
-                    int aC = tC * tV / 255;
-                    for (int i2 = i1; i2 < i1 + tC; i2++)
-                        pcSpkData[i2] = true;
-                }
+                //     // Shorten the beep depending on the volume
+                //     int tV = tS / tC;
+                //     int aC = tC * tV / 255;
+                //     for (int i2 = i1; i2 < i1 + tC; i2++)
+                //         pcSpkData[i2] = true;
+                //     i1 += tC;
+                // }
             }
+            // else
+            //     if (pcSpk->destination->sources->GetCount() > 0)
+            //         Serial::TWritelnf("AUDIO> FAILED TO REQUEST BUFFER!");
         }
 
         if (needMoreData)

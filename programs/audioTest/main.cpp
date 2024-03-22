@@ -27,7 +27,7 @@ Audio::BasicAudioDestination* globalAudioDest = NULL;
 void initAudioStuff()
 {
     globalAudioDestSampleRate = 44100;
-    globalAudioDestSampleCount = globalAudioDestSampleRate / 4;
+    globalAudioDestSampleCount = globalAudioDestSampleRate / 5;
 
     globalAudioDest = new Audio::BasicAudioDestination(
         Audio::AudioBuffer::Create16BitStereoBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount)
@@ -49,7 +49,8 @@ void DoAudioCheck()
     if (!globalAudioDestNeedsAudio)
         return;
 
-    if (globalAudioDest->RequestBuffers() < 1)
+    int samplesRec = globalAudioDest->RequestBuffers();
+    if (samplesRec < 1)
         return;
 
     // Get the data
@@ -59,7 +60,7 @@ void DoAudioCheck()
     int bitsPerSample = globalAudioDest->buffer->bitsPerSample;
 
     // TODO: Send the audio data to the kernel
-    audioSendData(bufferData, globalAudioDest->buffer->byteCount);
+    audioSendData(bufferData, globalAudioDest->buffer->byteCount, samplesRec);
 
     // Clear the buffer
     globalAudioDest->buffer->ClearBuffer();

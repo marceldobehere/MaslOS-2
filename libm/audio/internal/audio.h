@@ -25,7 +25,7 @@ namespace Audio
         void* data;
 
         AudioBuffer(int bitsPerSample, int sampleRate, int channelCount, int sampleCount);
-        int MixBuffer(AudioBuffer* other, int sampleOffset);
+        void MixBuffer(AudioBuffer* other, int sampleOffset, int* samplesWritten, int* samplesRead);
         void ClearBuffer();
         void Free();
 
