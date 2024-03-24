@@ -7,6 +7,7 @@
 #include "../memory/heap.h"
 #include <libm/memStuff.h>
 #include "../devices/serial/serial.h"
+#include "../scheduler/scheduler.h"
 
 namespace AudioDeviceStuff
 {
@@ -65,6 +66,57 @@ namespace AudioDeviceStuff
         RemoveFromStack();
     }
 
+    void reqMoreData(Audio::BasicAudioDestination* dev)
+    {
+        if (dev->sources->GetCount() < 1)
+            return;
+        //Serial::TWritelnf("AUDIO> REQ MORE DATA");
+
+        AddToStack();
+        if (Scheduler::osTasks.IsLocked())
+        {
+            Serial::TWritelnf("AUDIO> REQ MORE DATA, BUT OSTASK LIST IS LOCKED!");
+            RemoveFromStack();
+            return;
+        }
+        AddToStack();
+        Scheduler::osTasks.Lock();
+        RemoveFromStack();
+
+        List<osTask*>* tasks = Scheduler::osTasks.obj;
+
+        List<Audio::BasicAudioSource*>* sources = dev->sources;
+        for (int i1 = 0; i1 < sources->GetCount(); i1++)
+        {
+            Audio::BasicAudioSource* src = sources->ElementAt(i1);
+
+            for (int i2 = 0; i2 < tasks->GetCount(); i2++)
+            {
+                osTask* task = tasks->ElementAt(i2);
+                if (task == NULL || task->audioOutput != src || task->messages->GetCount() > 0)
+                    continue;
+
+                // TODO: SEND MSG TO THE TASK PID
+                //Serial::TWritelnf("AUDIO> REQ MORE DATA, SENDING MSG TO TASK PID %X", task->pid);
+                
+                AddToStack();
+                GenericMessagePacket* msg = new GenericMessagePacket(0, MessagePacketType::AUDIO_REQUESTED);
+                msg->ConvoID = Audio::REQUEST_AUDIO_CONVO_ID;
+
+                Scheduler::osTasks.Unlock();
+                SendMessageToTask(msg, task->pid, 1);
+                Scheduler::osTasks.Lock();
+                //Serial::TWritelnf("AUDIO  > REQ MORE DATA, SENT MSG TO TASK PID %X", task->pid);
+
+                msg->Free();
+                _Free(msg);
+                RemoveFromStack();
+            }
+        }
+        Scheduler::osTasks.Unlock();
+        RemoveFromStack();
+    }
+
 
     void play(int timeYes)
     {
@@ -117,6 +169,10 @@ namespace AudioDeviceStuff
                 //         pcSpkData[i2] = true;
                 //     i1 += tC;
                 // }
+            }
+            else
+            {
+                reqMoreData(pcSpk->destination);
             }
             // else
             //     if (pcSpk->destination->sources->GetCount() > 0)

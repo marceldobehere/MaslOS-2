@@ -1777,7 +1777,7 @@ void Syscall_handler(interrupt_frame* frame)
     {
         if (Scheduler::CurrentRunningTask != Scheduler::NothingDoerTask)
             if (LOG_SCHED_STUFF)
-                Serial::Writelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask->pid);
+                Serial::TWritelnf("> YIELDING TASK %X", Scheduler::CurrentRunningTask->pid);
         Scheduler::CurrentRunningTask->justYielded = true;
 
         Scheduler::SchedulerInterrupt(frame);
@@ -1794,6 +1794,9 @@ void Syscall_handler(interrupt_frame* frame)
         Scheduler::CurrentRunningTask->waitTillMessage = true;
         Scheduler::CurrentRunningTask->taskTimeoutDone = PIT::TimeSinceBootMS() + 500;
         Scheduler::CurrentRunningTask->justYielded = true;
+
+        if (Scheduler::CurrentRunningTask->messages->GetCount() > 0)
+            ;//Serial::TWritelnf("> TASK %X WAITING FOR MSG BUT ALREADY HAS %d", Scheduler::CurrentRunningTask->pid, Scheduler::CurrentRunningTask->messages->GetCount());
 
         if (LOG_SCHED_STUFF)
             Serial::TWritelnf("> MSG YIELDING TASK %X", Scheduler::CurrentRunningTask->pid);

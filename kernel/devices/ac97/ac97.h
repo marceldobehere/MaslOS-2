@@ -81,7 +81,7 @@ namespace AC97
         //bool lastDone;
         bool needManualRestart;
         bool doCheck;
-        bool dataReady;
+        int samplesReady;
         AC97Driver (PCI::PCIDeviceHeader* pciBaseAddress);
 
         bool QuickCheck = false;

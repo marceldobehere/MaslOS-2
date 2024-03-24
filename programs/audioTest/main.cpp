@@ -43,8 +43,17 @@ void DoAudioCheck()
     if (globalAudioDest == NULL)
         return;
 
-    // TODO: Make the kernel send a message to the program when it needs audio and then catch it here
-    // ...
+    while (true)
+    {
+        GenericMessagePacket* msg = msgGetConv(Audio::REQUEST_AUDIO_CONVO_ID);
+        if (msg == NULL)
+            break;
+
+        msg->Free();
+        _Free(msg);
+    }
+
+    globalAudioDestNeedsAudio = audioDataNeeded();
 
     if (!globalAudioDestNeedsAudio)
         return;
@@ -106,12 +115,12 @@ int main(int argc, char** argv)
     bool exit = false;
     while (!exit)
     {
-        globalAudioDestNeedsAudio = audioDataNeeded();
         DoAudioCheck();
         exit = !audioSource->readyToSend;
-        //programWaitMsg();
+        
+        programWaitMsg();
     }
-    programWait(400);
+    programWait(1000);
 
     return 0;
 }

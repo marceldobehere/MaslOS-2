@@ -14,4 +14,6 @@ namespace AudioDeviceStuff
     void init();
     void play(int timeYes);
     void resetTest();
+
+    void reqMoreData(Audio::BasicAudioDestination* dev);
 }

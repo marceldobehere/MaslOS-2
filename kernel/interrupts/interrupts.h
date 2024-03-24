@@ -141,3 +141,9 @@ bool IsAddressValidForTask(const void* addr);
 void Syscall_handler(interrupt_frame* frame);
 void FS_Syscall_handler(int syscall, interrupt_frame* frame);
 
+
+
+
+
+#include <libm/msgPackets/msgPacket.h>
+bool SendMessageToTask(GenericMessagePacket* oldPacket, uint64_t targetPid, uint64_t sourcePid);

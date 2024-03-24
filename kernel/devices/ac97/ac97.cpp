@@ -7,6 +7,7 @@
 #include <libm/cstr.h>
 #include <libm/memStuff.h>
 #include "../../paging/PageTableManager.h"
+#include "../../audio/audioDevStuff.h"
 
 
 // https://github.com/byteduck/duckOS/blob/master/kernel/device/AC97Device.cpp
@@ -72,28 +73,34 @@ namespace AC97
         QuickCheck = true;
 
 
-        if (!dataReady)
+        if (samplesReady < 1)
         {
-            int c = audioDestination->RequestBuffers();
-            if (c > 0)
-            {
-                dataReady = true;
-            }
+            audioDestination->buffer->sampleCount = audioDestination->buffer->totalSampleCount;
+            samplesReady = audioDestination->RequestBuffers();
         }
 
-        if (dataReady && 
+        if (samplesReady > 0 && 
             osData.ac97Driver != NULL)
         {
-            dataReady = false;
+            
             uint64_t tCount = 0;
             //Serial::Writeln("> Writing {} bytes", to_string(audioDestination->buffer->byteCount));
-            tCount = osData.ac97Driver->writeBuffer(0, 
-            (uint8_t*)(audioDestination->buffer->data), 
-            audioDestination->buffer->byteCount);
+            // tCount = osData.ac97Driver->writeBuffer(0, 
+            //     (uint8_t*)(audioDestination->buffer->data), 
+            //     audioDestination->buffer->byteCount);
 
-            if (tCount != audioDestination->buffer->byteCount)
+            //samplesReady = audioDestination->buffer->totalSampleCount;
+
+
+            int byteCount = samplesReady * (audioDestination->buffer->bitsPerSample / 8) * audioDestination->buffer->channelCount; // 16 bit, stereo
+            tCount = osData.ac97Driver->writeBuffer(0, 
+                (uint8_t*)(audioDestination->buffer->data), 
+                byteCount);
+            Serial::TWritelnf("> Writing %d/%d bytes (%d/%d samples) -> %d", byteCount, audioDestination->buffer->byteCount, samplesReady,audioDestination->buffer->totalSampleCount, tCount);
+
+            if (tCount != byteCount)
             {
-                Panic("AC97Driver::HandleIRQ: tCount != audioDestination->buffer->byteCount", true);
+                Panic("AC97Driver::HandleIRQ: tCount != byteCount", true);
             }
 
             audioDestination->buffer->ClearBuffer();
@@ -104,7 +111,13 @@ namespace AC97
 
             //Serial::Writeln("<WROTE LE MUSIC>");
             QuickCheck = false;
+            samplesReady = 0;
             return true;
+        }
+        else
+        {
+            // TODO: SEND MSG TO REQ AUDIO
+            AudioDeviceStuff::reqMoreData(audioDestination);
         }
 
         // if (!dataReady)
@@ -124,7 +137,7 @@ namespace AC97
     bool AC97Driver::CheckMusic()
     {
         //Serial::Writeln("<AC97 CheckMusic>");
-        if (dataReady)
+        if (samplesReady > 0)
         {
             return false;
             bool ret =!handle_irq(); 
@@ -134,12 +147,17 @@ namespace AC97
         //return true;
 
 
-        int c = audioDestination->RequestBuffers();
-        if (c > 0)
+        audioDestination->buffer->sampleCount = audioDestination->buffer->totalSampleCount;
+        samplesReady = audioDestination->RequestBuffers();
+        if (samplesReady > 0)
         {
-            dataReady = true;
             //Serial::Writeln("</AC97 CheckMusic: {}>", to_string(false));
             return false;
+        }
+        else
+        {
+            // TODO: SEND MSG TO REQ AUDIO
+            AudioDeviceStuff::reqMoreData(audioDestination);
         }
 
         
@@ -358,7 +376,7 @@ namespace AC97
         
         reset_output();
         PrintMsg("> Reset Output");
-        dataReady = false;
+        samplesReady = 0;
         QuickCheck = false;
         lastCheckTime = PIT::TimeSinceBootMS();
 

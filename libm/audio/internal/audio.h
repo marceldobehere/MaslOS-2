@@ -10,6 +10,7 @@ namespace Audio
 
 namespace Audio
 {
+    const uint64_t REQUEST_AUDIO_CONVO_ID = 0xDED0100;
 
     class AudioBuffer
     {
