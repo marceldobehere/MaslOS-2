@@ -2,14 +2,11 @@
 MaslOS but 2
 
 This is essentially MaslOS on the outside, but completely different on the inside.
-
 The main difference being a working scheduler and support for ELF execution!
 
-(Ofc still WIP but a bunch of stuff works already!)
-
-
 Of course it is 64bit and boots using BIOS.
-And it mostly works on real hardware.
+And it works on real hardware!
+
 
 ## Features
  + Basics
@@ -18,7 +15,7 @@ And it mostly works on real hardware.
    - User Space 
    - Inter Process Communication
    - Stdio using IPC
-   - Multithreading (still a bit experimental?)
+   - Multithreading (still experimental?)
  + GUI
    - MaslOS GUI Framework port
    - Mouse/Keyboard interaction 
@@ -56,7 +53,7 @@ And it mostly works on real hardware.
    + Drivers
      - PC-Speaker
      - AC97
-   - Audio System (WIP, currently kernel-only)
+   - Audio System (exists, still a bit wip)
  + Other
    - SMP (not added yet)
    - idk more stuff

@@ -18,64 +18,7 @@
 #include <libm/gui/guiStuff/components/button/buttonComponent.h>
 #include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
 
-#include <libm/audio/internal/audio.h>
-
-int globalAudioDestSampleRate;
-int globalAudioDestSampleCount;
-Audio::BasicAudioDestination* globalAudioDest = NULL;
-
-void initAudioStuff()
-{
-    globalAudioDestSampleRate = 44100;
-    globalAudioDestSampleCount = globalAudioDestSampleRate / 5;
-
-    globalAudioDest = new Audio::BasicAudioDestination(
-        Audio::AudioBuffer::Create16BitStereoBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount)
-    );
-
-    // TODO: Send the Audio Destination (Data) to the kernel
-    audioSetupBuffer(globalAudioDestSampleRate, globalAudioDestSampleCount, 16, 2);
-}
-
-bool globalAudioDestNeedsAudio = true;
-void DoAudioCheck()
-{
-    if (globalAudioDest == NULL)
-        return;
-
-    while (true)
-    {
-        GenericMessagePacket* msg = msgGetConv(Audio::REQUEST_AUDIO_CONVO_ID);
-        if (msg == NULL)
-            break;
-
-        msg->Free();
-        _Free(msg);
-    }
-
-    globalAudioDestNeedsAudio = audioDataNeeded();
-
-    if (!globalAudioDestNeedsAudio)
-        return;
-
-    int samplesRec = globalAudioDest->RequestBuffers();
-    if (samplesRec < 1)
-        return;
-
-    // Get the data
-    void* bufferData = globalAudioDest->buffer->data;
-    int sampleCount = globalAudioDest->buffer->sampleCount;
-    int sampleRate = globalAudioDest->buffer->sampleRate;
-    int bitsPerSample = globalAudioDest->buffer->bitsPerSample;
-
-    // TODO: Send the audio data to the kernel
-    audioSendData(bufferData, globalAudioDest->buffer->byteCount, samplesRec);
-
-    // Clear the buffer
-    globalAudioDest->buffer->ClearBuffer();
-    globalAudioDest->buffer->sampleCount = globalAudioDest->buffer->totalSampleCount;
-    globalAudioDestNeedsAudio = false;
-}
+#include <libm/audio/audioInterface.h>
 
 int main(int argc, char** argv)
 {
@@ -83,7 +26,6 @@ int main(int argc, char** argv)
 
     if (globalAudioDest == NULL)
         return 0;
-
 
     // Create our Audiosource
     int sampleRate = 44100;
@@ -109,9 +51,7 @@ int main(int argc, char** argv)
     audioSource->readyToSend = true;
 
 
-
-
-    // Wait forever
+    // Wait till audio is done playing
     bool exit = false;
     while (!exit)
     {
@@ -120,7 +60,7 @@ int main(int argc, char** argv)
         
         programWaitMsg();
     }
-    programWait(1000);
 
+    programWait(1000);
     return 0;
 }
