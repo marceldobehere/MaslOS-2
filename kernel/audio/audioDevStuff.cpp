@@ -146,29 +146,32 @@ namespace AudioDeviceStuff
                 uint8_t* data = (uint8_t*)pcSpk->destination->buffer->data;
                 c = pcSpk->destination->buffer->totalSampleCount;
                 int vol = pcSpk->destination->buffer->volume;
+                int cutOff = pcSpk->destination->buffer->sampleRate / 7000;
 
-                //_memset(pcSpkData, 0, pcSpk->destination->buffer->totalSampleCount);
-                for (int i = 0; i < c; i++)
-                    pcSpkData[i] = (((int)data[i])*vol) >= 12700;
+                _memset(pcSpkData, 0, pcSpk->destination->buffer->totalSampleCount);
+                // for (int i = 0; i < c; i++)
+                //     pcSpkData[i] = (((int)data[i])*vol) >= 12700;
                 
-                // for (int i1 = 0; i1 < c; i1++)
-                // {
-                //     if ((((int)data[i1])*vol) < 12700)
-                //         continue;
+                for (int i1 = 0; i1 < c; i1++)
+                {
+                    if ((((int)data[i1])*vol) < 12700)
+                        continue;
 
-                //     // Find the length of the beep and the average volume
-                //     int tC = 0;
-                //     long tS = 0;
-                //     for (int i2 = i1; i2 < c && (((int)data[i2])*vol) >= 12700; i2++)
-                //         tC++, tS += (((int)data[i2])*vol) / 100;
-
-                //     // Shorten the beep depending on the volume
-                //     int tV = tS / tC;
-                //     int aC = tC * tV / 255;
-                //     for (int i2 = i1; i2 < i1 + tC; i2++)
-                //         pcSpkData[i2] = true;
-                //     i1 += tC;
-                // }
+                    // Find the length of the beep and the average volume
+                    int tC = 0;
+                    long tS = 0;
+                    for (int i2 = i1; i2 < c && (((int)data[i2])*vol) >= 12700; i2++)
+                        tC++, tS += (int)data[i2];//(((int)data[i2])*vol) / 100;
+                    tS = (tS * vol) / 100;
+                    // Shorten the beep depending on the volume
+                    int tV = tS / tC;
+                    int aC = tC * tV / 255;
+                    if (aC < cutOff)
+                        aC = 0;
+                    for (int i2 = i1; i2 < i1 + aC; i2++)
+                        pcSpkData[i2] = true;
+                    i1 += tC;
+                }
             }
             else
             {

@@ -28,7 +28,7 @@ namespace Audio
         AudioBuffer(int bitsPerSample, int sampleRate, int channelCount, int sampleCount);
         void MixBuffer(AudioBuffer* other, int sampleOffset, int* samplesWritten, int* samplesRead);
         void ClearBuffer();
-        void Free();
+        void Destroy();
 
         static AudioBuffer* Create16BitMonoBuffer(int sampleRate, int sampleCount);
         static AudioBuffer* Create16Bit48KHzMonoBuffer(int sampleCount);
@@ -51,7 +51,7 @@ namespace Audio
         int RequestBuffer(BasicAudioSource* from);
         int RequestBuffers();
         bool AllBuffersDone();
-        void Free();
+        void Destroy();
     };
 
     class BasicAudioSource
@@ -67,7 +67,7 @@ namespace Audio
         BasicAudioSource(AudioBuffer* buffer);
         void ConnectTo(BasicAudioDestination* dest);
         void DisconnectFrom(BasicAudioDestination* dest);
-        void Free();
+        void Destroy();
     };
 
     class AudioInputDevice
@@ -79,7 +79,7 @@ namespace Audio
         AudioInputDevice(const char* deviceName, AudioBuffer* buff);
         AudioInputDevice(const char* deviceName, BasicAudioSource* source);
 
-        void Free();
+        void Destroy();
     };
 
     class AudioOutputDevice
@@ -91,7 +91,7 @@ namespace Audio
         AudioOutputDevice(const char* deviceName, AudioBuffer* buff);
         AudioOutputDevice(const char* deviceName, BasicAudioDestination* destination);
 
-        void Free();
+        void Destroy();
     };
     
 

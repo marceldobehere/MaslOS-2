@@ -31,7 +31,7 @@ namespace STDIO
         parent = new StdioInst(getParentPid());
 
         // try to connect with parent
-        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 1500);
+        GenericMessagePacket* packet = msgWaitConv(STDIO_INIT_CONVO_ID, 1000);
 
         if (packet != NULL && packet->Type == MessagePacketType::GENERIC_DATA && packet->Size == 8 && packet->FromPID == parent->pid)
         {

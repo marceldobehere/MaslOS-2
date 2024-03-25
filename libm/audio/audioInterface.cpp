@@ -6,7 +6,7 @@ Audio::BasicAudioDestination* globalAudioDest = NULL;
 
 void initAudioStuff()
 {
-    initAudioStuff(48000, 48000 / 10, 16, 2);
+    initAudioStuff(48000, 48000 / 5, 16, 2);
 }
 
 void initAudioStuff(Audio::AudioBuffer* buffer)

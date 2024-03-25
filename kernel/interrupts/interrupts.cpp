@@ -2202,7 +2202,7 @@ void Syscall_handler(interrupt_frame* frame)
         
         if (task->audioOutput != NULL)
         {
-            task->audioOutput->Free();
+            task->audioOutput->Destroy();
             task->audioOutput = NULL;
         }
 

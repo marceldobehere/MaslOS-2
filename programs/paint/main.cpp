@@ -307,14 +307,20 @@ void HandleFrame()
 
 void UpdateSizes()
 {
+    bool set = false;
     int h = window->Dimensions.height;
     if (h < 40)
-        h = 40;
+        h = 40, set = true;
     int w = window->Dimensions.width;
-    if (w < 100)
-        w = 100;
+    if (w < 30)
+        w = 30, set = true;
     window->Dimensions.width = w;
     window->Dimensions.height = h;
+    if (set)
+    {
+        setWindow(window);
+        guiInstance->Update();
+    }
 
     canvas->size.FixedY = h - canvas->position.y;
 }

@@ -28,6 +28,7 @@ And it works on real hardware!
    - Terminal 
    - Explorer 
    - Image Viewer 
+   - Music Player
    + MAAB interpreter
      - Pong
      - Maalbrot

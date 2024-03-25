@@ -656,7 +656,7 @@ namespace Scheduler
         if (task->audioOutput != NULL)
         {
             AddToStack();
-            task->audioOutput->Free();
+            task->audioOutput->Destroy();
             RemoveFromStack();
             task->audioOutput = NULL;
         }
