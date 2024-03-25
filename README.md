@@ -28,7 +28,7 @@ And it works on real hardware!
    - Terminal 
    - Explorer 
    - Image Viewer 
-   - Music Player
+   - Music Player (You can see a demo [here](https://cdn.marceldobehere.com/file/747710745.mp4))
    + MAAB interpreter
      - Pong
      - Maalbrot
