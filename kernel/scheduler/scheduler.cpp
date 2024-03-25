@@ -255,9 +255,6 @@ namespace Scheduler
                 cycleDone = false;
                 continue;
             }
-            
-            if (currentTask->priority != 0)
-                continue;
 
             cycleDone = false;
             break;

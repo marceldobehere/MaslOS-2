@@ -279,7 +279,7 @@ void PrintFPS(int fps, int aFps, int frameTime, int breakTime, int totalTime, ui
 int main(int argc, char** argv)
 {
     serialPrintLn("Starting Desktop");
-    programSetPriority(1);
+    programSetPriority(2);
     InitStuff();
 
     activeWindow = NULL;

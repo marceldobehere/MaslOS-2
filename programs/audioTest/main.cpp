@@ -1,23 +1,4 @@
 #include <libm/syscallManager.h>
-#include <libm/syscallList.h>
-#include <libm/rendering/basicRenderer.h>
-#include <libm/rendering/Cols.h>
-
-#include <libm/cstr.h>
-#include <libm/cstrTools.h>
-#include <libm/wmStuff/wmStuff.h>
-#include <libm/rendering/basicRenderer.h>
-#include <libm/rendering/Cols.h>
-#include <libm/rnd/rnd.h>
-#include <libm/stubs.h>
-
-#include <libm/gui/guiInstance.h>
-#include <libm/gui/guiStuff/components/box/boxComponent.h>
-#include <libm/gui/guiStuff/components/rectangle/rectangleComponent.h>
-#include <libm/gui/guiStuff/components/text/textComponent.h>
-#include <libm/gui/guiStuff/components/button/buttonComponent.h>
-#include <libm/gui/guiStuff/components/textField/textFieldComponent.h>
-
 #include <libm/audio/audioInterface.h>
 
 int main(int argc, char** argv)
@@ -52,12 +33,10 @@ int main(int argc, char** argv)
 
 
     // Wait till audio is done playing
-    bool exit = false;
-    while (!exit)
+    while (audioSource->readyToSend)
     {
         DoAudioCheck();
-        exit = !audioSource->readyToSend;
-        
+
         programWaitMsg();
     }
 
