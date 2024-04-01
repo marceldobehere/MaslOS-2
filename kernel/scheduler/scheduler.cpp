@@ -170,6 +170,7 @@ namespace Scheduler
 
         // Try to find the next task to run (with priority > 0)
         bool cycleDone = false;
+        bool prioFound = false;
         for (int i = 0; i < osTasks.obj->GetCount(); i++)
         {
             osTask* bruhTask = osTasks.obj->ElementAt(i);
@@ -201,6 +202,7 @@ namespace Scheduler
                 bruhTask->priorityStep = 0;
                 CurrentTaskIndex = i;
                 cycleDone = true;
+                prioFound = true;
                 break;
             }
         }
@@ -212,7 +214,7 @@ namespace Scheduler
         }
             
 
-        // Find the next task to run (with priority == 0)
+        // Find the next task to run (with priority >= 0)
         cycleDone = false;
         while (true)
         {
@@ -279,7 +281,22 @@ namespace Scheduler
             }
         }
         else
+        {
             nowTask = osTasks.obj->ElementAt(CurrentTaskIndex);
+
+            if (prioFound)
+            {
+                int rmIndex = RND::RandomInt() % osTasks.obj->GetCount();
+                osTask* temp = osTasks.obj->ElementAt(rmIndex);
+                osTasks.obj->RemoveAt(rmIndex);
+                osTasks.obj->Add(temp);
+                
+                int tI = CurrentTaskIndex;
+                CurrentTaskIndex = osTasks.obj->GetIndexOf(nowTask);
+                
+                //Serial::TWritelnf("SCHEDULER> DOING TASK PRIO SHUFFLE %d -> %d",tI , CurrentTaskIndex);
+            }
+        }
         
 
         if (nowTask->doExit || !nowTask->active || nowTask->removeMe)

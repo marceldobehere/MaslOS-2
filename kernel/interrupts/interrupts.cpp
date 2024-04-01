@@ -386,7 +386,7 @@ void TempPitRoutine(interrupt_frame* frame)
 
     RemoveFromStack();
 
-    if (++_pitCount2 >= 5 * silly)
+    if (++_pitCount2 >= 3 * silly)
     {
         _pitCount2 = 0;
         Scheduler::SchedulerInterrupt(frame);

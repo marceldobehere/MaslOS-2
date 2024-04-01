@@ -77,6 +77,7 @@ namespace AC97
         {
             audioDestination->buffer->sampleCount = audioDestination->buffer->totalSampleCount;
             samplesReady = audioDestination->RequestBuffers();
+            AudioDeviceStuff::reqMoreData(audioDestination);
         }
 
         if (samplesReady > 0 && 
@@ -119,7 +120,8 @@ namespace AC97
             // TODO: SEND MSG TO REQ AUDIO
             //AudioDeviceStuff::reqMoreData(audioDestination);
         }
-        AudioDeviceStuff::reqMoreData(audioDestination);
+        
+        
 
         // if (!dataReady)
         // {
@@ -150,6 +152,7 @@ namespace AC97
 
         audioDestination->buffer->sampleCount = audioDestination->buffer->totalSampleCount;
         samplesReady = audioDestination->RequestBuffers();
+        AudioDeviceStuff::reqMoreData(audioDestination);
         if (samplesReady > 0)
         {
             //Serial::Writeln("</AC97 CheckMusic: {}>", to_string(false));
@@ -158,8 +161,8 @@ namespace AC97
         else
         {
             // TODO: SEND MSG TO REQ AUDIO
-            AudioDeviceStuff::reqMoreData(audioDestination);
         }
+        
 
         
         //Serial::Writeln("</AC97 CheckMusic: {}>", to_string(true));

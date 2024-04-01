@@ -95,11 +95,12 @@ namespace AudioDeviceStuff
                 osTask* task = tasks->ElementAt(i2);
                 if (task == NULL || task->audioOutput != src)
                     continue;
+                //Serial::Writelnf("  > FOUND SRC %d = %d", i1, i2);
 
                 if (task->messages->GetCount() > 0)
                 {
-                    if (task->messages->GetCount() > 5)
-                        ;//Serial::TWritelnf("AUDIO> REQ MORE DATA, BUT TASK PID %X ALREADY HAS %d MESSAGES!", task->pid, task->messages->GetCount());
+                    // if (task->messages->GetCount() > 5)
+                    //     ;//Serial::TWritelnf("AUDIO> REQ MORE DATA, BUT TASK PID %X ALREADY HAS %d MESSAGES!", task->pid, task->messages->GetCount());
                     continue;
                 }
 
@@ -109,8 +110,7 @@ namespace AudioDeviceStuff
                     continue;
                 }
 
-                // TODO: SEND MSG TO THE TASK PID
-                Serial::TWritelnf("AUDIO> REQ MORE DATA, SENDING MSG TO TASK PID %X", task->pid);
+                //Serial::TWritelnf("AUDIO> REQ MORE DATA, SENDING MSG TO TASK PID %X", task->pid);
                 
                 AddToStack();
                 GenericMessagePacket* msg = new GenericMessagePacket(0, MessagePacketType::AUDIO_REQUESTED);
@@ -190,7 +190,8 @@ namespace AudioDeviceStuff
             {
                 //reqMoreData(pcSpk->destination);
             }
-            reqMoreData(pcSpk->destination);
+            if (pcSpk->destination->sources->GetCount() > 0)
+                reqMoreData(pcSpk->destination);
 
             // else
             //     if (pcSpk->destination->sources->GetCount() > 0)
