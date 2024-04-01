@@ -96,7 +96,7 @@ namespace AC97
             tCount = osData.ac97Driver->writeBuffer(0, 
                 (uint8_t*)(audioDestination->buffer->data), 
                 byteCount);
-            Serial::TWritelnf("> Writing %d/%d bytes (%d/%d samples) -> %d", byteCount, audioDestination->buffer->byteCount, samplesReady,audioDestination->buffer->totalSampleCount, tCount);
+            //Serial::TWritelnf("> Writing %d/%d bytes (%d/%d samples) -> %d", byteCount, audioDestination->buffer->byteCount, samplesReady,audioDestination->buffer->totalSampleCount, tCount);
 
             if (tCount != byteCount)
             {
@@ -117,8 +117,9 @@ namespace AC97
         else
         {
             // TODO: SEND MSG TO REQ AUDIO
-            AudioDeviceStuff::reqMoreData(audioDestination);
+            //AudioDeviceStuff::reqMoreData(audioDestination);
         }
+        AudioDeviceStuff::reqMoreData(audioDestination);
 
         // if (!dataReady)
         // {

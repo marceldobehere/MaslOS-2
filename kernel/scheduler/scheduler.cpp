@@ -145,6 +145,7 @@ namespace Scheduler
                 // }
                 task->waitTillMessage = false;
                 task->taskTimeoutDone = 0;
+                task->justYielded = false;
             }
         }
 

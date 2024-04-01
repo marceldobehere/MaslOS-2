@@ -31,16 +31,6 @@ void DoAudioCheck()
     if (globalAudioDest == NULL)
         return;
 
-    while (true)
-    {
-        GenericMessagePacket* msg = msgGetConv(Audio::REQUEST_AUDIO_CONVO_ID);
-        if (msg == NULL)
-            break;
-
-        msg->Free();
-        _Free(msg);
-    }
-
     if (!audioDataNeeded())
         return;
 
@@ -60,4 +50,15 @@ void DoAudioCheck()
     // Clear the buffer
     globalAudioDest->buffer->ClearBuffer();
     globalAudioDest->buffer->sampleCount = globalAudioDest->buffer->totalSampleCount;
+
+    // Free the messages
+    while (true)
+    {
+        GenericMessagePacket* msg = msgGetConv(Audio::REQUEST_AUDIO_CONVO_ID);
+        if (msg == NULL)
+            break;
+
+        msg->Free();
+        _Free(msg);
+    }
 }

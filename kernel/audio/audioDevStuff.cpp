@@ -93,11 +93,24 @@ namespace AudioDeviceStuff
             for (int i2 = 0; i2 < tasks->GetCount(); i2++)
             {
                 osTask* task = tasks->ElementAt(i2);
-                if (task == NULL || task->audioOutput != src || task->messages->GetCount() > 0)
+                if (task == NULL || task->audioOutput != src)
                     continue;
 
+                if (task->messages->GetCount() > 0)
+                {
+                    if (task->messages->GetCount() > 5)
+                        ;//Serial::TWritelnf("AUDIO> REQ MORE DATA, BUT TASK PID %X ALREADY HAS %d MESSAGES!", task->pid, task->messages->GetCount());
+                    continue;
+                }
+
+                if (task->audioOutput->readyToSend)
+                {
+                    ;//Serial::TWritelnf("AUDIO> REQ MORE DATA, BUT TASK PID %X IS READY TO SEND (%d/%d)", task->pid, task->audioOutput->samplesSent, task->audioOutput->buffer->totalSampleCount);
+                    continue;
+                }
+
                 // TODO: SEND MSG TO THE TASK PID
-                //Serial::TWritelnf("AUDIO> REQ MORE DATA, SENDING MSG TO TASK PID %X", task->pid);
+                Serial::TWritelnf("AUDIO> REQ MORE DATA, SENDING MSG TO TASK PID %X", task->pid);
                 
                 AddToStack();
                 GenericMessagePacket* msg = new GenericMessagePacket(0, MessagePacketType::AUDIO_REQUESTED);
@@ -175,8 +188,10 @@ namespace AudioDeviceStuff
             }
             else
             {
-                reqMoreData(pcSpk->destination);
+                //reqMoreData(pcSpk->destination);
             }
+            reqMoreData(pcSpk->destination);
+
             // else
             //     if (pcSpk->destination->sources->GetCount() > 0)
             //         Serial::TWritelnf("AUDIO> FAILED TO REQUEST BUFFER!");

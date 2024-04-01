@@ -113,12 +113,16 @@ void MainLoop()
 {
     while (!CheckForWindowClosed(window))
     {
+        DoAudioCheck();
+
         guiInstance->Update();
         CheckMusic();
         UpdateText();
+
         DoAudioCheck();
         guiInstance->Render(false);
 
+        DoAudioCheck();
         programWaitMsg();
     }
 }

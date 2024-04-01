@@ -386,7 +386,7 @@ void TempPitRoutine(interrupt_frame* frame)
 
     RemoveFromStack();
 
-    if (++_pitCount2 >= silly)
+    if (++_pitCount2 >= 5 * silly)
     {
         _pitCount2 = 0;
         Scheduler::SchedulerInterrupt(frame);
@@ -2288,7 +2288,7 @@ void Syscall_handler(interrupt_frame* frame)
         if (task->audioOutput != NULL)
         {
             Audio::BasicAudioSource* source = task->audioOutput;
-            frame->rax = !source->readyToSend;
+            frame->rax = !source->readyToSend;// || source->samplesSent >= source->buffer->sampleCount;
         }
         else
         {
