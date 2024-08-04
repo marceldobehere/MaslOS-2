@@ -1,7 +1,7 @@
 # MaslOS-2
 MaslOS but 2
 
-This is essentially MaslOS on the outside, but completely different on the inside.
+This is essentially [MaslOS](https://github.com/marceldobehere/MaslOS) on the outside, but completely different on the inside.
 The main difference being a working scheduler and support for ELF execution!
 
 Of course it is 64bit and boots using BIOS.
