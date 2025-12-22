@@ -1,0 +1,10 @@
+--include-directory=../../
+--include-directory=../../libm/
+-D _KERNEL_SRC
+
+-mcmodel=large 
+-mno-red-zone 
+-mgeneral-regs-only 
+-ffreestanding 
+-fno-omit-frame-pointer
+-xc++

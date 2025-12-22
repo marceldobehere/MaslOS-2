@@ -270,7 +270,7 @@ namespace Mouse
         {
             case 0:
             {
-                if (data & 0b00001000 == 0)
+                if ((data & 0b00001000) == 0)
                 {
                     mouseCycleSkip = (RND::lehmer64() / 100) % 4;
                     break;

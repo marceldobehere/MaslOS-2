@@ -1,0 +1,15 @@
+--include-directory=../
+--include-directory=../libm/
+-D _KERNEL_MODULE
+
+-mcmodel=large 
+-ffreestanding 
+-fshort-wchar 
+-mno-red-zone 
+-fno-omit-frame-pointer 
+-fno-exceptions 
+-fpermissive 
+-Wno-pmf-conversions 
+-ffunction-sections 
+-fdata-sections
+-xc++
