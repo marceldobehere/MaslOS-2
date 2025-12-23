@@ -155,7 +155,7 @@ void boot(void* _bootInfo)
                         Scheduler::TestElfFile = file->driver_specific_data;
                         Serial::Writelnf("> SET TEST ELF");
                     }
-                    else if (StrEquals(file->name, "desktop.elf"))
+                    else if (StrEquals(file->name, "desktop2.elf"))
                     {
                         Scheduler::DesktopElfFile = file->driver_specific_data;
                         Serial::Writelnf("> SET DESKTOP ELF");
