@@ -3,6 +3,7 @@
 #include "../kernelStuff/memory/memory.h"
 #include "../paging/PageFrameAllocator.h"
 #include "../paging/PageTableManager.h"
+#include <cstdint>
 
 namespace Elf
 {
@@ -157,6 +158,7 @@ namespace Elf
         if (file.works)
         {
             void* offset = (void*)((uint64_t)file.offset - MEM_AREA_ELF_MAP_OFFSET);
+            GlobalPageTableManager.UnmapMemories(file.offset, file.size);
             GlobalAllocator->FreePages(offset, file.size);
         }
     }

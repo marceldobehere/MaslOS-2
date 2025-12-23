@@ -444,12 +444,12 @@ namespace Serial
                     char argChar = va_arg(arg, int);
                     Write(argChar);
                 }
-                else if (str[i] == 'd' || str[i + 1] == 'i')
+                else if (str[i] == 'd' || str[i] == 'i')
                 {
                     int argInt = va_arg(arg, int);
                     Write(to_string(argInt));
                 }
-                else if (str[i] == 'D' || str[i + 1] == 'I')
+                else if (str[i] == 'D' || str[i] == 'I')
                 {
                     uint64_t argInt = va_arg(arg, uint64_t);
                     Write(to_string(argInt));

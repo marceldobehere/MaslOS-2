@@ -70,6 +70,9 @@ namespace Scheduler
 
         //Serial::TWritelnf("SCHEDULER> INTERRUPT %d", osTasks.obj->GetCount());
 
+        // Very important!
+        GlobalPageTableManager.SwitchPageTable(GlobalPageTableManager.PML4);
+
         osTasks.Lock();
 
         // Restart Desktop
@@ -159,7 +162,7 @@ namespace Scheduler
 
             if (bruhTask->removeMe || bruhTask->doExit)
             {
-                Serial::TWritelnf("SCHEDULER> AUTO REMOVING STOPPED TASK AT %d (%X)", i, bruhTask->pid);
+                Serial::TWritelnf("SCHEDULER> AUTO REMOVING STOPPED TASK AT %d (%X) (%X)", i, bruhTask->pid, bruhTask);
 
                 osTasks.Unlock();
                 RemoveTask(bruhTask);

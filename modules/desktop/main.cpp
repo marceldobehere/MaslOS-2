@@ -307,13 +307,12 @@ int main(int argc, char** argv)
         for (int i = 0; i < frameCount; i++)
         {
             uint64_t startTime = envGetTimeMs();
-            totalPixelCount += DrawFrame();
 
+            totalPixelCount += DrawFrame();
             if ((i & 7) == 0)
                 CheckForDeadWindows();
 
             uint64_t endTime = envGetTimeMs();
-
             frameTime += endTime - startTime;
 
             //programWait(10);
