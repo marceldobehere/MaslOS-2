@@ -176,13 +176,14 @@ bool listen_input(edit_state_t* state) {
 				} else {
 					state->char_cnt++;
 				}
-
+				
 				state->is_edited = true;
-				state->input_buffer = (char*) _Realloc((void*) state->input_buffer, ++state->current_size); // WHY + 1 ???
-				_memmove((void*) &state->input_buffer[state->buffer_idx], (void*) &state->input_buffer[state->buffer_idx+1], (state->current_size - state->buffer_idx) * sizeof(char));
+				state->current_size++;
+				state->input_buffer = (char*) _Realloc((void*) state->input_buffer, state->current_size);
+				_memmove((void*) &state->input_buffer[state->buffer_idx + 1], (void*) &state->input_buffer[state->buffer_idx], (state->current_size - state->buffer_idx - 1) * sizeof(char));
 				state->input_buffer[state->buffer_idx] = input;
 				state->buffer_idx++;
-
+				
 				rerender_color(state);
 			}
 			break;
