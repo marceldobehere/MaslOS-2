@@ -65,19 +65,40 @@ void render_tui(edit_state_t* state) {
 	int cur_y = 0;
 	int already_drawn  = 0;
 	bool initial_line_drawn = false;
-	int current_line = 1;
 	bool cursor_drawn = false;
 
 	sprintf(buff, "%d .", state->ln_cnt);
 	int space_to_draw = SPACE_BETWEEN_LINE_NUMBER_TEXT + (StrLen(buff) * CHAR_WIDTH);
 	cur_x = space_to_draw;
 
-	int possible_lines_to_draw = state->window->Dimensions.height / CHAR_SIZE - 4;
+	
+	int viewport_height = state->window->Dimensions.height / CHAR_SIZE - 4;
+
+	static int start_line = 0;
+	
+	if (state->buffer_ln_idx < start_line) {
+		start_line = state->buffer_ln_idx;
+	} else if (state->buffer_ln_idx >= start_line + viewport_height) {
+		start_line = state->buffer_ln_idx - viewport_height + 1;
+	}
+	
+	if (start_line < 0) {
+		start_line = 0;
+	}
+	if (start_line + viewport_height > state->ln_cnt) {
+		start_line = state->ln_cnt - viewport_height;
+		if (start_line < 0) {
+			start_line = 0;
+		}
+	}
+
+	int current_line = start_line + 1;
+
 
 	state->canvas->DrawLine(space_to_draw - (1 * CHAR_WIDTH), 0, space_to_draw - (1 * CHAR_WIDTH), state->window->Dimensions.height - (2 * CHAR_WIDTH), LINE_NUMBER_COLOR, 1);
 
 	for (int i = 0; i < state->current_size; i++) {
-		if ((state->ln_cnt - 1 < possible_lines_to_draw || j >= state->buffer_ln_idx) && already_drawn <= possible_lines_to_draw) {
+		if ((j >= start_line && j < start_line + viewport_height) && already_drawn <= viewport_height) {
 			if (!initial_line_drawn) {
 				initial_line_drawn = true;
 				sprintf(buff, "%d.", current_line);
@@ -99,6 +120,7 @@ void render_tui(edit_state_t* state) {
 			if (state->input_buffer[i] == '\n') {
 				already_drawn++;
 				current_line++;
+				j++;
 				cur_x = space_to_draw;
 				cur_y += CHAR_SIZE;
 				sprintf(buff, "%d.", current_line);
@@ -110,7 +132,6 @@ void render_tui(edit_state_t* state) {
             }
 		} else {
 			if (state->input_buffer[i] == '\n') {
-				current_line++;
 				j++;
 			}
 		}

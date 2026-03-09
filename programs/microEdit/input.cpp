@@ -180,7 +180,7 @@ bool listen_input(edit_state_t* state) {
 				state->is_edited = true;
 				state->current_size++;
 				state->input_buffer = (char*) _Realloc((void*) state->input_buffer, state->current_size);
-				_memmove((void*) &state->input_buffer[state->buffer_idx + 1], (void*) &state->input_buffer[state->buffer_idx], (state->current_size - state->buffer_idx - 1) * sizeof(char));
+				_memmove((void*) &state->input_buffer[state->buffer_idx], (void*) &state->input_buffer[state->buffer_idx + 1], (state->current_size - state->buffer_idx - 1) * sizeof(char));
 				state->input_buffer[state->buffer_idx] = input;
 				state->buffer_idx++;
 				
