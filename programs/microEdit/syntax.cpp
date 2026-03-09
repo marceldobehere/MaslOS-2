@@ -47,7 +47,7 @@ int highlight_section(char* input, int len, int cur, char* str, syntax_section_t
 		}
 		_memset(&output[start], section->color, fill_len);
 
-		cur += end_len;
+		cur += end_len - 1;
 		if (cur > len) {
 			cur = len;
 		}
