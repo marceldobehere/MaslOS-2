@@ -140,7 +140,7 @@ bool listen_input(edit_state_t* state) {
 	} else {
 		switch (input) {
 			case '\b': {
-				if (state->buffer_idx - 2 < 0 || state->current_size - 1 < 0) {
+				if (state->buffer_idx < 1 || state->current_size < 1) {
 				} else {
 					if (state->input_buffer[state->buffer_idx - 1] == '\n') {
 						state->buffer_ln_idx--;
