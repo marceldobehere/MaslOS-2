@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
     fsReadFile(state.file_name, (void**) &state.input_buffer, &state.current_size);
     state.buffer_idx = state.current_size;
 
+	state.ln_cnt = 1;
     for (int i = 0; i < state.current_size; i++) {
 		state.char_cnt++;
 		if (state.input_buffer[i] == '\n') {
